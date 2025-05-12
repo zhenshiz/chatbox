@@ -1,0 +1,25 @@
+{
+  "command.target.player.only": "The target of this command should be the a player",
+  "command.target.entity.only": "The target of this command should be the an entity",
+  "commands.toggle.theme": "Successfully switched the theme style of the dialog box",
+  "commands.skip.dialogues": "Successfully jumped to the %s sentence of the %s group",
+
+  "chatbox.test.name.1": "Kotoyose Fumino",
+  "chatbox.test.text.1": "Welcome to this module, and I will now introduce its features to you.",
+  "chatbox.test.text.2": "All configurations of this module are implemented in the data pack, including the dialog box, options, character illustrations, and the button for viewing chat history. Configurations include, but are not limited to, position, size, text content, transparency, etc.",
+  "chatbox.test.text.3": "First, let's introduce the dialog box feature. Normally, the text will be displayed gradually, and the player can click on the blank space to make the text display all at once. The player can only choose an option after the text has been fully displayed.",
+  "chatbox.test.text.4": "Next is the option feature. The player can configure the materials for options in three states: the default state, when the mouse hovers over it, and when the option is locked. You can hide or lock the option, and the unlock condition is when a certain value in the scoreboard is 1. When the user clicks the option, it can either jump to another dialog or trigger custom commands.",
+  "chatbox.test.text.5": "Then comes the character illustration part. You can render multiple materials in a single dialog, including images from the resource pack, the player's avatar, and item textures. If it's an image from the resource pack, you can also set its transparency and execute a pre-set animation with a defined duration.",
+  "chatbox.test.text.6": "The pre-set animations include: Fade In",
+  "chatbox.test.text.7": "Slide In",
+  "chatbox.test.text.8": "Bounce",
+  "chatbox.test.text.9": "Now, let's talk about text content. You can set §1color§2coded§3text§4, §f§lbold, §r§oitalic, §r§nunderline§r, and other formatting codes. You can also use @@s in the text to refer to the currently viewing player. Am I right? @s",
+  "chatbox.test.text.10": "Next is the chat history feature. You can set an image button to open the chat history on your screen, with two materials for the default state and when the mouse hovers over it. After opening, you can view the recent jump history. You can click on a record to jump to the corresponding dialog to avoid regretting your choices. However, when you close the dialog or jump through the history, all the chat history will be cleared and recorded again.",
+  "chatbox.test.text.11": "Finally, let's introduce the new commands of this module. Since all the dialogues in this module are stored in data packs, you can directly use the /reload command to reload all configuration files related to the dialog box.",
+  "chatbox.test.text.12": "You can temporarily close the dialog box with the Esc key, and use /chatbox open to reopen an unfinished dialog. You can use the /chatbox skip command to open a specified dialog.",
+  "chatbox.test.text.13": "/chatbox theme command allows you to switch the theme style of the dialog box.",
+  "chatbox.test.text.14": "For more detailed tutorials and to generate JSON files for the dialog box data pack, please refer to the module's Wiki webpage. Lastly, enjoy your experience!",
+  "chatbox.test.option.1": "Locked Option",
+  "chatbox.test.option.2": "Unlocked Option",
+  "chatbox.test.tooltip.1": "It, seems some mysterious ritual is required to unlock this option."
+}

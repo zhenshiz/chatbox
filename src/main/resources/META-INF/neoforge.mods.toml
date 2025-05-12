@@ -1,0 +1,30 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+#issueTrackerURL = ""
+license = "ARR"
+
+[[mods]]
+modId = "chatbox"
+version = "1.0.0"
+displayName = "ChatBox"
+authors = "zhenshiz"
+description = '''
+GalGame DialogBox
+'''
+
+[[dependencies.chatbox]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.chatbox]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "chatbox.mixins.json"
