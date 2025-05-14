@@ -39,9 +39,6 @@ public class ChatBoxCommand implements ICommand {
                 .then(Commands.literal("open")
                         .executes(ChatBoxCommand::openChatBox)
                 )
-                .then(Commands.literal("test")
-                        .executes(ChatBoxCommand::dialogTest)
-                )
         );
     }
 
@@ -83,18 +80,6 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
             player.connection.send(new ChatBoxPayload.openChatBox());
-
-            return 1;
-        } else {
-            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
-            return 0;
-        }
-    }
-
-    private static int dialogTest(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
-        if (player != null) {
-            player.connection.send(new ChatBoxPayload.DialogTest());
 
             return 1;
         } else {

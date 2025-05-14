@@ -4,7 +4,7 @@
   "commands.toggle.theme": "Successfully switched the theme style of the dialog box",
   "commands.skip.dialogues": "Successfully jumped to the %s sentence of the %s group",
 
-  "chatbox.test.name.1": "Kotoyose Fumino",
+  "chatbox.test.name.1": "Inaba Meguru",
   "chatbox.test.text.1": "Welcome to this module, and I will now introduce its features to you.",
   "chatbox.test.text.2": "All configurations of this module are implemented in the data pack, including the dialog box, options, character illustrations, and the button for viewing chat history. Configurations include, but are not limited to, position, size, text content, transparency, etc.",
   "chatbox.test.text.3": "First, let's introduce the dialog box feature. Normally, the text will be displayed gradually, and the player can click on the blank space to make the text display all at once. The player can only choose an option after the text has been fully displayed.",

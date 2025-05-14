@@ -48,16 +48,5 @@ public class ChatBoxClient {
                         }
                 )
         );
-
-        registrar.playBidirectional(
-                ChatBoxPayload.DialogTest.TYPE,
-                ChatBoxPayload.DialogTest.CODEC,
-                new DirectionalPayloadHandler<>(
-                        (payload, context) -> {
-                        },
-                        (payload, context) -> {
-                        }
-                )
-        );
     }
 }

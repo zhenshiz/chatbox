@@ -29,23 +29,6 @@ public class ChatBoxPayload {
         }
     }
 
-    public record DialogTest() implements CustomPacketPayload {
-        public static final Type<DialogTest> TYPE = new Type<>(ChatBox.ResourceLocationMod("dialog_test"));
-        public static final StreamCodec<FriendlyByteBuf, DialogTest> CODEC = StreamCodec.ofMember(DialogTest::write, DialogTest::new);
-
-        public DialogTest(FriendlyByteBuf friendlyByteBuf) {
-            this();
-        }
-
-        private void write(FriendlyByteBuf buf) {
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
     public record openChatBox() implements CustomPacketPayload {
         public static final Type<openChatBox> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_dialog"));
         public static final StreamCodec<FriendlyByteBuf, openChatBox> CODEC = StreamCodec.ofMember(openChatBox::write, openChatBox::new);
