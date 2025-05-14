@@ -1,0 +1,209 @@
+{
+  "$introduce": "这是一段介绍本模组的文本",
+  "dialogues": {
+    "start": [
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.1",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.2",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.3",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.4",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ],
+        "options": [
+          {
+            "text": "chatbox.test.option.1",
+            "isTranslatable": true,
+            "isLock": true,
+            "tooltip": "chatbox.test.tooltip.1"
+          },
+          {
+            "text": "chatbox.test.option.2",
+            "isTranslatable": true
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.5",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          },
+          {
+            "type": "player_head",
+            "value": "head"
+          },
+          {
+            "type": "item",
+            "value": "item"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.6",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors_fade_in"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.7",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors_slide_in_from_bottom"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.8",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors_bounce"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.9",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.10",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.11",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.12",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.13",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.14",
+          "isTranslatable": true
+        },
+        "portrait": [
+          {
+            "type": "texture",
+            "value": "authors"
+          }
+        ]
+      }
+    ]
+  }
+}
