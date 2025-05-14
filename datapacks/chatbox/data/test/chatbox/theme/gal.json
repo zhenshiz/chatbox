@@ -6,8 +6,8 @@
         -5
       ],
       "size": [
-        54,
-        80
+        30,
+        60
       ],
       "alignX": "left",
       "alignY": "bottom",
@@ -20,14 +20,14 @@
         0
       ],
       "size": [
-        54,
+        40,
         80
       ],
       "alignX": "center",
       "alignY": "bottom",
       "value": "chatbox:textures/portrait/authors.png",
       "animation": "FADE_IN",
-      "z": -1
+      "z": 1
     },
     "authors_slide_in_from_bottom": {
       "pos": [
@@ -35,7 +35,7 @@
         10
       ],
       "size": [
-        54,
+        40,
         80
       ],
       "alignX": "center",
@@ -50,7 +50,7 @@
         0
       ],
       "size": [
-        54,
+        40,
         80
       ],
       "alignX": "center",
