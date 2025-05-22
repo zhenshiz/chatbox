@@ -1,21 +1,15 @@
 package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
-import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.phys.Vec2;
-
-import java.util.function.Supplier;
 
 public class Portrait extends AbstractComponent<Portrait> {
     public Type type;
@@ -34,8 +28,6 @@ public class Portrait extends AbstractComponent<Portrait> {
     private int currentAnimationTick = 0;
     //执行动画的总时长
     private int durationAnimationTick = 20;
-
-    public Supplier<PlayerSkin> supplier = null;
 
     public Portrait() {
         defaultOption();
@@ -134,23 +126,17 @@ public class Portrait extends AbstractComponent<Portrait> {
                     renderImage(guiGraphics, ResourceLocation.parse(this.value));
                     RenderSystem.disableBlend();
                 }
-                case PLAYER_HEAD -> {
-                    RenderUtil.handleGameProfileAsync(parseText(this.value), profile -> supplier = RenderUtil.texturesSupplier(profile));
-                    PlayerFaceRenderer.draw(guiGraphics, getTexture(), getResponsiveWidth(x), getResponsiveHeight(y), (this.width + this.height) / 2);
-                }
+                case PLAYER_HEAD ->
+                        RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), getResponsiveWidth(x), getResponsiveHeight(y), getResponsiveWidth(this.width) + getResponsiveHeight(this.height));
                 case ITEM -> {
                     ItemStack itemStack = BuiltInRegistries.ITEM.get(ResourceLocation.parse(this.value)).getDefaultInstance();
                     if (this.customItemData != null) {
                         itemStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(this.customItemData));
                     }
-                    guiGraphics.renderItem(itemStack, getResponsiveWidth(x), getResponsiveHeight(y));
+                    RenderUtil.renderItem(guiGraphics, itemStack, getResponsiveWidth(x), getResponsiveHeight(y), (float) (this.width + this.height) / 2);
                 }
             }
         }
-    }
-
-    private ResourceLocation getTexture() {
-        return this.supplier == null ? DefaultPlayerSkin.getDefaultTexture() : supplier.get().texture();
     }
 
 
