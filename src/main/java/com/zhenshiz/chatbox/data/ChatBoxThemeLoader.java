@@ -68,6 +68,6 @@ public class ChatBoxThemeLoader extends SimpleJsonResourceReloadListener {
             logButton = GSON.fromJson(logButtonElement, ChatBoxTheme.LogButton.class);
         }
 
-        return new ChatBoxTheme(portrait, option, dialogBox, logButton);
+        return new ChatBoxTheme(portrait, option, dialogBox, logButton).setDefaultValue();
     }
 }

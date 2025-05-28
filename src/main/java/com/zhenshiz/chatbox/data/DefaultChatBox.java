@@ -16,12 +16,14 @@ public class DefaultChatBox {
                         .setTextPosition(20, 10)
                         .setNamePosition(20, 15)
                         .setLineWidth(70)
+                        .build()
                 ).setLogButton(new LogButton()
                         .setSize(5, 10)
                         .setAlign(AbstractComponent.AlignX.RIGHT, AbstractComponent.AlignY.BOTTOM)
                         .setLogTexture("chatbox:textures/log/default_log.png")
                         .setHoverLogTexture("chatbox:textures/hover/default_hover_log.png")
                         .setAlign(AbstractComponent.AlignX.RIGHT, AbstractComponent.AlignY.BOTTOM)
+                        .build()
                 );
     }
 }

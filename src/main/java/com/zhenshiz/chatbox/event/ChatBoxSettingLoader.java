@@ -6,6 +6,7 @@ import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.data.DefaultChatBox;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -24,7 +25,8 @@ public class ChatBoxSettingLoader {
 
     @SubscribeEvent
     public static void initializeChatBoxScreen(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getEntity();
+        ServerPlayer player = (ServerPlayer) event.getEntity();
+        //发包到客户端
         ChatBoxScreen chatBoxScreen = ChatBoxUtil.chatBoxScreens.get(player.getUUID());
         if (chatBoxScreen == null) ChatBoxUtil.chatBoxScreens.put(player.getUUID(), DefaultChatBox.getDefaultTheme());
     }

@@ -10,8 +10,9 @@ import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 
 import java.util.*;
 
@@ -20,14 +21,13 @@ public class ChatBoxUtil {
     //各个玩家的对话框主题
     public static final Map<UUID, ResourceLocation> playerChatBoxTheme = new HashMap<>();
     //各个玩家的对话框信息
-    public static final Map<UUID, ChatBoxScreen> chatBoxScreens = new HashMap<>();
+    public static final ChatBoxScreen chatBoxScreen = new ChatBoxScreen();
     //各个玩家的历史对话记录
     public static final Map<UUID, HistoricalDialogueScreen> historicalDialogue = new HashMap<>();
 
     //跳转对话
     public static void skipDialogues(UUID uuid, ResourceLocation dialoguesResourceLocation, String dialogBlock, int index) {
         List<ChatBoxDialogues> chatBoxDialogues = ChatBoxDialoguesLoader.INSTANCE.getDialogues(dialoguesResourceLocation).get(dialogBlock);
-        ChatBoxScreen chatBoxScreen = chatBoxScreens.get(uuid);
         ResourceLocation themeResourceLocation = playerChatBoxTheme.get(uuid);
 
         if (index >= 0 && index < chatBoxDialogues.size()) {
@@ -49,8 +49,15 @@ public class ChatBoxUtil {
             if (dialogBox != null) {
                 historicalDialogueScreen.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesResourceLocation, dialogBlock, index)
                         .setName(dialogBox.name, dialogBox.isTranslatable)
-                        .setText(dialogBox.text,dialogBox.isTranslatable)
+                        .setText(dialogBox.text, dialogBox.isTranslatable)
                 );
+                ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialogue.sound);
+                if (minecraft.player != null && soundResourceLocation != null) {
+                    SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.get(soundResourceLocation);
+                    if (soundEvent != null) {
+                        minecraft.player.playSound(soundEvent, dialogue.volume, dialogue.pitch);
+                    }
+                }
             }
         } else {
             if (minecraft.screen != null) {
@@ -67,12 +74,10 @@ public class ChatBoxUtil {
 
     //切换对话框主题
     public static void toggleTheme(UUID uuid, ResourceLocation themeResourceLocation) {
-        ChatBoxScreen chatBoxScreen = chatBoxScreens.get(uuid);
         ChatBoxTheme theme = ChatBoxThemeLoader.INSTANCE.getTheme(themeResourceLocation);
         chatBoxScreen.setDialogBox(theme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
                 .setLogButton(theme.logButton.setLogButtonTheme(chatBoxScreen.logButton));
         if (uuid != null) {
-            chatBoxScreens.put(uuid, chatBoxScreen);
             playerChatBoxTheme.put(uuid, themeResourceLocation);
         }
     }

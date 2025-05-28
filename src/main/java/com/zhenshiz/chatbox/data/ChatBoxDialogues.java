@@ -13,19 +13,22 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ChatBoxDialogues {
-    private final static Integer[] DEFAULT_INT_ARRAY = new Integer[]{0, 0};
     private final static Boolean DEFAULT_BOOL = false;
 
     public DialogBox dialogBox;
     public List<Portrait> portrait;
     public List<Option> options;
+    public String sound;
+    public Float volume;
+    public Float pitch;
 
     public static class DialogBox {
         public String name;
         public String text;
-        public Boolean isTranslatable = DEFAULT_BOOL;
+        public Boolean isTranslatable;
 
         public ResourceLocation dialoguesResourceLocation;
         public String group;
@@ -37,8 +40,8 @@ public class ChatBoxDialogues {
 
         public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, int index) {
             this.index = index;
-            return dialogBox.setName(this.name,this.isTranslatable)
-                    .setText(this.text,this.isTranslatable)
+            return dialogBox.setName(this.name, this.isTranslatable)
+                    .setText(this.text, this.isTranslatable)
                     .setDialoguesInfo(this.dialoguesResourceLocation, this.group, index)
                     .resetTickCount();
         }
@@ -56,9 +59,8 @@ public class ChatBoxDialogues {
             if (map != null && !map.isEmpty()) {
                 portraits.forEach(p -> {
                     com.zhenshiz.chatbox.component.Portrait portrait = map.get(p.value)
-                            .setPortraitTheme(new com.zhenshiz.chatbox.component.Portrait())
-                            .setType(com.zhenshiz.chatbox.component.Portrait.Type.of(p.type))
-                            .setIsAnimation(true);
+                            .setPortraitTheme(new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(p.type)))
+                            .build();
                     portrait.setTarget();
                     portraitList.add(portrait);
                 });
@@ -69,11 +71,11 @@ public class ChatBoxDialogues {
 
     public static class Option {
         public String text;
-        public Boolean isTranslatable = DEFAULT_BOOL;
-        public Boolean isLock = DEFAULT_BOOL;
+        public Boolean isTranslatable;
+        public Boolean isLock;
         public Condition lock = new Condition();
         public Condition hidden = new Condition();
-        public Boolean isHidden = DEFAULT_BOOL;
+        public Boolean isHidden;
         public String next;
         public Click click = new Click();
         public String tooltip;
@@ -109,8 +111,8 @@ public class ChatBoxDialogues {
                         if (objective != null) {
                             scoreAccess = scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(value.lock.value), objective);
                         }
-                        ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip,value.isTranslatable)
-                                .setOptionChat(value.text , value.isTranslatable)
+                        ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, value.isTranslatable)
+                                .setOptionChat(value.text, value.isTranslatable)
                                 //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
                                 .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.get() != 1))
                                 .setNext(value.next)
@@ -143,16 +145,28 @@ public class ChatBoxDialogues {
     }
 
     public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {
+        this.sound = getValueOrDefault(this.sound, "");
+        this.volume = getValueOrDefault(this.volume, 1f);
+        this.pitch = getValueOrDefault(this.pitch, 1f);
+
+        this.dialogBox.isTranslatable = getValueOrDefault(this.dialogBox.isTranslatable, DEFAULT_BOOL);
+        this.dialogBox.dialoguesResourceLocation = resourceLocation;
+        this.dialogBox.group = group;
+        this.dialogBox.index = index;
+
         if (!CollUtil.isEmpty(this.options)) {
             for (Option option : this.options) {
+                option.isTranslatable = getValueOrDefault(option.isTranslatable, DEFAULT_BOOL);
+                option.isLock = getValueOrDefault(option.isLock, DEFAULT_BOOL);
+                option.isHidden = getValueOrDefault(option.isHidden, DEFAULT_BOOL);
                 option.dialoguesResourceLocation = resourceLocation;
                 option.group = group;
                 option.index = index;
             }
         }
+    }
 
-        this.dialogBox.dialoguesResourceLocation = resourceLocation;
-        this.dialogBox.group = group;
-        this.dialogBox.index = index;
+    private static <T> T getValueOrDefault(T param, T defaultValue) {
+        return Optional.ofNullable(param).orElse(defaultValue);
     }
 }

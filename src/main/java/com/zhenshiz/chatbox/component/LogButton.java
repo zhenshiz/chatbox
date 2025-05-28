@@ -1,12 +1,20 @@
 package com.zhenshiz.chatbox.component;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 public class LogButton extends AbstractComponent<LogButton> {
+    //默认材质
     public ResourceLocation logTexture;
+    //鼠标悬浮时材质
     public ResourceLocation hoverLogTexture;
+
+    public LogButton(){
+        setLogTexture(ChatBox.ResourceLocationMod("textures/log/default_log.png"));
+        setHoverLogTexture(ChatBox.ResourceLocationMod("textures/hover/default_hover_log.png"));
+    }
 
     public LogButton setLogTexture(ResourceLocation logTexture) {
         if (logTexture != null) this.logTexture = logTexture;

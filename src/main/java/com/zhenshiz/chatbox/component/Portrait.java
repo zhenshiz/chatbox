@@ -15,9 +15,10 @@ public class Portrait extends AbstractComponent<Portrait> {
     public Type type;
     public String value;
     public Integer opacity;
-    public Integer customItemData;
     public AnimationType animationType;
     public EasingUtil.Easing easing;
+    public Integer scale;
+    public Integer customItemData;
 
     private Integer targetOpacity;
     private Integer targetY;
@@ -29,8 +30,36 @@ public class Portrait extends AbstractComponent<Portrait> {
     //执行动画的总时长
     private int durationAnimationTick = 20;
 
-    public Portrait() {
+    public Portrait(Type type){
+        setType(type).build();
         defaultOption();
+    }
+
+    //texture
+    public Portrait createTexture(Portrait portrait,String value,Integer opacity,String animationType,String easing,Integer duration) {
+        return portrait.setValue(value)
+                .setOpacity(opacity)
+                .setAnimationType(animationType)
+                .setEasing(easing)
+                .setDurationAnimationTick(duration)
+                .setIsAnimation(true);
+    }
+
+    //player_head
+    public Portrait createPlayerHead(Portrait portrait,String value){
+        return portrait.setValue(value);
+    }
+
+    //item
+    public Portrait createItem(Portrait portrait,String value,Integer customItemData,Integer scale){
+        return portrait.setValue(value)
+                .setCustomItemData(customItemData)
+                .setScale(scale);
+    }
+
+    public Portrait setScale(Integer scale) {
+        if (scale != null) this.scale = scale;
+        return this;
     }
 
     public Portrait setType(Type type) {
@@ -44,7 +73,7 @@ public class Portrait extends AbstractComponent<Portrait> {
     }
 
     public Portrait setOpacity(Integer opacity) {
-        if (opacity != null && isResponsiveSize(opacity)) this.opacity = opacity;
+        if (opacity != null && checkSize(opacity)) this.opacity = opacity;
         return this;
     }
 
@@ -83,7 +112,7 @@ public class Portrait extends AbstractComponent<Portrait> {
     }
 
     public Portrait setEasing(String easing) {
-        if (easing != null) setEasing(EasingUtil.Easing.of(easing));
+        if (easing != null) return setEasing(EasingUtil.Easing.of(easing));
         return this;
     }
 
@@ -133,7 +162,7 @@ public class Portrait extends AbstractComponent<Portrait> {
                     if (this.customItemData != null) {
                         itemStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(this.customItemData));
                     }
-                    RenderUtil.renderItem(guiGraphics, itemStack, getResponsiveWidth(x), getResponsiveHeight(y), (float) (this.width + this.height) / 2);
+                    RenderUtil.renderItem(guiGraphics, itemStack, getResponsiveWidth(x), getResponsiveHeight(y), this.scale);
                 }
             }
         }

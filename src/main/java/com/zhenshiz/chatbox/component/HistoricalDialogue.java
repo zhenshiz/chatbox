@@ -59,7 +59,9 @@ public class HistoricalDialogue extends AbstractWidget {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        verticalScrollAmount = (float) verticalAmount * 4;
+        float direction = (float) Math.signum(verticalAmount);
+        float baseSpeed = 20.0f;
+        verticalScrollAmount = direction * baseSpeed;
         return true;
     }
 

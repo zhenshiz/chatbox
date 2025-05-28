@@ -88,7 +88,7 @@ public class ChatBoxScreen extends Screen {
                     return super.mouseClicked(pMouseX, pMouseY, pButton);
                 }
 
-                dialogBox.click((int) pMouseX, (int) pMouseY, !chatOptions.isEmpty());
+                dialogBox.click(!chatOptions.isEmpty());
             }
         }
         return super.mouseClicked(pMouseX, pMouseY, pButton);

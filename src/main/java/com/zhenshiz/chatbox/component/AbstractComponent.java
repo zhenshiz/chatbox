@@ -22,44 +22,44 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     public int width;
     //高度 百分比 0-100
     public int height;
+
     //文本路径
     public ResourceLocation dialoguesResourceLocation;
     //文本分组
     public String group;
     //文本序号
     public Integer index;
+
     protected static final Minecraft minecraft = Minecraft.getInstance();
 
-    public void defaultOption() {
+    protected void defaultOption() {
         setPosition(0, 0);
         setSize(10, 10);
         setAlign(AlignX.LEFT, AlignY.TOP);
         setZ(0);
     }
 
+    public T setDefaultOption(int x, int y,int width,int height,AlignX alignX,AlignY alignY,Integer z){
+        setPosition(x,y);
+        setSize(width,height);
+        setAlign(alignX,alignY);
+        setZ(z);
+        return (T) this;
+    }
+
     public T setPosition(int x, int y) {
-        if (isResponsiveSkew(x) && isResponsiveSkew(y)) {
+        if (checkPos(x) && checkPos(y)) {
             this.x = x;
             this.y = y;
         }
         return (T) this;
     }
 
-    public T setPosition(Integer[] position) {
-        if (position != null) return setPosition(position[0], position[1]);
-        return (T) this;
-    }
-
     public T setSize(int width, int height) {
-        if (isResponsiveSize(width) && isResponsiveSize(height)) {
+        if (checkSize(width) && checkSize(height)) {
             this.width = width;
             this.height = height;
         }
-        return (T) this;
-    }
-
-    public T setSize(Integer[] size) {
-        if (size != null) return setSize(size[0], size[1]);
         return (T) this;
     }
 
@@ -98,6 +98,10 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
+    public T build(){
+        return (T) this;
+    }
+
     public static int getResponsiveWidth(int value) {
         return minecraft.getWindow().getGuiScaledWidth() * value / 100;
     }
@@ -106,23 +110,21 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return minecraft.getWindow().getGuiScaledHeight() * value / 100;
     }
 
-    protected boolean isResponsiveSkew(int value) {
+    protected boolean checkPos(int value) {
         return value >= -100 && value <= 100;
     }
 
-    protected boolean isResponsiveSize(int value) {
+    protected boolean checkSize(int value) {
         return value >= 0 && value <= 100;
     }
 
-    public Vec2 getCurrentPosition() {
+    protected Vec2 getCurrentPosition() {
         return new Vec2(alignX.getPositionX(this), alignY.getPositionY(this));
     }
 
-    public void renderImage(GuiGraphics guiGraphics, ResourceLocation texture) {
-        Vec2 pos = getCurrentPosition();
-        int x = (int) pos.x;
-        int y = (int) pos.y;
-        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(x), getResponsiveHeight(y), this.z, getResponsiveWidth(this.width), getResponsiveHeight(this.height));
+    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture) {
+        Vec2 position = getCurrentPosition();
+        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), this.z, getResponsiveWidth(this.width), getResponsiveHeight(this.height));
     }
 
     public boolean isSelect(float width, float height, float x, float y, int mouseX, int mouseY) {
@@ -134,7 +136,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return isSelect(getResponsiveWidth(this.width), getResponsiveHeight(this.height), getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), mouseX, mouseY);
     }
 
-    public String parseText(String input) {
+    protected String parseText(String input) {
         return ChatBoxUtil.parseText(input, false);
     }
 

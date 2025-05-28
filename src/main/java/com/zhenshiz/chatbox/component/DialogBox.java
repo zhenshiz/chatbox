@@ -15,27 +15,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DialogBox extends AbstractComponent<DialogBox> {
+    //默认材质
     public ResourceLocation texture;
+    //对话框文本
     public Component text;
-    public Component name;
-    public int nameX;
-    public int nameY;
+    //文本x位置
     public int textX;
+    //文本y位置
     public int textY;
+    //名称
+    public Component name;
+    //名称x位置
+    public int nameX;
+    //名称y位置
+    public int nameY;
+    //一行文本的宽度
     public int lineWidth;
+
     //全部文字是否全部显示
     public boolean isAllOver;
-
     public int tickCount;
     private String[] textBuffer;
 
     public DialogBox() {
-        this.texture = ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png");
-        this.text = CommonComponents.EMPTY;
-        this.name = CommonComponents.EMPTY;
-        this.isAllOver = false;
-        this.lineWidth = 100;
-        this.tickCount = 0;
+        setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
+        setText("",false);
+        setTextPosition(0,0);
+        setName("",false);
+        setNamePosition(0,0);
+        setLineWidth(100);
+
+        setAllOver(false);
+        resetTickCount();
         this.textBuffer = new String[]{""};
         defaultOption();
     }
@@ -64,33 +75,23 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     }
 
     public DialogBox setNamePosition(int x, int y) {
-        if (isResponsiveSkew(x) && isResponsiveSkew(y)) {
+        if (checkPos(x) && checkPos(y)) {
             this.nameX = x;
             this.nameY = y;
         }
         return this;
     }
 
-    public DialogBox setNamePosition(Integer[] namePosition) {
-        if (namePosition != null) return setNamePosition(namePosition[0], namePosition[1]);
-        return this;
-    }
-
     public DialogBox setTextPosition(int x, int y) {
-        if (isResponsiveSkew(x) && isResponsiveSkew(y)) {
+        if (checkPos(x) && checkPos(y)) {
             this.textX = x;
             this.textY = y;
         }
         return this;
     }
 
-    public DialogBox setTextPosition(Integer[] textPosition) {
-        if (textPosition != null) return setTextPosition(textPosition[0], textPosition[1]);
-        return this;
-    }
-
     public DialogBox setLineWidth(int lineWidth) {
-        if (isResponsiveSize(lineWidth)) this.lineWidth = lineWidth;
+        if (checkSize(lineWidth)) this.lineWidth = lineWidth;
         return this;
     }
 
@@ -124,7 +125,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         this.textBuffer = result.toArray(new String[0]);
     }
 
-    public void click(int pMouseX, int pMouseY, boolean isOptionExist) {
+    public void click(boolean isOptionExist) {
         if (!this.isAllOver) {
             //未全部加载时，点击显示所有文本
             this.tickCount = this.textBuffer.length - 1;
