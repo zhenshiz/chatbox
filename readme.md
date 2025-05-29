@@ -1,9 +1,18 @@
-TODO
+# TODO
 
 1.自定义动画
 
-2.自定义渲染顺序
+2.兼容https://modrinth.com/mod/immersive-messages-api
 
-3.兼容https://modrinth.com/mod/immersive-messages-api
+3.联动一个npc模组，做触发式交互
 
-4.服务端同步对话框包到客户端
+# 立绘
+
+1.texture 
+- value | opacity | animation | duration | easing | x | y | width | height | z | alignX | alignY
+
+2.player_head
+- value | x | y | width | height | alignX | alignY
+
+3.item
+- value | customItemData | x | y | width | height | scale
