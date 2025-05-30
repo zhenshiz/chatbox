@@ -15,4 +15,4 @@
 - value | x | y | width | height | alignX | alignY
 
 3.item
-- value | customItemData | x | y | width | height | scale
+- value | customItemData | x | y | alignX | alignY | scale

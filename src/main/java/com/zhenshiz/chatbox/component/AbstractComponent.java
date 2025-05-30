@@ -17,8 +17,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     public int x;
     //垂直偏移 百分比 -100-100
     public int y;
-    //图层顺序
-    public int z;
     //宽度 百分比 0-100
     public int width;
     //高度 百分比 0-100
@@ -41,14 +39,12 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         setPosition(0, 0);
         setSize(10, 10);
         setAlign(AlignX.LEFT, AlignY.TOP);
-        setZ(0);
     }
 
-    public T setDefaultOption(int x, int y, int width, int height, AlignX alignX, AlignY alignY, Integer z, Integer opacity, Integer renderOrder){
-        setPosition(x,y);
-        setSize(width,height);
-        setAlign(alignX,alignY);
-        setZ(z);
+    public T setDefaultOption(int x, int y, int width, int height, AlignX alignX, AlignY alignY, Integer opacity, Integer renderOrder) {
+        setPosition(x, y);
+        setSize(width, height);
+        setAlign(alignX, alignY);
         setOpacity(opacity);
         setRenderOrder(renderOrder);
         return (T) this;
@@ -86,11 +82,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T setZ(Integer z){
-        if (z!=null) this.z = z;
-        return (T) this;
-    }
-
     public T setOpacity(Integer opacity) {
         if (opacity != null && checkSize(opacity)) this.opacity = opacity;
         return (T) this;
@@ -115,7 +106,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T build(){
+    public T build() {
         return (T) this;
     }
 
@@ -143,7 +134,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         Vec2 position = getCurrentPosition();
         RenderSystem.enableBlend();
         guiGraphics.setColor(1f, 1f, 1f, (float) this.opacity / 100);
-        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), this.z, getResponsiveWidth(this.width), getResponsiveHeight(this.height));
+        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height));
         RenderSystem.disableBlend();
     }
 
