@@ -20,7 +20,7 @@ public class ChatBoxDialogues {
     private final static Boolean DEFAULT_BOOL = false;
 
     public DialogBox dialogBox;
-    public List<Portrait> portrait;
+    public List<String> portrait;
     public List<Option> options;
     public String sound;
     public Float volume;
@@ -45,27 +45,6 @@ public class ChatBoxDialogues {
                     .setText(this.text, this.isTranslatable)
                     .setDialoguesInfo(this.dialoguesResourceLocation, this.group, index)
                     .resetTickCount();
-        }
-    }
-
-    public static class Portrait {
-        public String type;
-        public String value;
-
-        public static List<com.zhenshiz.chatbox.component.Portrait> setPortraitDialogues(List<Portrait> portraits, ChatBoxTheme theme) {
-            Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
-
-            List<com.zhenshiz.chatbox.component.Portrait> portraitList = new ArrayList<>();
-            if (map != null && !map.isEmpty()) {
-                portraits.forEach(p -> {
-                    com.zhenshiz.chatbox.component.Portrait portrait = map.get(p.value)
-                            .setPortraitTheme(new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(p.type)))
-                            .build();
-                    portrait.setTarget();
-                    portraitList.add(portrait);
-                });
-            }
-            return portraitList;
         }
     }
 
@@ -137,7 +116,23 @@ public class ChatBoxDialogues {
         }
     }
 
-    public ChatBoxDialogues(DialogBox dialogBox, List<Portrait> portrait, List<Option> options) {
+    public static List<com.zhenshiz.chatbox.component.Portrait> setPortraitDialogues(List<String> portraits, ChatBoxTheme theme) {
+        Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
+
+        List<com.zhenshiz.chatbox.component.Portrait> portraitList = new ArrayList<>();
+        if (map != null && !map.isEmpty()) {
+            portraits.forEach(p -> {
+                com.zhenshiz.chatbox.component.Portrait portrait = map.get(p)
+                        .setPortraitTheme()
+                        .build();
+                portrait.setTarget();
+                portraitList.add(portrait);
+            });
+        }
+        return portraitList;
+    }
+
+    public ChatBoxDialogues(DialogBox dialogBox, List<String> portrait, List<Option> options) {
         this.dialogBox = dialogBox;
         this.portrait = portrait;
         this.options = options;

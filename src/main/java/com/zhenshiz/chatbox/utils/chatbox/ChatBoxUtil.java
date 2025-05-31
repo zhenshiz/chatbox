@@ -47,7 +47,7 @@ public class ChatBoxUtil {
             ChatBoxDialogues dialogue = chatBoxDialogues.get(index);
             ChatBoxDialogues.DialogBox dialogBox = dialogue.dialogBox;
             chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index) : new DialogBox())
-                    .setPortrait(!CollUtil.isEmpty(dialogue.portrait) ? ChatBoxDialogues.Portrait.setPortraitDialogues(dialogue.portrait, chatBoxTheme) : new ArrayList<>())
+                    .setPortrait(!CollUtil.isEmpty(dialogue.portrait) ? ChatBoxDialogues.setPortraitDialogues(dialogue.portrait, chatBoxTheme) : new ArrayList<>())
                     .setChatOptions(!CollUtil.isEmpty(dialogue.options) ? ChatBoxDialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index) : new ArrayList<>());
 
             chatBoxScreen.dialogBox.resetTickCount();
@@ -70,7 +70,7 @@ public class ChatBoxUtil {
                         minecraft.player.playSound(soundEvent, dialogue.volume, dialogue.pitch);
                     }
                 }
-                KubeJSEvents.SKIP_CHAT.post(new SkipChatEvent(dialoguesResourceLocation, group, index));
+                KubeJSEvents.SKIP_CHAT.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
             }
         } else {
             if (minecraft.screen != null) {

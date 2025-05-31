@@ -16,6 +16,7 @@ public class ChatBoxTheme {
     public LogButton logButton;
 
     public static class Portrait extends Component {
+        public String type;
         public String value;
         public Integer customItemData;
         public String animation;
@@ -23,7 +24,8 @@ public class ChatBoxTheme {
         public String easing;
         public Integer scale;
 
-        public com.zhenshiz.chatbox.component.Portrait setPortraitTheme(com.zhenshiz.chatbox.component.Portrait portrait) {
+        public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
+            com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type));
             switch (portrait.type) {
                 case TEXTURE ->
                         portrait.createTexture(portrait, this.value, this.animation, this.easing, this.duration).build();

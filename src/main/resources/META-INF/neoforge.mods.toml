@@ -1,7 +1,7 @@
 modLoader = "javafml"
 loaderVersion = "[4,)"
 #issueTrackerURL = ""
-license = "ARR"
+license = "GPL-3.0 license"
 
 [[mods]]
 modId = "chatbox"
