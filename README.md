@@ -23,8 +23,6 @@ ChatBox添加自定义的指令，允许开发者使用指令来与mod交互。
 
 * 数据包路径：对话框主题的位置
 
-<br />
-
 /chatbox open  打开最近一次对话
 
 ## 数据包路径
@@ -35,7 +33,7 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 # 数据包编写
 
-首先你要创建一个数据包，具体去参考[McWiki]()的数据包介绍。你根据上方数据包路径里的介绍在对应的文件路径里创建一个对话框文本的Json和对话框主题的Json。对话框主要由以下几个构成：对话框，选项，历史聊天记录按钮，立绘，而主题主要配置的是其材质，位置，大小等等。而文本主要配置的是文本，交互等等。
+首先你要创建一个数据包，具体去参考[McWiki](https://zh.minecraft.wiki/w/%E6%95%B0%E6%8D%AE%E5%8C%85)的数据包介绍。你根据上方数据包路径里的介绍在对应的文件路径里创建一个对话框文本的Json和对话框主题的Json。对话框主要由以下几个构成：对话框，选项，历史聊天记录按钮，立绘，而主题主要配置的是其材质，位置，大小等等。而文本主要配置的是文本，交互等等。
 
 ## 对话框主题
 
@@ -104,9 +102,9 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 * animation（可选，默认无动画）：预设动画，可选参数: `NONE`无动画,`FADE_IN`渐入效果,`SLIDE_IN_FROM_BOTTOM`从底部滑入,`BOUNCE`弹射。
 
-* duration（可选）：动画执行的时间，单位和用户电脑的帧率有关，具体时长为`duration/帧率`秒
+* duration（可选，默认20）：动画执行的时间，单位和用户电脑的帧率有关，具体时长为`duration/帧率`秒
 
-* easing（可选）：缓动函数，可选参数有`EASE_IN_SINE`,`EASE_OUT_SINE`,`EASE_IN_OUT_SINE`,`EASE_IN_QUAD`,`EASE_OUT_QUAD`,`EASE_IN_OUT_QUAD`,`EASE_IN_CUBIC`,`EASE_OUT_CUBIC`,`EASE_IN_OUT_CUBIC`,`EASE_IN_QUART`,`EASE_OUT_QUART`,`EASE_IN_OUT_QUART`,`EASE_IN_QUINT`,`EASE_OUT_QUINT`,`EASE_IN_OUT_QUINT`,`EASE_IN_EXPO`,`EASE_OUT_EXPO`,`EASE_IN_OUT_EXPO`,`EASE_IN_CIRC`,`EASE_OUT_CIRC`,`EASE_IN_OUT_CIRC`,`EASE_IN_BACK`,`EASE_OUT_BACK`,`EASE_IN_OUT_BACK`,`EASE_IN_ELASTIC`,`EASE_OUT_ELASTIC`,`EASE_IN_OUT_ELASTIC`,`EASE_IN_BOUNCE`,`EASE_OUT_BOUNCE`,`EASE_IN_OUT_BOUNCE`。具体每个参数代表的意义可以参考[缓动函数网站]()。
+* easing（可选，默认EASE_IN_SINE）：缓动函数，可选参数有`EASE_IN_SINE`,`EASE_OUT_SINE`,`EASE_IN_OUT_SINE`,`EASE_IN_QUAD`,`EASE_OUT_QUAD`,`EASE_IN_OUT_QUAD`,`EASE_IN_CUBIC`,`EASE_OUT_CUBIC`,`EASE_IN_OUT_CUBIC`,`EASE_IN_QUART`,`EASE_OUT_QUART`,`EASE_IN_OUT_QUART`,`EASE_IN_QUINT`,`EASE_OUT_QUINT`,`EASE_IN_OUT_QUINT`,`EASE_IN_EXPO`,`EASE_OUT_EXPO`,`EASE_IN_OUT_EXPO`,`EASE_IN_CIRC`,`EASE_OUT_CIRC`,`EASE_IN_OUT_CIRC`,`EASE_IN_BACK`,`EASE_OUT_BACK`,`EASE_IN_OUT_BACK`,`EASE_IN_ELASTIC`,`EASE_OUT_ELASTIC`,`EASE_IN_OUT_ELASTIC`,`EASE_IN_BOUNCE`,`EASE_OUT_BOUNCE`,`EASE_IN_OUT_BOUNCE`。具体每个参数代表的意义可以参考[缓动函数网站](https://easings.net/zh-cn)。
 
 * x（可选，默认为0）：距离左边框的水平位置，根据用户mc屏幕宽度的百分比，范围为`-100-100`
 
@@ -417,6 +415,7 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 * lock（选填）：设置解锁的条件，里面有2个参数`objective`和`value`，其中objective指的是计分板的名字，value是这个计分板的key值，如果值为1则解锁，反之上锁
 * isHidden（选填，默认false）：是否隐藏
 * hidden（选填）：设置解锁的条件，里面有2个参数`objective`和`value`，其中objective指的是计分板的名字，value是这个计分板的key值，如果值为1则解锁，反之上锁
+* next（选填）：如果填的为数字则跳转到当前分组对应数字序号的对话，如果填的是字符串则跳转到对应分组的第一句话，如果不填则默认跳转到当前分组当前对话的下一句话
 * click（选填）：点击按钮触发的自定义事件，里面有2个参数`type`和`value`，其中type目前只支持command（有好的建议可以给我Github发发issues），value则是要执行的指令名
 * tooltip（选题）：鼠标悬浮时弹出的文本
 
