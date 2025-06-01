@@ -1,17 +1,14 @@
 package com.zhenshiz.chatbox.screen;
 
 import com.zhenshiz.chatbox.component.*;
-import com.zhenshiz.chatbox.event.ChatBoxRender;
-import com.zhenshiz.chatbox.event.KubeJSEvents;
-import com.zhenshiz.chatbox.event.SkipChatEvent;
-import net.minecraft.client.Minecraft;
+import com.zhenshiz.chatbox.event.neoforge.ChatBoxRender;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -53,7 +50,9 @@ public class ChatBoxScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (dialogBox != null) {
-            KubeJSEvents.CHAT_BOX_RENDER_PRE.post(new ChatBoxRender.Pre(guiGraphics));
+            if (NeoForge.EVENT_BUS.post(new ChatBoxRender.Pre(guiGraphics)).isCanceled()) {
+                return;
+            }
 
             List<AbstractComponent<?>> list = new ArrayList<>();
             list.add(dialogBox);
@@ -63,9 +62,9 @@ public class ChatBoxScreen extends Screen {
 
             list.sort(Comparator.comparingInt(p -> p.renderOrder));
 
-            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics,pMouseX,pMouseY));
+            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, pMouseX, pMouseY));
 
-            KubeJSEvents.CHAT_BOX_RENDER_POST.post(new ChatBoxRender.Post(guiGraphics));
+            NeoForge.EVENT_BUS.post(new ChatBoxRender.Post(guiGraphics));
         }
         super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
     }

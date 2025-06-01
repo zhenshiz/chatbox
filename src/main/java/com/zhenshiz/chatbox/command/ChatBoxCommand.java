@@ -28,9 +28,9 @@ public class ChatBoxCommand implements ICommand {
                 .then(Commands.literal("skip")
                         .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("Group", StringArgumentType.string())
-                                        .executes(context -> ChatBoxCommand.skipDialogues(context, true))
+                                        .executes(context -> ChatBoxCommand.skipDialogues(context, 0))
                                         .then(Commands.argument("Index", IntegerArgumentType.integer())
-                                                .executes(context -> ChatBoxCommand.skipDialogues(context, false))
+                                                .executes(context -> ChatBoxCommand.skipDialogues(context, IntegerArgumentType.getInteger(context, "Index")))
                                         )
                                 )
                         )
@@ -55,18 +55,13 @@ public class ChatBoxCommand implements ICommand {
         }
     }
 
-    private static int skipDialogues(CommandContext<CommandSourceStack> context, boolean isStart) {
+    private static int skipDialogues(CommandContext<CommandSourceStack> context, int index) {
         ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
         String group = StringArgumentType.getString(context, "Group");
-        int index = IntegerArgumentType.getInteger(context, "Index");
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            if (isStart) {
-                player.connection.send(new ChatBoxPayload.OpenScreenPayload(dialogues, group, 0));
-            } else {
-                player.connection.send(new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
-            }
+            player.connection.send(new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
             context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             return 1;
         } else {

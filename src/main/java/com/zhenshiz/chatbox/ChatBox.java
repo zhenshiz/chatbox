@@ -18,6 +18,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforgespi.language.ModFileScanData;
+import org.checkerframework.checker.units.qual.N;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 

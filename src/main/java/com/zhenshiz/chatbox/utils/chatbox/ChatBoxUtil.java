@@ -9,8 +9,7 @@ import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
-import com.zhenshiz.chatbox.event.KubeJSEvents;
-import com.zhenshiz.chatbox.event.SkipChatEvent;
+import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -18,6 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,7 +70,8 @@ public class ChatBoxUtil {
                         minecraft.player.playSound(soundEvent, dialogue.volume, dialogue.pitch);
                     }
                 }
-                KubeJSEvents.SKIP_CHAT.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
+
+                NeoForge.EVENT_BUS.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
             }
         } else {
             if (minecraft.screen != null) {
