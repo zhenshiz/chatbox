@@ -54,41 +54,41 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 ```json
 "portrait": {
-  "pic":{
-    "value": "chatbox:textures/portrait/authors.png",
-    "animation": "none",
-    "duration" : 20,
-    "easing": "EASE_IN_SINE",
-    "x": 0,
-    "y": 0,
-    "width": 10,
-    "height": 10,
-    "alignX": "left",
-    "alignY": "bottom",
-    "opacity": 100,
-    "renderOrder": 20
-  },
-  "player":{
-    "value": "@s",
-    "x": 0,
-    "y": 0,
-    "width": 10,
-    "height": 10,
-    "alignX": "left",
-    "alignY": "bottom",
-    "opacity": 100,
-    "renderOrder": 20
-  },
-  "item":{
-    "value": "apple",
-    "scale": 1,
-    "x": 0,
-    "y": 0,
-    "alignX": "left",
-    "alignY": "bottom",
-    "opacity": 100,
-    "renderOrder": 20
-  }
+"pic":{
+"value": "chatbox:textures/portrait/authors.png",
+"animation": "none",
+"duration" : 20,
+"easing": "EASE_IN_SINE",
+"x": 0,
+"y": 0,
+"width": 10,
+"height": 10,
+"alignX": "left",
+"alignY": "bottom",
+"opacity": 100,
+"renderOrder": 20
+},
+"player":{
+"value": "@s",
+"x": 0,
+"y": 0,
+"width": 10,
+"height": 10,
+"alignX": "left",
+"alignY": "bottom",
+"opacity": 100,
+"renderOrder": 20
+},
+"item":{
+"value": "apple",
+"scale": 1,
+"x": 0,
+"y": 0,
+"alignX": "left",
+"alignY": "bottom",
+"opacity": 100,
+"renderOrder": 20
+}
 },
 ```
 
@@ -104,7 +104,7 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 * duration（可选，默认20）：动画执行的时间，单位和用户电脑的帧率有关，具体时长为`duration/帧率`秒
 
-* easing（可选，默认EASE_IN_SINE）：缓动函数，可选参数有`EASE_IN_SINE`,`EASE_OUT_SINE`,`EASE_IN_OUT_SINE`,`EASE_IN_QUAD`,`EASE_OUT_QUAD`,`EASE_IN_OUT_QUAD`,`EASE_IN_CUBIC`,`EASE_OUT_CUBIC`,`EASE_IN_OUT_CUBIC`,`EASE_IN_QUART`,`EASE_OUT_QUART`,`EASE_IN_OUT_QUART`,`EASE_IN_QUINT`,`EASE_OUT_QUINT`,`EASE_IN_OUT_QUINT`,`EASE_IN_EXPO`,`EASE_OUT_EXPO`,`EASE_IN_OUT_EXPO`,`EASE_IN_CIRC`,`EASE_OUT_CIRC`,`EASE_IN_OUT_CIRC`,`EASE_IN_BACK`,`EASE_OUT_BACK`,`EASE_IN_OUT_BACK`,`EASE_IN_ELASTIC`,`EASE_OUT_ELASTIC`,`EASE_IN_OUT_ELASTIC`,`EASE_IN_BOUNCE`,`EASE_OUT_BOUNCE`,`EASE_IN_OUT_BOUNCE`。具体每个参数代表的意义可以参考[缓动函数网站](https://easings.net/zh-cn)。
+* easing（可选，默认EASE\_IN\_SINE）：缓动函数，可选参数有`EASE_IN_SINE`,`EASE_OUT_SINE`,`EASE_IN_OUT_SINE`,`EASE_IN_QUAD`,`EASE_OUT_QUAD`,`EASE_IN_OUT_QUAD`,`EASE_IN_CUBIC`,`EASE_OUT_CUBIC`,`EASE_IN_OUT_CUBIC`,`EASE_IN_QUART`,`EASE_OUT_QUART`,`EASE_IN_OUT_QUART`,`EASE_IN_QUINT`,`EASE_OUT_QUINT`,`EASE_IN_OUT_QUINT`,`EASE_IN_EXPO`,`EASE_OUT_EXPO`,`EASE_IN_OUT_EXPO`,`EASE_IN_CIRC`,`EASE_OUT_CIRC`,`EASE_IN_OUT_CIRC`,`EASE_IN_BACK`,`EASE_OUT_BACK`,`EASE_IN_OUT_BACK`,`EASE_IN_ELASTIC`,`EASE_OUT_ELASTIC`,`EASE_IN_OUT_ELASTIC`,`EASE_IN_BOUNCE`,`EASE_OUT_BOUNCE`,`EASE_IN_OUT_BOUNCE`。具体每个参数代表的意义可以参考[缓动函数网站](https://easings.net/zh-cn)。
 
 * x（可选，默认为0）：距离左边框的水平位置，根据用户mc屏幕宽度的百分比，范围为`-100-100`
 
@@ -396,27 +396,43 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 **音乐**
 
 * sound（可选）：音乐的路径比如`minecraft:ambient.cave`
+
 * volume（可选）：音量
+
 * pitch（可选）：音高
 
   **对话框**
+
 * name（可选）：名称
+
 * text（可选）：文本
+
 * isTranslatable（可选，默认为false）：是否为翻译键
 
   **立绘**
+
 * type（必填）：立绘类型，可选参数有：`TEXTURE`,`PLAYER_HEAD`,`ITEM`
+
 * value（必填）：这里填的就是我们在主题文件中预设的立绘标识符了
 
   **选项**
+
 * text（选填）：选项文本
+
 * isTranslatable（选填，默认false）：是否为翻译键
+
 * isLock（选填，默认false）：是否上锁
+
 * lock（选填）：设置解锁的条件，里面有2个参数`objective`和`value`，其中objective指的是计分板的名字，value是这个计分板的key值，如果值为1则解锁，反之上锁
+
 * isHidden（选填，默认false）：是否隐藏
+
 * hidden（选填）：设置解锁的条件，里面有2个参数`objective`和`value`，其中objective指的是计分板的名字，value是这个计分板的key值，如果值为1则解锁，反之上锁
+
 * next（选填）：如果填的为数字则跳转到当前分组对应数字序号的对话，如果填的是字符串则跳转到对应分组的第一句话，如果不填则默认跳转到当前分组当前对话的下一句话
+
 * click（选填）：点击按钮触发的自定义事件，里面有2个参数`type`和`value`，其中type目前只支持command（有好的建议可以给我Github发发issues），value则是要执行的指令名
+
 * tooltip（选题）：鼠标悬浮时弹出的文本
 
 ## 占位符
@@ -427,19 +443,36 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
   # 关于KubeJS联动
 
-  本模组提供了3个事件给KubeJS调用来添加自己想加的东西，所有的事件都是客户端事件需要写在`client_script`文件夹下
+  本模组提供了3个事件给KubeJS调用来添加自己想加的东西，你需要在NeoForge的事件中调用它们，例子如下：
 
-  * ChatBoxEvents.ChatBoxRenderPost  在对话框渲染前触发，提供了GuiGraphics可以添加自己想要的渲染
+  ```javascript
+  let $ChatBoxRender$Post = Java.loadClass("com.zhenshiz.chatbox.event.ChatBoxRender$Post");
 
-    * ChatBoxEvents.ChatBoxRenderPre  在对话框渲染后触发，提供了GuiGraphics可以添加自己想要的渲染
+  //在对话框渲染前触发，提供了GuiGraphics可以添加自己想要的渲染，可取消事件
+  NativeEvents.onEvent($ChatBoxRender$Post,event=>{
+    let getGuiGraphics = event.getGuiGraphics()
+  })
 
-      * ChatBoxEvents.SkipChat  在跳转对话时触发，提供了对话的数据包文件，分组和序号来方便用户对特别某一句对话添加自己想要的功能
+  let $ChatBoxRender$Pre = Java.loadClass("com.zhenshiz.chatbox.event.ChatBoxRender$Pre");
 
-      # Q & A
+  //在对话框渲染后触发，提供了GuiGraphics可以添加自己想要的渲染
+  NativeEvents.onEvent($ChatBoxRender$Pre,event=>{
+    let getGuiGraphics = event.getGuiGraphics()
+  })
 
-      Q：这个模组未来会移植到其它版本或者其它模组加载器吗？
+  let $SkipChatEvent = Java.loadClass("com.zhenshiz.chatbox.event.SkipChatEvent");
 
-    A：至少我不会，但是欢迎其它感兴趣的开发者来fork我的模组
+  //在跳转对话时触发，提供了对话的数据包文件，分组和序号来方便用户对特别某一句对话添加自己想要的功能
+  NativeEvents.onEvent($SkipChatEvent, event => {
+    let { resourceLocation, group, index } = event
+  })
+  ```
+
+  # Q & A
+
+  Q：这个模组未来会移植到其它版本或者其它模组加载器吗？
+
+  A：至少我不会，但是欢迎其它感兴趣的开发者来fork我的模组
 
 # 未来可能更新的功能
 
