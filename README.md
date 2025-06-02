@@ -53,66 +53,116 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 这里的立绘是预设的状态，将在写对话文本的时候调用立绘的标识符来使用。立绘分为3种：texture(图片)，player\_head(玩家头像)，item(物品材质)。每种的参数都是不一样的。话不多说，上案例：
 
 ```json
-"portrait": {
-"pic":{
-"value": "chatbox:textures/portrait/authors.png",
-"animation": "none",
-"duration" : 20,
-"easing": "EASE_IN_SINE",
-"x": 0,
-"y": 0,
-"width": 10,
-"height": 10,
-"alignX": "left",
-"alignY": "bottom",
-"opacity": 100,
-"renderOrder": 20
-},
-"player":{
-"value": "@s",
-"x": 0,
-"y": 0,
-"width": 10,
-"height": 10,
-"alignX": "left",
-"alignY": "bottom",
-"opacity": 100,
-"renderOrder": 20
-},
-"item":{
-"value": "apple",
-"scale": 1,
-"x": 0,
-"y": 0,
-"alignX": "left",
-"alignY": "bottom",
-"opacity": 100,
-"renderOrder": 20
+{
+  "portrait": {
+    "pic": {
+      "type": "texture",
+      "value": "chatbox:textures/portrait/authors.png",
+      "animation": "CUSTOM",
+      "duration": 20,
+      "easing": "EASE_IN_SINE",
+      "x": 0,
+      "y": 0,
+      "width": 10,
+      "height": 10,
+      "alignX": "left",
+      "alignY": "bottom",
+      "opacity": 100,
+      "scale": 1,
+      "renderOrder": 20,
+      "customAnimation": [
+        {
+          "time": 50,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "opacity": 100,
+          "easing": "EASE_OUT_SINE"
+        },
+        {
+          "time": 30,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "opacity": 100,
+          "easing": "EASE_OUT_SINE"
+        },
+      }
+    ],
+    "player": {
+      "type": "player_head",
+      "value": "@s",
+      "x": 0,
+      "y": 0,
+      "width": 10,
+      "height": 10,
+      "alignX": "left",
+      "alignY": "bottom",
+      "opacity": 100,
+      "scale": 1,
+      "renderOrder": 20,
+      "customAnimation": [
+        {
+          "time": 50,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "opacity": 100,
+          "easing": "EASE_OUT_SINE"
+        },
+        {
+          "time": 100,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "opacity": 100,
+          "easing": "EASE_OUT_SINE"
+        },
+      }
+    ],
+    "item": {
+      "type": "item",
+      "value": "apple",
+      "scale": 1,
+      "x": 0,
+      "y": 0,
+      "alignX": "left",
+      "alignY": "bottom",
+      "opacity": 100,
+      "renderOrder": 20,
+      "customAnimation": [
+        {
+          "time": 50,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "opacity": 100,
+          "easing": "EASE_OUT_SINE"
+        },
+        {
+          "time": 50,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "opacity": 100,
+          "easing": "EASE_OUT_SINE"
+        },
+      }
+    ],
+    }
+  }
 }
-},
 ```
 
 在上面的案例中包含了3种立绘里包含的所有的参数，接下来我们来一一介绍一下这些参数：
 
-首先`pic player item`都是唯一的标识符，这些标识符只能出现一次，但是取名可以随便取，将在对话框文本中调用
+首先`pic player item`都是唯一的标识符，这些标识符只能出现一次，但是取名可以随便取，将在对话框文本中调用。每个立绘里都有一个type表示当前立绘的类型，是必须要填的，不然模组将无法识别你这块立绘表述的内容
 
-**texture**
-
-* value（必填）：立绘图片的资源包路径。
-
-* animation（可选，默认无动画）：预设动画，可选参数: `NONE`无动画,`FADE_IN`渐入效果,`SLIDE_IN_FROM_BOTTOM`从底部滑入,`BOUNCE`弹射。
-
-* duration（可选，默认20）：动画执行的时间，单位和用户电脑的帧率有关，具体时长为`duration/帧率`秒
-
-* easing（可选，默认EASE\_IN\_SINE）：缓动函数，可选参数有`EASE_IN_SINE`,`EASE_OUT_SINE`,`EASE_IN_OUT_SINE`,`EASE_IN_QUAD`,`EASE_OUT_QUAD`,`EASE_IN_OUT_QUAD`,`EASE_IN_CUBIC`,`EASE_OUT_CUBIC`,`EASE_IN_OUT_CUBIC`,`EASE_IN_QUART`,`EASE_OUT_QUART`,`EASE_IN_OUT_QUART`,`EASE_IN_QUINT`,`EASE_OUT_QUINT`,`EASE_IN_OUT_QUINT`,`EASE_IN_EXPO`,`EASE_OUT_EXPO`,`EASE_IN_OUT_EXPO`,`EASE_IN_CIRC`,`EASE_OUT_CIRC`,`EASE_IN_OUT_CIRC`,`EASE_IN_BACK`,`EASE_OUT_BACK`,`EASE_IN_OUT_BACK`,`EASE_IN_ELASTIC`,`EASE_OUT_ELASTIC`,`EASE_IN_OUT_ELASTIC`,`EASE_IN_BOUNCE`,`EASE_OUT_BOUNCE`,`EASE_IN_OUT_BOUNCE`。具体每个参数代表的意义可以参考[缓动函数网站](https://easings.net/zh-cn)。
+**共通参数**
 
 * x（可选，默认为0）：距离左边框的水平位置，根据用户mc屏幕宽度的百分比，范围为`-100-100`
 
 * y（可选，默认为0）：距离上边框的垂直位置，根据用户mc屏幕高度的百分比，范围为`-100-100`
-
-* width（可选，默认10）：宽度，根据用户mc屏幕宽度的百分比，范围为`0-100`
-
-* height（可选，默认10）：高度，根据用户mc屏幕的高度的百分比，范围为`0-100`
 
 * alignX（可选，默认左对齐）：水平对齐，可选参数有`LEFT`,`CENTER`,`RIGHT`
 
@@ -120,43 +170,51 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 * opacity（可选，默认100）：透明度，范围`0-100`
 
+* scale（可选，默认1）：缩放比例
+
 * renderOrder（可选，默认20）：渲染顺序的权重
+
+* customAnimation（可选）：自定义动画，texture得设置`animation`为`CUSTOM`才能触发这里的动画。这里的自定义是采用动画帧的配置方式。外侧的配置是0帧的默认值，内侧的配置是一个数组，每一项都包括这段动画执行的时间time，第time帧时的位置x、y，缩放大小scale，透明度opacity以及这段动画采用的缓动函数easing，这里的参数都是要必须填的。动画执行的顺序是从数组的第一项到最后一项。
+
+* loop（可选，默认值false）：是否循环动画
+
+**texture**
+
+* type（必填，必须填为`TEXTURE`）：类型
+
+- value（必填）：立绘图片的资源包路径。
+
+- animation（可选，默认无动画）：预设动画，可选参数: `NONE`无动画,`FADE_IN`渐入效果,`SLIDE_IN_FROM_BOTTOM`从底部滑入,`BOUNCE`弹射，`CUSTOM`自定义动画。
+
+- duration（可选，默认20）：动画执行的时间，单位和用户电脑的帧率有关，具体时长为`duration/帧率`秒
+
+- easing（可选，默认EASE\_IN\_SINE）：缓动函数，可选参数有`EASE_IN_SINE`,`EASE_OUT_SINE`,`EASE_IN_OUT_SINE`,`EASE_IN_QUAD`,`EASE_OUT_QUAD`,`EASE_IN_OUT_QUAD`,`EASE_IN_CUBIC`,`EASE_OUT_CUBIC`,`EASE_IN_OUT_CUBIC`,`EASE_IN_QUART`,`EASE_OUT_QUART`,`EASE_IN_OUT_QUART`,`EASE_IN_QUINT`,`EASE_OUT_QUINT`,`EASE_IN_OUT_QUINT`,`EASE_IN_EXPO`,`EASE_OUT_EXPO`,`EASE_IN_OUT_EXPO`,`EASE_IN_CIRC`,`EASE_OUT_CIRC`,`EASE_IN_OUT_CIRC`,`EASE_IN_BACK`,`EASE_OUT_BACK`,`EASE_IN_OUT_BACK`,`EASE_IN_ELASTIC`,`EASE_OUT_ELASTIC`,`EASE_IN_OUT_ELASTIC`,`EASE_IN_BOUNCE`,`EASE_OUT_BOUNCE`,`EASE_IN_OUT_BOUNCE`。具体每个参数代表的意义可以参考[缓动函数网站](https://easings.net/zh-cn)。
+
+- width（可选，默认10）：宽度，根据用户mc屏幕宽度的百分比，范围为`0-100`
+
+- height（可选，默认10）：高度，根据用户mc屏幕的高度的百分比，范围为`0-100`
 
   **player\_head**
 
-* value（必填）：玩家的名称或者UUID，必须得是正版玩家，我这里的@s表示的是当前打开对话框的玩家id
+- type（必填，必须填为`PLAYER_HEAD`）：类型
 
-* x（可选，默认为0）：距离左边框的水平位置，根据用户mc屏幕宽度的百分比，范围为`-100-100`
+- value（必填）：玩家的名称或者UUID，必须得是正版玩家，我这里的@s表示的是当前打开对话框的玩家id
 
-* y（可选，默认为0）：距离上边框的垂直位置，根据用户mc屏幕高度的百分比，范围为`-100-100`
+- x（可选，默认为0）：距离左边框的水平位置，根据用户mc屏幕宽度的百分比，范围为`-100-100`
 
-* width（可选，默认10）：宽度，根据用户mc屏幕宽度的百分比，范围为`0-100`
+- y（可选，默认为0）：距离上边框的垂直位置，根据用户mc屏幕高度的百分比，范围为`-100-100`
 
-* height（可选，默认10）：高度，根据用户mc屏幕的高度的百分比，范围为`0-100`
+- width（可选，默认10）：宽度，根据用户mc屏幕宽度的百分比，范围为`0-100`
 
-因为玩家头像的渲染是正方形宽和高是一致的，所以实际这里的边长是百分比的宽+百分比的高。所以一般情况下，你只需要在width和height中选其中一个即可。
+- height（可选，默认10）：高度，根据用户mc屏幕的高度的百分比，范围为`0-100`
 
-* alignX（可选，默认左对齐）：水平对齐，可选参数有`LEFT`,`CENTER`,`RIGHT`
+**PS：因为玩家头像渲染的宽和高是必须一致的，所以实际这里的设置的width和height是共同计算后得到头像的边长的，边长=width​\*屏幕的宽+height\*屏幕的高。所以一般情况下，你只需要在width和height中选其中一个即可。**
 
-* alignY（可选，默认上对齐）：垂直对齐，可选参数有`TOP`,`CENTER`,`BOTTOM`
+**item**
 
-* renderOrder（可选，默认20）：渲染顺序的权重
-
-  **item**
+* type（必填，必须填为`item`）：类型
 
 * value（必选）：物品id
-
-* scale（可选，默认1）：缩放比例
-
-* x（可选，默认为0）：距离左边框的水平位置，根据用户mc屏幕宽度的百分比，范围为`-100-100`
-
-* y（可选，默认为0）：距离上边框的垂直位置，根据用户mc屏幕高度的百分比，范围为`-100-100`
-
-* alignX（可选，默认左对齐）：水平对齐，可选参数有`LEFT`,`CENTER`,`RIGHT`
-
-* alignY（可选，默认上对齐）：垂直对齐，可选参数有`TOP`,`CENTER`,`BOTTOM`
-
-* renderOrder（可选，默认20）：渲染顺序的权重
 
 ### 选项
 
@@ -213,22 +271,22 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 ```json
 {
-  "dialogBox":{
-    "texture": "chatbox:textures/chatbox/default_dialog_box.png",
-    "lineWidth": 70,
-    "nameX": 0,
-    "nameY": 0,
-    "textX": 0,
-    "textY": 0,
-    "x": 0,
-    "y": 0,
-    "width": 10,
-    "height": 10,
-    "alignX": "left",
-    "alignY": "bottom",
-    "opacity": 100,
-    "renderOrder": 0
-  }
+	"dialogBox": {
+		"texture": "chatbox:textures/chatbox/default_dialog_box.png",
+		"lineWidth": 70,
+		"nameX": 0,
+		"nameY": 0,
+		"textX": 0,
+		"textY": 0,
+		"x": 0,
+		"y": 0,
+		"width": 10,
+		"height": 10,
+		"alignX": "left",
+		"alignY": "bottom",
+		"opacity": 100,
+		"renderOrder": 0
+	}
 }
 ```
 
@@ -303,7 +361,7 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 本模组自带了一些有关于对话框的贴图，如果觉得自己做一套对话框的贴图比较麻烦的话，可以来使用本模组自带的贴图。本模组内的贴图一共分为2套风格的主题：一种是RPG，另一种是GalGame。
 
-```json
+```md
 RPG：
 chatbox:textures/chatbox/default_dialog_box.png
 chatbox:textures/options/default_checked_option.png
@@ -350,42 +408,37 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 ```json
 {
-  "dialogBox":{
-    "name": "chatbox.test.name.1",
-    "text": "chatbox.test.text.1",
-    "isTranslatable": true
-  },
-  "portrait": [
-    {
-      "type": "texture",
-      "value": "authors"
-    }
-  ],
-  "options":[
-    {
-      "text": "chatbox.test.option.1",
-      "isTranslatable": true,
-      "isLock": true,
-      "lock": {
-        "objective" : "",
-        "value" : ""
-      },
-      "hidden": {
-        "objective" : "",
-        "value" : ""
-      },
-      "isHidden" : false,
-      "next": 1
-      "click": {
-        "type" : "",
-        "value" : ""
-      }
-      "tooltip": "chatbox.test.tooltip.1",
-    }
-  ],
-  "sound": "minecraft:ambient.cave",
-  "volume": 1,
-  "pitch": 1
+	"dialogBox": {
+		"name": "chatbox.test.name.1",
+		"text": "chatbox.test.text.1",
+		"isTranslatable": true
+	},
+	"portrait": [
+		"authors"
+	],
+	"options": [{
+		"text": "chatbox.test.option.1",
+		"isTranslatable": true,
+		"isLock": true,
+		"lock": {
+			"objective": "",
+			"value": ""
+		},
+		"hidden": {
+			"objective": "",
+			"value": ""
+		},
+		"isHidden": false,
+		"next": 1 ,
+        "click": {
+			"type": "",
+			"value": ""
+		},
+		"tooltip": "chatbox.test.tooltip.1"
+	}],
+	"sound": "minecraft:ambient.cave",
+	"volume": 1,
+	"pitch": 1
 }
 ```
 
@@ -409,9 +462,7 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
   **立绘**
 
-* type（必填）：立绘类型，可选参数有：`TEXTURE`,`PLAYER_HEAD`,`ITEM`
-
-* value（必填）：这里填的就是我们在主题文件中预设的立绘标识符了
+* 这里可以填多个字符串，填的就是我们在主题文件中预设的立绘标识符了
 
   **选项**
 
@@ -460,9 +511,9 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
   let $SkipChatEvent = Java.loadClass("com.zhenshiz.chatbox.event.SkipChatEvent");
 
-  //在跳转对话时触发，提供了对话的数据包文件，分组和序号来方便用户对特别某一句对话添加自己想要的功能
+  //在跳转对话时触发，提供了对话的数据包文件，分组和序号来方便用户对特别某一句对话添加自己想要的功能。还有chatBoxScreen包含当前对话的所有信息
   NativeEvents.onEvent($SkipChatEvent, event => {
-    let { resourceLocation, group, index } = event
+    let { chatBoxScreen, resourceLocation, group, index } = event
   })
   ```
 
@@ -471,6 +522,22 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
   Q：这个模组未来会移植到其它版本或者其它模组加载器吗？
 
   A：至少我不会，但是欢迎其它感兴趣的开发者来fork我的模组
+
+  # 更新日志
+
+  **1.0.2**
+
+* 修复`/chatbox skip`指令跳转默认值没效果的bug
+
+* 给`SkipChatEvent`事件添加一个`chatBoxScreen`参数
+
+* 对话框主题的立绘配置中每一项都需添加type属性
+
+* 对话框文本的配置中关于立绘的配置改为字符串数组，不再需要`type`和`value`
+
+* 立绘所有的类型都支持使用透明度和自定义动画，图片额外支持3种预设的动画
+
+* 进入对话会关闭之前播放的音乐
 
 # 未来可能更新的功能
 
