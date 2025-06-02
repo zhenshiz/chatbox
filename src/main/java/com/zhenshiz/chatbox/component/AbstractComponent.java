@@ -1,12 +1,13 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
+
+import java.util.Optional;
 
 public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     //水平对齐: LEFT CENTER RIGHT
@@ -131,11 +132,18 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture) {
-        Vec2 position = getCurrentPosition();
-        RenderSystem.enableBlend();
-        guiGraphics.setColor(1f, 1f, 1f, (float) this.opacity / 100);
-        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height));
-        RenderSystem.disableBlend();
+        renderImage(guiGraphics, texture, 1f);
+    }
+
+    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale) {
+        RenderUtil.renderOpacity(guiGraphics, (float) this.opacity / 100, () -> {
+            Vec2 position = getCurrentPosition();
+            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale);
+        });
+    }
+
+    protected static <T> T getValueOrDefault(T param, T defaultValue) {
+        return Optional.ofNullable(param).orElse(defaultValue);
     }
 
     public boolean isSelect(float width, float height, float x, float y, int mouseX, int mouseY) {

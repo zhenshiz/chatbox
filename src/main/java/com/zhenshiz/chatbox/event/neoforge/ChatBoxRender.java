@@ -1,6 +1,5 @@
 package com.zhenshiz.chatbox.event.neoforge;
 
-import dev.latvian.mods.kubejs.event.KubeEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,7 +8,7 @@ import net.neoforged.bus.api.ICancellableEvent;
 
 @Getter
 @AllArgsConstructor
-public abstract class ChatBoxRender extends Event implements KubeEvent {
+public abstract class ChatBoxRender extends Event {
     private final GuiGraphics guiGraphics;
 
     public static class Pre extends ChatBoxRender implements ICancellableEvent {

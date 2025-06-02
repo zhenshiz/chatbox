@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.data;
 
 import com.zhenshiz.chatbox.component.ChatOption;
+import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.resources.ResourceLocation;
@@ -125,17 +126,17 @@ public class ChatBoxDialogues {
                 com.zhenshiz.chatbox.component.Portrait portrait = map.get(p)
                         .setPortraitTheme()
                         .build();
-                portrait.setTarget();
+                if (!CollUtil.isEmpty(portrait.customAnimation)) {
+                    portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                    if (portrait.loop)
+                        portrait.setStart(portrait.x, portrait.y, getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
+                    portrait.setIsAnimation(true).setTarget();
+                }
                 portraitList.add(portrait);
             });
         }
         return portraitList;
-    }
-
-    public ChatBoxDialogues(DialogBox dialogBox, List<String> portrait, List<Option> options) {
-        this.dialogBox = dialogBox;
-        this.portrait = portrait;
-        this.options = options;
     }
 
     public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {

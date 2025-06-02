@@ -3,10 +3,14 @@ package com.zhenshiz.chatbox.data;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
+import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@AllArgsConstructor
 public class ChatBoxTheme {
     private final static Integer DEFAULT_INT = 0;
 
@@ -22,10 +26,12 @@ public class ChatBoxTheme {
         public String animation;
         public Integer duration;
         public String easing;
-        public Integer scale;
+        public Float scale;
+        public List<CustomAnimation> customAnimation = new ArrayList<>();
+        public Boolean loop;
 
         public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
-            com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type));
+            com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.customAnimation, this.loop);
             switch (portrait.type) {
                 case TEXTURE ->
                         portrait.createTexture(portrait, this.value, this.animation, this.easing, this.duration).build();
@@ -33,6 +39,15 @@ public class ChatBoxTheme {
                 case ITEM -> portrait.createItem(portrait, this.value, this.customItemData, this.scale).build();
             }
             return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder);
+        }
+
+        public static class CustomAnimation {
+            public Integer time;
+            public Integer x;
+            public Integer y;
+            public Float scale;
+            public Integer opacity;
+            public EasingUtil.Easing easing;
         }
     }
 
@@ -106,21 +121,15 @@ public class ChatBoxTheme {
         }
     }
 
-    public ChatBoxTheme(Map<String, Portrait> portrait, Option option, DialogBox dialogBox, LogButton logButton) {
-        this.portrait = portrait;
-        this.option = option;
-        this.dialogBox = dialogBox;
-        this.logButton = logButton;
-    }
-
     public ChatBoxTheme setDefaultValue() {
         this.portrait.forEach((key, value) -> {
             value.opacity = getValueOrDefault(value.opacity, 100);
             value.animation = getValueOrDefault(value.animation, com.zhenshiz.chatbox.component.Portrait.AnimationType.NONE.name());
             value.easing = getValueOrDefault(value.easing, EasingUtil.Easing.EASE_IN_SINE.name());
-            value.scale = getValueOrDefault(value.scale, 1);
+            value.scale = getValueOrDefault(value.scale, 1f);
             value.setDefaultValue();
             value.renderOrder = getValueOrDefault(value.renderOrder, 20);
+            value.loop = getValueOrDefault(value.loop, false);
         });
 
         this.option.optionChatX = getValueOrDefault(this.option.optionChatX, DEFAULT_INT);

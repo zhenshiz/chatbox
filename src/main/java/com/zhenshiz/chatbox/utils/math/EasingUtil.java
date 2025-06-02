@@ -2,11 +2,11 @@ package com.zhenshiz.chatbox.utils.math;
 
 public class EasingUtil {
 
-    public static double easingFunction(int min,int max,double currentTime, double duration,Easing easing){
+    public static double easingFunction(float min, float max, double currentTime, double duration, Easing easing) {
         double progress = currentTime / duration;
         progress = Math.min(1.0, Math.max(0.0, progress));
 
-        double easedProgress = switch (easing){
+        double easedProgress = switch (easing) {
             case EASE_IN_SINE -> easeInSine(progress);
             case EASE_OUT_SINE -> easeOutSine(progress);
             case EASE_IN_OUT_SINE -> easeInOutSine(progress);
@@ -37,6 +37,7 @@ public class EasingUtil {
             case EASE_IN_BOUNCE -> easeInBounce(progress);
             case EASE_OUT_BOUNCE -> easeOutBounce(progress);
             case EASE_IN_OUT_BOUNCE -> easeInOutBounce(progress);
+            case null -> easeInSine(progress);
         };
         return min + (max - min) * easedProgress;
     }
@@ -45,71 +46,71 @@ public class EasingUtil {
         return 1 - Math.cos(x * Math.PI / 2);
     }
 
-    private static double easeOutSine(double x){
+    private static double easeOutSine(double x) {
         return Math.sin((x * Math.PI) / 2);
     }
 
-    private static double easeInOutSine(double x){
+    private static double easeInOutSine(double x) {
         return -(Math.cos(Math.PI * x) - 1) / 2;
     }
 
-    private static double easeInQuad(double x){
+    private static double easeInQuad(double x) {
         return x * x;
     }
 
-    private static double easeOutQuad(double x){
+    private static double easeOutQuad(double x) {
         return 1 - (1 - x) * (1 - x);
     }
 
-    private static double easeInOutQuad(double x){
+    private static double easeInOutQuad(double x) {
         return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
     }
 
-    private static double easeInCubic(double x){
+    private static double easeInCubic(double x) {
         return x * x * x;
     }
 
-    private static double easeOutCubic(double x){
+    private static double easeOutCubic(double x) {
         return 1 - Math.pow(1 - x, 3);
     }
 
-    private static double easeInOutCubic(double x){
+    private static double easeInOutCubic(double x) {
         return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     }
 
-    private static double easeInQuart(double x){
+    private static double easeInQuart(double x) {
         return x * x * x * x;
     }
 
-    private static double easeOutQuart(double x){
+    private static double easeOutQuart(double x) {
         return 1 - Math.pow(1 - x, 4);
     }
 
-    private static double easeInOutQuart(double x){
+    private static double easeInOutQuart(double x) {
         return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
     }
 
-    private static double easeInQuint(double x){
+    private static double easeInQuint(double x) {
         return x * x * x * x * x;
     }
 
-    private static double easeOutQuint(double x){
+    private static double easeOutQuint(double x) {
         return 1 - Math.pow(1 - x, 5);
     }
 
-    private static double easeInOutQuint(double x){
+    private static double easeInOutQuint(double x) {
         return x < 0.5 ? 16 * x * x * x * x * x : 1 - Math.pow(-2 * x + 2, 5) / 2;
     }
 
-    private static double easeInExpo(double x){
+    private static double easeInExpo(double x) {
         return x == 0 ? 0 : Math.pow(2, 10 * x - 10);
     }
 
-    private static double easeOutExpo(double x){
+    private static double easeOutExpo(double x) {
         return x == 1 ? 1 : 1 - Math.pow(2, -10 * x);
     }
 
-    private static double easeInOutExpo(double x){
+    private static double easeInOutExpo(double x) {
         return x == 0
                 ? 0
                 : x == 1
@@ -118,35 +119,35 @@ public class EasingUtil {
                 : (2 - Math.pow(2, -20 * x + 10)) / 2;
     }
 
-    private static double easeInCirc(double x){
+    private static double easeInCirc(double x) {
         return 1 - Math.sqrt(1 - Math.pow(x, 2));
     }
 
-    private static double easeOutCirc(double x){
+    private static double easeOutCirc(double x) {
         return Math.sqrt(1 - Math.pow(x - 1, 2));
     }
 
-    private static double easeInOutCirc(double x){
+    private static double easeInOutCirc(double x) {
         return x < 0.5
                 ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
                 : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2;
     }
 
-    private static double easeInBack(double x){
+    private static double easeInBack(double x) {
         double c1 = 1.70158;
         double c3 = c1 + 1;
 
         return c3 * x * x * x - c1 * x * x;
     }
 
-    private static double easeOutBack(double x){
+    private static double easeOutBack(double x) {
         double c1 = 1.70158;
         double c3 = c1 + 1;
 
         return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
     }
 
-    private static double easeInOutBack(double x){
+    private static double easeInOutBack(double x) {
         double c1 = 1.70158;
         double c2 = c1 * 1.525;
 
@@ -155,7 +156,7 @@ public class EasingUtil {
                 : (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
     }
 
-    private static double easeInElastic(double x){
+    private static double easeInElastic(double x) {
         double c4 = (2 * Math.PI) / 3;
 
         return x == 0
@@ -165,7 +166,7 @@ public class EasingUtil {
                 : -Math.pow(2, 10 * x - 10) * Math.sin((x * 10 - 10.75) * c4);
     }
 
-    private static double easeOutElastic(double x){
+    private static double easeOutElastic(double x) {
         double c4 = (2 * Math.PI) / 3;
 
         return x == 0
@@ -175,7 +176,7 @@ public class EasingUtil {
                 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1;
     }
 
-    private static double easeInOutElastic(double x){
+    private static double easeInOutElastic(double x) {
         double c5 = (2 * Math.PI) / 4.5;
 
         return x == 0
@@ -187,11 +188,11 @@ public class EasingUtil {
                 : (Math.pow(2, -20 * x + 10) * Math.sin((20 * x - 11.125) * c5)) / 2 + 1;
     }
 
-    private static double easeInBounce(double x){
+    private static double easeInBounce(double x) {
         return 1 - easeOutBounce(1 - x);
     }
 
-    private static double easeOutBounce(double x){
+    private static double easeOutBounce(double x) {
         double n1 = 7.5625;
         double d1 = 2.75;
 
@@ -206,13 +207,13 @@ public class EasingUtil {
         }
     }
 
-    private static double easeInOutBounce(double x){
+    private static double easeInOutBounce(double x) {
         return x < 0.5
                 ? (1 - easeOutBounce(1 - 2 * x)) / 2
                 : (1 + easeOutBounce(2 * x - 1)) / 2;
     }
 
-    public enum Easing{
+    public enum Easing {
         EASE_IN_SINE,
         EASE_OUT_SINE,
         EASE_IN_OUT_SINE,
@@ -244,7 +245,7 @@ public class EasingUtil {
         EASE_OUT_BOUNCE,
         EASE_IN_OUT_BOUNCE;
 
-        public static Easing of(String value){
+        public static Easing of(String value) {
             return valueOf(value.toUpperCase());
         }
     }

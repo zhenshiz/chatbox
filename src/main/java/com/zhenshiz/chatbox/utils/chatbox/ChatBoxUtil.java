@@ -19,10 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ChatBoxUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
@@ -38,6 +35,8 @@ public class ChatBoxUtil {
     public static ChatBoxScreen chatBoxScreen = new ChatBoxScreen();
     //玩家的历史对话记录
     public static HistoricalDialogueScreen historicalDialogue = new HistoricalDialogueScreen();
+    //上一轮对话放的音乐
+    private static ResourceLocation lastSoundResourceLocation = null;
 
     //跳转对话
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index) {
@@ -65,8 +64,12 @@ public class ChatBoxUtil {
                 );
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialogue.sound);
                 if (minecraft.player != null && soundResourceLocation != null) {
+                    if (lastSoundResourceLocation != null) {
+                        minecraft.getSoundManager().stop(lastSoundResourceLocation, null);
+                    }
                     SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.get(soundResourceLocation);
                     if (soundEvent != null) {
+                        lastSoundResourceLocation = soundResourceLocation;
                         minecraft.player.playSound(soundEvent, dialogue.volume, dialogue.pitch);
                     }
                 }
@@ -147,7 +150,7 @@ public class ChatBoxUtil {
     public static String parseText(String input, boolean isLineBreak) {
         if (minecraft.player != null) {
             // @s 替换成当前玩家id
-            input = input.replaceAll("(?<!@)@s", minecraft.player.getDisplayName().getString());
+            input = input.replaceAll("(?<!@)@s", Objects.requireNonNull(minecraft.player.getDisplayName()).getString());
 
             if (isLineBreak) input = input.replaceAll("\n", "");
 

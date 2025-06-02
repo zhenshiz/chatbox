@@ -32,11 +32,11 @@ public class RenderUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
     private static Supplier<PlayerSkin> supplier = null;
 
-    public static int screenWidth(){
+    public static int screenWidth() {
         return minecraft.getWindow().getGuiScaledWidth();
     }
 
-    public static int screenHeight(){
+    public static int screenHeight() {
         return minecraft.getWindow().getGuiScaledHeight();
     }
 
@@ -47,10 +47,10 @@ public class RenderUtil {
         BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
-        buf.addVertex(mat, (float)x, (float)y, 0).setColor(color);
-        buf.addVertex(mat, (float)(x + w), (float)y, 0).setColor(color);
-        buf.addVertex(mat, (float)(x + w), (float)(y + h), 0).setColor(color);
-        buf.addVertex(mat, (float)x, (float)(y + h), 0).setColor(color);
+        buf.addVertex(mat, (float) x, (float) y, 0).setColor(color);
+        buf.addVertex(mat, (float) (x + w), (float) y, 0).setColor(color);
+        buf.addVertex(mat, (float) (x + w), (float) (y + h), 0).setColor(color);
+        buf.addVertex(mat, (float) x, (float) (y + h), 0).setColor(color);
 
         beginRendering();
         BufferUploader.drawWithShader(Objects.requireNonNull(buf.build()));
@@ -62,12 +62,12 @@ public class RenderUtil {
         BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
-        buf.addVertex(mat, (float)cX, (float)cY, 0).setColor(color);
+        buf.addVertex(mat, (float) cX, (float) cY, 0).setColor(color);
 
-        for (int i = start - 90; i <= end - 90; i ++) {
+        for (int i = start - 90; i <= end - 90; i++) {
             double angle = Math.toRadians(i);
-            float x = (float)(Math.cos(angle) * radius) + cX;
-            float y = (float)(Math.sin(angle) * radius) + cY;
+            float x = (float) (Math.cos(angle) * radius) + cX;
+            float y = (float) (Math.sin(angle) * radius) + cY;
             buf.addVertex(mat, x, y, 0).setColor(color);
         }
 
@@ -86,10 +86,10 @@ public class RenderUtil {
         BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
-        for (int i = start - 90; i <= end - 90; i ++) {
-            float angle = (float)Math.toRadians(i);
-            float cos = (float)Math.cos(angle);
-            float sin = (float)Math.sin(angle);
+        for (int i = start - 90; i <= end - 90; i++) {
+            float angle = (float) Math.toRadians(i);
+            float cos = (float) Math.cos(angle);
+            float sin = (float) Math.sin(angle);
             float x1 = cx + cos * radius;
             float y1 = cy + sin * radius;
             float x2 = cx + cos * (radius + thickness);
@@ -118,19 +118,19 @@ public class RenderUtil {
         buf.addVertex(mat, x + w / 2F, y + h / 2F, 0).setColor(color);
 
         int[][] corners = {
-                { x + w - r, y + r },
-                { x + w - r, y + h - r},
-                { x + r, y + h - r },
-                { x + r, y + r }
+                {x + w - r, y + r},
+                {x + w - r, y + h - r},
+                {x + r, y + h - r},
+                {x + r, y + r}
         };
 
         for (int corner = 0; corner < 4; corner++) {
             int cornerStart = (corner - 1) * 90;
             int cornerEnd = cornerStart + 90;
             for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float)Math.toRadians(i);
-                float rx = corners[corner][0] + (float)(Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float)(Math.sin(angle) * r);
+                float angle = (float) Math.toRadians(i);
+                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
+                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
                 buf.addVertex(mat, rx, ry, 0).setColor(color);
             }
         }
@@ -150,21 +150,21 @@ public class RenderUtil {
         Matrix4f mat = guiGraphics.pose().last().pose();
 
         int[][] corners = {
-                { x + w - r, y + r },
-                { x + w - r, y + h - r},
-                { x + r, y + h - r },
-                { x + r, y + r }
+                {x + w - r, y + r},
+                {x + w - r, y + h - r},
+                {x + r, y + h - r},
+                {x + r, y + r}
         };
 
         for (int corner = 0; corner < 4; corner++) {
             int cornerStart = (corner - 1) * 90;
             int cornerEnd = cornerStart + 90;
             for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float)Math.toRadians(i);
-                float rx1 = corners[corner][0] + (float)(Math.cos(angle) * r);
-                float ry1 = corners[corner][1] + (float)(Math.sin(angle) * r);
-                float rx2 = corners[corner][0] + (float)(Math.cos(angle) * (r + thickness));
-                float ry2 = corners[corner][1] + (float)(Math.sin(angle) * (r + thickness));
+                float angle = (float) Math.toRadians(i);
+                float rx1 = corners[corner][0] + (float) (Math.cos(angle) * r);
+                float ry1 = corners[corner][1] + (float) (Math.sin(angle) * r);
+                float rx2 = corners[corner][0] + (float) (Math.cos(angle) * (r + thickness));
+                float ry2 = corners[corner][1] + (float) (Math.sin(angle) * (r + thickness));
                 buf.addVertex(mat, rx1, ry1, 0).setColor(innerColor);
                 buf.addVertex(mat, rx2, ry2, 0).setColor(outerColor);
             }
@@ -188,17 +188,17 @@ public class RenderUtil {
         buf.addVertex(mat, x + w / 2F, y + h / 2F, 0).setColor(color);
 
         int[][] corners = {
-                { x + r, y + r },
-                { x + w - r, y + r }
+                {x + r, y + r},
+                {x + w - r, y + r}
         };
 
         for (int corner = 0; corner < 2; corner++) {
             int cornerStart = (corner - 2) * 90;
             int cornerEnd = cornerStart + 90;
             for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float)Math.toRadians(i);
-                float rx = corners[corner][0] + (float)(Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float)(Math.sin(angle) * r);
+                float angle = (float) Math.toRadians(i);
+                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
+                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
                 buf.addVertex(mat, rx, ry, 0).setColor(color);
             }
         }
@@ -222,17 +222,17 @@ public class RenderUtil {
         buf.addVertex(mat, x + w / 2F, y + h / 2F, 0).setColor(color);
 
         int[][] corners = {
-                { x + w - r, y + h - r},
-                { x + r, y + h - r }
+                {x + w - r, y + h - r},
+                {x + r, y + h - r}
         };
 
         for (int corner = 0; corner < 2; corner++) {
             int cornerStart = corner * 90;
             int cornerEnd = cornerStart + 90;
             for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float)Math.toRadians(i);
-                float rx = corners[corner][0] + (float)(Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float)(Math.sin(angle) * r);
+                float angle = (float) Math.toRadians(i);
+                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
+                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
                 buf.addVertex(mat, rx, ry, 0).setColor(color);
             }
         }
@@ -289,8 +289,8 @@ public class RenderUtil {
         BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
-        buf.addVertex(mat, (float)x1, (float)y1, 0).setColor(color);
-        buf.addVertex(mat, (float)x2, (float)y2, 0).setColor(color);
+        buf.addVertex(mat, (float) x1, (float) y1, 0).setColor(color);
+        buf.addVertex(mat, (float) x2, (float) y2, 0).setColor(color);
 
         beginRendering();
         drawBuffer(buf);
@@ -305,8 +305,8 @@ public class RenderUtil {
 
         for (int i = start - 90; i <= end - 90; i++) {
             double angle = Math.toRadians(i);
-            float x = (float)(Math.cos(angle) * radius) + cX;
-            float y = (float)(Math.sin(angle) * radius) + cY;
+            float x = (float) (Math.cos(angle) * radius) + cX;
+            float y = (float) (Math.sin(angle) * radius) + cY;
             buf.addVertex(mat, x, y, 0).setColor(color);
         }
 
@@ -328,19 +328,19 @@ public class RenderUtil {
         Matrix4f mat = guiGraphics.pose().last().pose();
 
         int[][] corners = {
-                { x + w - r, y + r },
-                { x + w - r, y + h - r},
-                { x + r, y + h - r },
-                { x + r, y + r }
+                {x + w - r, y + r},
+                {x + w - r, y + h - r},
+                {x + r, y + h - r},
+                {x + r, y + r}
         };
 
         for (int corner = 0; corner < 4; corner++) {
             int cornerStart = (corner - 1) * 90;
             int cornerEnd = cornerStart + 90;
             for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float)Math.toRadians(i);
-                float rx = corners[corner][0] + (float)(Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float)(Math.sin(angle) * r);
+                float angle = (float) Math.toRadians(i);
+                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
+                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
                 buf.addVertex(mat, rx, ry, 0).setColor(color);
             }
         }
@@ -377,18 +377,28 @@ public class RenderUtil {
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, int x, int y, int z, int width, int height) {
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, int x, int y, int z, int width, int height, float scale) {
+        x = (int) (x / scale);
+        y = (int) (y / scale);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(scale, scale, scale);
         renderImage(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
+        guiGraphics.pose().popPose();
     }
 
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input,int x ,int y, int size){
-        handleGameProfileAsync(input,gameProfile ->supplier = RenderUtil.texturesSupplier(gameProfile) );
-        PlayerFaceRenderer.draw(guiGraphics, supplier == null ? DefaultPlayerSkin.getDefaultTexture() : supplier.get().texture(), x,y,size);
+    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale) {
+        handleGameProfileAsync(input, gameProfile -> supplier = RenderUtil.texturesSupplier(gameProfile));
+        x = (int) (x / scale);
+        y = (int) (y / scale);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(scale, scale, scale);
+        PlayerFaceRenderer.draw(guiGraphics, supplier == null ? DefaultPlayerSkin.getDefaultTexture() : supplier.get().texture(), x, y, size);
+        guiGraphics.pose().popPose();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item,int x, int y, float scale, String text){
-        x = (int)(x / scale);
-        y = (int)(y / scale);
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, String text) {
+        x = (int) (x / scale);
+        y = (int) (y / scale);
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
         guiGraphics.renderItem(item, x, y);
@@ -396,44 +406,44 @@ public class RenderUtil {
         guiGraphics.pose().popPose();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item,int x, int y, float scale){
-        renderItem(guiGraphics,item,x,y,scale,"");
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale) {
+        renderItem(guiGraphics, item, x, y, scale, "");
     }
 
     // text
-    public static void drawLeftScaleText(GuiGraphics guiGraphics, Component component, int x, int y, float scale, boolean shadow, int color){
+    public static void drawLeftScaleText(GuiGraphics guiGraphics, Component component, int x, int y, float scale, boolean shadow, int color) {
         PoseStack poseStack = guiGraphics.pose();
         poseStack.scale(scale, scale, scale);
 
         float rescale = 1 / scale;
-        x = (int)(x * rescale);
-        y = (int)(y * rescale);
+        x = (int) (x * rescale);
+        y = (int) (y * rescale);
 
         guiGraphics.drawString(minecraft.font, component, x, y, color, shadow);
         poseStack.scale(rescale, rescale, rescale);
     }
 
-    public static void drawCenterScaleText(GuiGraphics guiGraphics,Component component,int centerX, int y, float scale, boolean shadow, int color){
+    public static void drawCenterScaleText(GuiGraphics guiGraphics, Component component, int centerX, int y, float scale, boolean shadow, int color) {
         PoseStack poseStack = guiGraphics.pose();
         poseStack.scale(scale, scale, scale);
 
         float rescale = 1 / scale;
-        centerX = (int)(centerX * rescale);
+        centerX = (int) (centerX * rescale);
         centerX = centerX - (minecraft.font.width(component) / 2);
-        y = (int)(y * rescale);
+        y = (int) (y * rescale);
 
         guiGraphics.drawString(minecraft.font, component, centerX, y, color, shadow);
         poseStack.scale(rescale, rescale, rescale);
     }
 
-    public static void drawRightScaleText(GuiGraphics guiGraphics,Component component, int rightX, int y, float scale, boolean shadow, int color){
+    public static void drawRightScaleText(GuiGraphics guiGraphics, Component component, int rightX, int y, float scale, boolean shadow, int color) {
         PoseStack poseStack = guiGraphics.pose();
         poseStack.scale(scale, scale, scale);
 
         float rescale = 1 / scale;
-        rightX = (int)(rightX * rescale);
+        rightX = (int) (rightX * rescale);
         rightX = rightX - minecraft.font.width(component);
-        y = (int)(y * rescale);
+        y = (int) (y * rescale);
 
         guiGraphics.drawString(minecraft.font, component, rightX, y, color, shadow);
         poseStack.scale(rescale, rescale, rescale);
@@ -447,8 +457,8 @@ public class RenderUtil {
         int w2 = screenWidth();
         int h1 = window.getHeight();
         int h2 = screenHeight();
-        double ratW = (double)w2 / (double)w1;
-        double ratH = (double)h2 / (double)h1;
+        double ratW = (double) w2 / (double) w1;
+        double ratH = (double) h2 / (double) h1;
         GLFW.glfwSetCursorPos(window.getWindow(), x / ratW, y / ratH);
     }
 
@@ -458,9 +468,18 @@ public class RenderUtil {
         int w2 = screenWidth();
         int h1 = window.getHeight();
         int h2 = screenHeight();
-        double rW = (double)w2 / (double)w1;
-        double rH = (double)h2 / (double)h1;
-        return new Point((int)(rW * minecraft.mouseHandler.xpos()), (int)(rH * minecraft.mouseHandler.ypos()));
+        double rW = (double) w2 / (double) w1;
+        double rH = (double) h2 / (double) h1;
+        return new Point((int) (rW * minecraft.mouseHandler.xpos()), (int) (rH * minecraft.mouseHandler.ypos()));
+    }
+
+    //util
+
+    public static void renderOpacity(GuiGraphics guiGraphics, float opacity, Runnable runnable) {
+        RenderSystem.enableBlend();
+        guiGraphics.setColor(1f, 1f, 1f, opacity);
+        runnable.run();
+        RenderSystem.disableBlend();
     }
 
     //private
@@ -482,7 +501,8 @@ public class RenderUtil {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
     }
 
-    private static Tesselator getTesselator() { return Tesselator.getInstance();
+    private static Tesselator getTesselator() {
+        return Tesselator.getInstance();
     }
 
     private static void handleGameProfileAsync(String input, Consumer<GameProfile> postAction) {
