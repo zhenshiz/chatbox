@@ -140,8 +140,6 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 * alignY（可选，默认上对齐）：垂直对齐，可选参数有`TOP`,`CENTER`,`BOTTOM`
 
-* opacity（可选，默认100）：透明度，范围`0-100`
-
 * renderOrder（可选，默认20）：渲染顺序的权重
 
   **item**
@@ -157,8 +155,6 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 * alignX（可选，默认左对齐）：水平对齐，可选参数有`LEFT`,`CENTER`,`RIGHT`
 
 * alignY（可选，默认上对齐）：垂直对齐，可选参数有`TOP`,`CENTER`,`BOTTOM`
-
-* opacity（可选，默认100）：透明度，范围`0-100`
 
 * renderOrder（可选，默认20）：渲染顺序的权重
 
@@ -215,7 +211,7 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 ### 对话框
 
-```javascript
+```json
 {
   "dialogBox":{
     "texture": "chatbox:textures/chatbox/default_dialog_box.png",
@@ -339,7 +335,7 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 基础框架如下：
 
-```javascript
+```json
 {
   "$introduce": "这是一段介绍本模组的文本",
   "dialogues": {
@@ -352,7 +348,7 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 接下来我们来介绍一下一段对话里都有哪些参数：
 
-```javascript
+```json
 {
   "dialogBox":{
     "name": "chatbox.test.name.1",
