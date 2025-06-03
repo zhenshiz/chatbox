@@ -1,28 +1,20 @@
 {
   "portrait": {
     "authors": {
-      "pos": [
-        -5,
-        -5
-      ],
-      "size": [
-        30,
-        60
-      ],
+      "type": "texture",
+      "x": -5,
+      "y": -5,
+      "width": 30,
+      "height": 60,
       "alignX": "left",
       "alignY": "bottom",
       "value": "chatbox:textures/portrait/authors.png",
-      "z": -100
+      "z": -1
     },
     "authors_fade_in": {
-      "pos": [
-        0,
-        0
-      ],
-      "size": [
-        40,
-        80
-      ],
+      "type": "texture",
+      "width": 40,
+      "height": 80,
       "alignX": "center",
       "alignY": "bottom",
       "value": "chatbox:textures/portrait/authors.png",
@@ -30,14 +22,11 @@
       "z": 1
     },
     "authors_slide_in_from_bottom": {
-      "pos": [
-        0,
-        10
-      ],
-      "size": [
-        40,
-        80
-      ],
+      "type": "texture",
+      "x": 0,
+      "y": 10,
+      "width": 40,
+      "height": 80,
       "alignX": "center",
       "alignY": "bottom",
       "value": "chatbox:textures/portrait/authors.png",
@@ -45,14 +34,9 @@
       "z": -1
     },
     "authors_bounce": {
-      "pos": [
-        0,
-        0
-      ],
-      "size": [
-        40,
-        80
-      ],
+      "type": "texture",
+      "width": 40,
+      "height": 80,
       "alignX": "center",
       "alignY": "bottom",
       "value": "chatbox:textures/portrait/authors.png",
@@ -60,21 +44,17 @@
       "z": -1
     },
     "head": {
-      "pos": [
-        20,
-        30
-      ],
-      "size": [
-        40,
-        40
-      ],
+      "type": "player_head",
+      "x": 20,
+      "y": 30,
+      "width": 10,
       "value": "@s"
     },
     "item": {
-      "pos": [
-        35,
-        35
-      ],
+      "type": "item",
+      "x": 40,
+      "y": 30,
+      "scale": 3,
       "value": "diamond"
     }
   },
@@ -82,56 +62,38 @@
     "texture": "chatbox:textures/options/gal_no_checked_option.png",
     "selectTexture": "chatbox:textures/options/gal_checked_option.png",
     "lockTexture": "chatbox:textures/options/gal_no_checked_option.png",
-    "pos": [
-      0,
-      20
-    ],
+    "x": 0,
+    "y": 20,
+    "optionChatX": 0,
+    "optionChatY": -2,
+    "width": 50,
+    "height": 10,
     "alignX": "center",
     "alignY": "top",
-    "optionChatPos": [
-      0,
-      -2
-    ],
-    "size": [
-      50,
-      10
-    ],
     "textAlign": "center"
   },
   "dialogBox": {
     "texture": "chatbox:textures/chatbox/gal_dialog_box.png",
     "alignX": "center",
     "alignY": "bottom",
-    "pos": [
-      0,
-      -5
-    ],
-    "size": [
-      80,
-      40
-    ],
+    "x": 0,
+    "y": -5,
+    "width": 80,
+    "height": 40,
     "lineWidth": 60,
-    "namePos": [
-      10,
-      10
-    ],
-    "textPos": [
-      10,
-      15
-    ]
+    "nameX": 10,
+    "nameY": 10,
+    "textX": 10,
+    "textY": 15
   },
   "logButton": {
     "texture": "chatbox:textures/log/default_log.png",
     "hoverTexture": "chatbox:textures/log/default_hover_log.png",
     "alignX": "right",
     "alignY": "bottom",
-    "pos": [
-      -15,
-      -10
-    ],
-    "size": [
-      5,
-      10
-    ]
+    "x": -15,
+    "y": -10,
+    "width": 5,
+    "height": 10
   }
 }
