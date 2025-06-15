@@ -57,13 +57,19 @@ public class ChatBoxUtil {
                 minecraft.setScreen(chatBoxScreen);
             }
             //新增聊天记录
-            if (dialogBox != null) {
+            if (dialogBox != null && minecraft.player != null) {
+                //添加历史聊天记录
                 historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesResourceLocation, group, index)
                         .setName(dialogBox.name, dialogBox.isTranslatable)
                         .setText(dialogBox.text, dialogBox.isTranslatable)
                 );
+                //进入对话执行自定义指令
+                if (dialogue.command != null) {
+                    minecraft.player.connection.sendCommand(dialogue.command);
+                }
+                //播放音乐
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialogue.sound);
-                if (minecraft.player != null && soundResourceLocation != null) {
+                if (soundResourceLocation != null) {
                     if (lastSoundResourceLocation != null) {
                         minecraft.getSoundManager().stop(lastSoundResourceLocation, null);
                     }

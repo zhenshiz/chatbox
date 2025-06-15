@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.data;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -15,7 +16,6 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class ChatBoxDialogues {
     private final static Boolean DEFAULT_BOOL = false;
@@ -26,6 +26,7 @@ public class ChatBoxDialogues {
     public String sound;
     public Float volume;
     public Float pitch;
+    public String command;
 
     public static class DialogBox {
         public String name;
@@ -127,9 +128,15 @@ public class ChatBoxDialogues {
                         .setPortraitTheme()
                         .build();
                 if (!CollUtil.isEmpty(portrait.customAnimation)) {
-                    portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                    BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity), portrait.customAnimation.getFirst());
+                    if (portrait.customAnimation.size() > 1) {
+                        for (int i = 1; i < portrait.customAnimation.size(); i++) {
+                            BeanUtil.copyPropertiesIfTargetNull(portrait.customAnimation.get(i - 1), portrait.customAnimation.get(i));
+                        }
+                    }
+                    portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
                     if (portrait.loop)
-                        portrait.setStart(portrait.x, portrait.y, getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                        portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
                 } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
                     portrait.setIsAnimation(true).setTarget();
                 }
@@ -140,28 +147,24 @@ public class ChatBoxDialogues {
     }
 
     public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {
-        this.sound = getValueOrDefault(this.sound, "");
-        this.volume = getValueOrDefault(this.volume, 1f);
-        this.pitch = getValueOrDefault(this.pitch, 1f);
+        this.sound = BeanUtil.getValueOrDefault(this.sound, "");
+        this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
+        this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
 
-        this.dialogBox.isTranslatable = getValueOrDefault(this.dialogBox.isTranslatable, DEFAULT_BOOL);
+        this.dialogBox.isTranslatable = BeanUtil.getValueOrDefault(this.dialogBox.isTranslatable, DEFAULT_BOOL);
         this.dialogBox.dialoguesResourceLocation = resourceLocation;
         this.dialogBox.group = group;
         this.dialogBox.index = index;
 
         if (!CollUtil.isEmpty(this.options)) {
             for (Option option : this.options) {
-                option.isTranslatable = getValueOrDefault(option.isTranslatable, DEFAULT_BOOL);
-                option.isLock = getValueOrDefault(option.isLock, DEFAULT_BOOL);
-                option.isHidden = getValueOrDefault(option.isHidden, DEFAULT_BOOL);
+                option.isTranslatable = BeanUtil.getValueOrDefault(option.isTranslatable, DEFAULT_BOOL);
+                option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
+                option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
                 option.dialoguesResourceLocation = resourceLocation;
                 option.group = group;
                 option.index = index;
             }
         }
-    }
-
-    private static <T> T getValueOrDefault(T param, T defaultValue) {
-        return Optional.ofNullable(param).orElse(defaultValue);
     }
 }
