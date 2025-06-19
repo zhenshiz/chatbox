@@ -1,0 +1,163 @@
+package com.zhenshiz.chatbox.data;
+
+import com.zhenshiz.chatbox.component.AbstractComponent;
+import com.zhenshiz.chatbox.component.ChatOption;
+import com.zhenshiz.chatbox.utils.common.BeanUtil;
+import com.zhenshiz.chatbox.utils.math.EasingUtil;
+import lombok.AllArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@AllArgsConstructor
+public class ChatBoxTheme {
+    private final static Integer DEFAULT_INT = 0;
+
+    public Map<String, Portrait> portrait;
+    public Option option;
+    public DialogBox dialogBox;
+    public LogButton logButton;
+
+    public static class Portrait extends Component {
+        public String type;
+        public String value;
+        public Integer customItemData;
+        public String animation;
+        public Integer duration;
+        public String easing;
+        public Float scale;
+        public List<CustomAnimation> customAnimation = new ArrayList<>();
+        public Boolean loop;
+
+        public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
+            com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.customAnimation, this.loop);
+            switch (portrait.type) {
+                case TEXTURE ->
+                        portrait.createTexture(portrait, this.value, this.animation, this.easing, this.duration).build();
+                case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value).build();
+                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData, this.scale).build();
+            }
+            return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder);
+        }
+
+        public static class CustomAnimation {
+            public Integer time;
+            public Integer x;
+            public Integer y;
+            public Float scale;
+            public Integer opacity;
+            public EasingUtil.Easing easing;
+
+            public CustomAnimation() {
+            }
+
+            public CustomAnimation(Integer x, Integer y, Float scale, Integer opacity) {
+                this.x = x;
+                this.y = y;
+                this.scale = scale;
+                this.opacity = opacity;
+            }
+        }
+    }
+
+    public static class Option extends Component {
+        public String texture;
+        public String selectTexture;
+        public String lockTexture;
+        public Integer optionChatX;
+        public Integer optionChatY;
+        public String textAlign;
+
+        public ChatOption setChatOptionTheme(ChatOption chatOption, int index) {
+            return chatOption.setDefaultOption(this.x, this.y + this.height * index, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder)
+                    .setTextures(this.texture)
+                    .setSelectTexture(this.selectTexture)
+                    .setLockTexture(this.lockTexture)
+                    .setOptionChatPosition(this.optionChatX, this.optionChatY)
+                    .setTextAlign(ChatOption.TextAlign.of(this.textAlign))
+                    .build();
+        }
+    }
+
+    public static class DialogBox extends Component {
+        public String texture;
+        public Integer lineWidth;
+        public Integer nameX;
+        public Integer nameY;
+        public Integer textX;
+        public Integer textY;
+
+        public com.zhenshiz.chatbox.component.DialogBox setDialogBoxTheme(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
+            return dialogBox.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder)
+                    .setTexture(this.texture)
+                    .setNamePosition(this.nameX, this.nameY)
+                    .setTextPosition(this.textX, this.textY)
+                    .setLineWidth(this.lineWidth)
+                    .build();
+        }
+    }
+
+    public static class LogButton extends Component {
+        public String texture;
+        public String hoverTexture;
+
+        public com.zhenshiz.chatbox.component.LogButton setLogButtonTheme(com.zhenshiz.chatbox.component.LogButton logButton) {
+            return logButton.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder)
+                    .setLogTexture(this.texture)
+                    .setHoverLogTexture(this.hoverTexture)
+                    .build();
+        }
+    }
+
+    public static class Component {
+        public Integer x;
+        public Integer y;
+        public Integer width;
+        public Integer height;
+        public String alignX;
+        public String alignY;
+        public Integer opacity;
+        public Integer renderOrder;
+
+        public void setDefaultValue() {
+            this.x = BeanUtil.getValueOrDefault(this.x, DEFAULT_INT);
+            this.y = BeanUtil.getValueOrDefault(this.y, DEFAULT_INT);
+            this.width = BeanUtil.getValueOrDefault(this.width, 10);
+            this.height = BeanUtil.getValueOrDefault(this.height, 10);
+            this.alignX = BeanUtil.getValueOrDefault(this.alignX, AbstractComponent.AlignX.LEFT.name());
+            this.alignY = BeanUtil.getValueOrDefault(this.alignY, AbstractComponent.AlignY.TOP.name());
+            this.opacity = BeanUtil.getValueOrDefault(this.opacity, 100);
+        }
+    }
+
+    public ChatBoxTheme setDefaultValue() {
+        this.portrait.forEach((key, value) -> {
+            value.opacity = BeanUtil.getValueOrDefault(value.opacity, 100);
+            value.animation = BeanUtil.getValueOrDefault(value.animation, com.zhenshiz.chatbox.component.Portrait.AnimationType.NONE.name());
+            value.easing = BeanUtil.getValueOrDefault(value.easing, EasingUtil.Easing.EASE_IN_SINE.name());
+            value.scale = BeanUtil.getValueOrDefault(value.scale, 1f);
+            value.setDefaultValue();
+            value.renderOrder = BeanUtil.getValueOrDefault(value.renderOrder, 20);
+            value.loop = BeanUtil.getValueOrDefault(value.loop, false);
+        });
+
+        this.option.optionChatX = BeanUtil.getValueOrDefault(this.option.optionChatX, DEFAULT_INT);
+        this.option.optionChatY = BeanUtil.getValueOrDefault(this.option.optionChatY, DEFAULT_INT);
+        this.option.textAlign = BeanUtil.getValueOrDefault(this.option.textAlign, ChatOption.TextAlign.LEFT.name());
+        this.option.setDefaultValue();
+        this.option.renderOrder = BeanUtil.getValueOrDefault(this.option.renderOrder, 10);
+
+        this.dialogBox.nameX = BeanUtil.getValueOrDefault(this.dialogBox.nameX, DEFAULT_INT);
+        this.dialogBox.nameY = BeanUtil.getValueOrDefault(this.dialogBox.nameY, DEFAULT_INT);
+        this.dialogBox.textX = BeanUtil.getValueOrDefault(this.dialogBox.textX, DEFAULT_INT);
+        this.dialogBox.textY = BeanUtil.getValueOrDefault(this.dialogBox.textY, DEFAULT_INT);
+        this.dialogBox.setDefaultValue();
+        this.dialogBox.renderOrder = BeanUtil.getValueOrDefault(this.dialogBox.renderOrder, 0);
+
+        this.logButton.setDefaultValue();
+        this.logButton.renderOrder = BeanUtil.getValueOrDefault(this.logButton.renderOrder, 30);
+
+        return this;
+    }
+}

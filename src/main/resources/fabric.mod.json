@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "chatbox",
+  "version": "1.0.2",
+  "name": "ChatBox",
+  "description": "GalGame DialogBox",
+  "authors": ["zhenshiz"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/chatbox/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [],
+    "main": [
+      "com.zhenshiz.chatbox.ChatBox"
+    ],
+    "modmenu": [
+      "com.zhenshiz.chatbox.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "chatbox.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": ">=1.21-"
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "portrait": {
+    "authors": {
+      "type": "texture",
+      "x": 0,
+      "y": -5,
+      "width": 20,
+      "height": 40,
+      "alignX": "left",
+      "alignY": "bottom",
+      "value": "chatbox:textures/portrait/authors.png",
+      "renderOrder": 30,
+      "animation": "none"
+    },
+    "authors_fade_in": {
+      "type": "texture",
+      "width": 40,
+      "height": 80,
+      "alignX": "center",
+      "alignY": "bottom",
+      "value": "chatbox:textures/portrait/authors.png",
+      "animation": "FADE_IN"
+    },
+    "authors_slide_in_from_bottom": {
+      "type": "texture",
+      "x": 0,
+      "y": 10,
+      "width": 40,
+      "height": 80,
+      "alignX": "center",
+      "alignY": "bottom",
+      "value": "chatbox:textures/portrait/authors.png",
+      "animation": "SLIDE_IN_FROM_BOTTOM"
+    },
+    "authors_bounce": {
+      "type": "texture",
+      "width": 40,
+      "height": 80,
+      "alignX": "center",
+      "alignY": "bottom",
+      "value": "chatbox:textures/portrait/authors.png",
+      "animation": "BOUNCE"
+    },
+    "head": {
+      "type": "player_head",
+      "x": 20,
+      "y": 30,
+      "width": 10,
+      "value": "@s",
+      "customAnimation": [
+        {
+          "time": 50,
+          "x": 20,
+          "y": 30,
+          "scale": 1,
+          "opacity": 100,
+          "easing": "EASE_OUT_SINE"
+        },
+        {
+          "time": 100,
+          "x": 20,
+          "y": 30,
+          "scale": 3,
+          "opacity": 0,
+          "easing": "EASE_OUT_SINE"
+        }
+      ],
+      "loop": true
+    },
+    "item": {
+      "type": "item",
+      "x": 40,
+      "y": 30,
+      "scale": 3,
+      "value": "diamond"
+    }
+  },
+  "option": {
+    "texture": "chatbox:textures/options/default_no_checked_option.png",
+    "selectTexture": "chatbox:textures/options/default_checked_option.png",
+    "lockTexture": "chatbox:textures/options/default_lock_checked_option.png",
+    "x": 0,
+    "y": 30,
+    "width": 35,
+    "height": 8,
+    "alignX": "right",
+    "alignY": "top",
+    "optionChatX": -12,
+    "optionChatY": -2,
+    "textAlign": "left"
+  },
+  "dialogBox": {
+    "texture": "chatbox:textures/chatbox/default_dialog_box.png",
+    "alignX": "left",
+    "alignY": "bottom",
+    "lineWidth": 70,
+    "width": 100,
+    "height": 40,
+    "nameX": 20,
+    "nameY": 10,
+    "textX": 20,
+    "textY": 15
+  },
+  "logButton": {
+    "texture": "chatbox:textures/log/default_log.png",
+    "hoverTexture": "chatbox:textures/log/default_hover_log.png",
+    "alignX": "right",
+    "alignY": "bottom",
+    "width": 5,
+    "height": 10
+  }
+}

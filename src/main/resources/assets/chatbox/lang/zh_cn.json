@@ -1,0 +1,31 @@
+{
+  "command.target.player.only": "此命令的目标对象应该是玩家",
+  "command.target.entity.only": "此命令的目标对象应该是实体",
+  "commands.toggle.theme": "成功切换对话框主题样式",
+  "commands.skip.dialogues": "成功跳转到 %s 组第 %s 句话",
+
+  "chatbox.configuration.config": "ChatBox模组配置",
+  "chatbox.configuration.historical_scroll_speed": "历史记录界面滚轮速度",
+
+  "text.autoconfig.chatbox_config.title": "ChatBox模组配置",
+  "text.autoconfig.chatbox_config.option.historicalScrollSpeed": "历史记录界面滚轮速度",
+
+  "chatbox.test.name.1": "因幡巡",
+  "chatbox.test.text.1": "欢迎使用本模组，接下来就由我来给你介绍本模组的功能。",
+  "chatbox.test.text.2": "本模组的所有配置都在数据包中实现，包括对话框、选项、人物立绘以及历史聊天记录的按钮。配置的内部包括且不限于位置、大小、文本内容、透明度等。",
+  "chatbox.test.text.3": "首先是对话框部分的功能，正常情况下文本将一点一点显示完整，玩家可以通过点击空白处让文本直接全部显示完毕，并且只有当文本显示完毕后玩家才可以选择选项。",
+  "chatbox.test.text.4": "其次是选项功能，玩家可以配置选项默认情况下、鼠标悬浮时、选项锁中时总共3种情况下的材质。你可以设置选项隐藏或者锁中，而解锁的检测方式是检测计分板中某一项的值是否为1。而当用户点击选项时，除了可以跳转到其它对话还可以触发自定义的指令。",
+  "chatbox.test.text.5": "然后是人物立绘，你可以在一句对话中渲染多个材质，可以渲染的材质包括资源包里的图片、玩家的头像、物品的材质，其中如果是资源包的图片的话还可以设置其透明度和执行一段预设的动画和这段动画时长。",
+  "chatbox.test.text.6": "其中预设的动画有：淡入",
+  "chatbox.test.text.7": "滑入",
+  "chatbox.test.text.8": "弹跳",
+  "chatbox.test.text.9": "然后要介绍的是文本的内容，你可以设置§1彩§2色§3文§4本、§f§l粗体、§o斜体§r等格式化代码，也在文本中也可以用@@s来表示当前观看的玩家，我说的对吗？@s",
+  "chatbox.test.text.10": "然后要介绍的是历史聊天记录的功能，你可以在你的屏幕里设置一个打开历史聊天记录的图片按钮，图片包括默认情况下和鼠标悬浮时2种材质，点击打开后可以看到最近跳转的历史记录，你可以通过点击记录来跳转到对应的对话来防止你对你做出的选择后悔，但是当你关闭对话框或者通过历史记录跳转后，当前所有的历史聊天记录将被清空重新记录。",
+  "chatbox.test.text.11":"最后介绍一下本模组新增的指令，因为本模组所有的对话都是以数据包的形式存储的，所以你可以直接通过/reload指令去重载有关本模组对话框的所有配置文件。",
+  "chatbox.test.text.12":"本模组的对话框可以通过Esc键去暂时关闭，你可以通过/chatbox open去打开之前未结束的对话，可以用/chatbox skip指令去打开指定的对话。",
+  "chatbox.test.text.13":"/chatbox theme指令可以让你去切换对话框的主题样式。",
+  "chatbox.test.text.14":"更加详细的使用教程以及对话框数据包的JSON文件生成可以查看本模组的Wiki网页，最后祝你游玩愉快!",
+  "chatbox.test.option.1": "上锁的选项",
+  "chatbox.test.option.2": "未上锁的选项，选择后触发指令",
+  "chatbox.test.tooltip.1": "似乎要通过神秘的仪式才能解锁这个选项"
+}
