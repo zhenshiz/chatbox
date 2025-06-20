@@ -31,20 +31,15 @@ public class ChatBoxDialogues {
     public static class DialogBox {
         public String name;
         public String text;
-        public Boolean isTranslatable;
 
         public ResourceLocation dialoguesResourceLocation;
         public String group;
         public Integer index;
 
-        public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
-            return setDialogBoxDialogues(dialogBox, this.index);
-        }
-
-        public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, int index) {
+        public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, int index, boolean isTranslatable) {
             this.index = index;
-            return dialogBox.setName(this.name, this.isTranslatable)
-                    .setText(this.text, this.isTranslatable)
+            return dialogBox.setName(this.name, isTranslatable)
+                    .setText(this.text, isTranslatable)
                     .setDialoguesInfo(this.dialoguesResourceLocation, this.group, index)
                     .resetTickCount();
         }
@@ -52,7 +47,6 @@ public class ChatBoxDialogues {
 
     public static class Option {
         public String text;
-        public Boolean isTranslatable;
         public Boolean isLock;
         public Condition lock = new Condition();
         public Condition hidden = new Condition();
@@ -65,7 +59,7 @@ public class ChatBoxDialogues {
         public String group;
         public Integer index;
 
-        public static List<ChatOption> setChatOptionDialogues(ChatBoxTheme theme, ResourceLocation dialoguesResourceLocation, String group, int index) {
+        public static List<ChatOption> setChatOptionDialogues(ChatBoxTheme theme, ResourceLocation dialoguesResourceLocation, String group, int index, boolean isTranslatable) {
             List<ChatBoxDialogues> chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation).get(group);
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             ServerScoreboard scoreboard = null;
@@ -91,8 +85,8 @@ public class ChatBoxDialogues {
                         if (objective != null) {
                             scoreAccess = scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(value.lock.value), objective);
                         }
-                        ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, value.isTranslatable)
-                                .setOptionChat(value.text, value.isTranslatable)
+                        ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, isTranslatable)
+                                .setOptionChat(value.text, isTranslatable)
                                 //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
                                 .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.get() != 1))
                                 .setNext(value.next)
@@ -151,14 +145,12 @@ public class ChatBoxDialogues {
         this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
         this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
 
-        this.dialogBox.isTranslatable = BeanUtil.getValueOrDefault(this.dialogBox.isTranslatable, DEFAULT_BOOL);
         this.dialogBox.dialoguesResourceLocation = resourceLocation;
         this.dialogBox.group = group;
         this.dialogBox.index = index;
 
         if (!CollUtil.isEmpty(this.options)) {
             for (Option option : this.options) {
-                option.isTranslatable = BeanUtil.getValueOrDefault(option.isTranslatable, DEFAULT_BOOL);
                 option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
                 option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
                 option.dialoguesResourceLocation = resourceLocation;
