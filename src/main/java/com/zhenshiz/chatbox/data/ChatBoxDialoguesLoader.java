@@ -1,6 +1,5 @@
 package com.zhenshiz.chatbox.data;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -23,6 +22,8 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
             (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     public static final ChatBoxDialoguesLoader INSTANCE = new ChatBoxDialoguesLoader();
     public final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
+    //记录对应对话文件里的组名
+    public static final Map<ResourceLocation, Set<String>> dialoguesGroupMap = new HashMap<>();
 
     public ChatBoxDialoguesLoader() {
         super(GSON, "chatbox/dialogues");
@@ -45,5 +46,20 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
         if (ServerLifecycleHooks.getCurrentServer() != null) {
             ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ChatBoxPayload.AllChatBoxDialoguesToClient(dialoguesMap)));
         }
+
+        setDialogues(dialoguesMap);
+    }
+
+    private static void setDialogues(Map<ResourceLocation, String> map) {
+        map.forEach((resourceLocation, str) -> {
+            JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
+            if (jsonElement == null) return;
+            JsonElement dialoguesElement = jsonElement.getAsJsonObject().get("dialogues");
+            if (dialoguesElement != null) {
+                Map<String, List<ChatBoxDialogues>> ChatBoxDialoguesMap = GSON.fromJson(dialoguesElement, new com.google.common.reflect.TypeToken<Map<String, List<ChatBoxDialogues>>>() {
+                }.getType());
+                dialoguesGroupMap.put(resourceLocation, ChatBoxDialoguesMap.keySet());
+            }
+        });
     }
 }
