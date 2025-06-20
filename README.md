@@ -87,71 +87,71 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
           "opacity": 100,
           "easing": "EASE_OUT_SINE"
         },
+        }
+      ],
+      "player": {
+        "type": "player_head",
+        "value": "@s",
+        "x": 0,
+        "y": 0,
+        "width": 10,
+        "height": 10,
+        "alignX": "left",
+        "alignY": "bottom",
+        "opacity": 100,
+        "scale": 1,
+        "renderOrder": 20,
+        "customAnimation": [
+          {
+            "time": 50,
+            "x": 0,
+            "y": 0,
+            "scale": 1,
+            "opacity": 100,
+            "easing": "EASE_OUT_SINE"
+          },
+          {
+            "time": 100,
+            "x": 0,
+            "y": 0,
+            "scale": 1,
+            "opacity": 100,
+            "easing": "EASE_OUT_SINE"
+          },
+          }
+        ],
+        "item": {
+          "type": "item",
+          "value": "apple",
+          "scale": 1,
+          "x": 0,
+          "y": 0,
+          "alignX": "left",
+          "alignY": "bottom",
+          "opacity": 100,
+          "renderOrder": 20,
+          "customAnimation": [
+            {
+              "time": 50,
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "opacity": 100,
+              "easing": "EASE_OUT_SINE"
+            },
+            {
+              "time": 50,
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "opacity": 100,
+              "easing": "EASE_OUT_SINE"
+            },
+            }
+          ],
+        }
       }
-    ],
-    "player": {
-      "type": "player_head",
-      "value": "@s",
-      "x": 0,
-      "y": 0,
-      "width": 10,
-      "height": 10,
-      "alignX": "left",
-      "alignY": "bottom",
-      "opacity": 100,
-      "scale": 1,
-      "renderOrder": 20,
-      "customAnimation": [
-        {
-          "time": 50,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "opacity": 100,
-          "easing": "EASE_OUT_SINE"
-        },
-        {
-          "time": 100,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "opacity": 100,
-          "easing": "EASE_OUT_SINE"
-        },
-      }
-    ],
-    "item": {
-      "type": "item",
-      "value": "apple",
-      "scale": 1,
-      "x": 0,
-      "y": 0,
-      "alignX": "left",
-      "alignY": "bottom",
-      "opacity": 100,
-      "renderOrder": 20,
-      "customAnimation": [
-        {
-          "time": 50,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "opacity": 100,
-          "easing": "EASE_OUT_SINE"
-        },
-        {
-          "time": 50,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "opacity": 100,
-          "easing": "EASE_OUT_SINE"
-        },
-      }
-    ],
     }
-  }
-}
 ```
 
 在上面的案例中包含了3种立绘里包含的所有的参数，接下来我们来一一介绍一下这些参数：
@@ -271,22 +271,22 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 ```json
 {
-	"dialogBox": {
-		"texture": "chatbox:textures/chatbox/default_dialog_box.png",
-		"lineWidth": 70,
-		"nameX": 0,
-		"nameY": 0,
-		"textX": 0,
-		"textY": 0,
-		"x": 0,
-		"y": 0,
-		"width": 10,
-		"height": 10,
-		"alignX": "left",
-		"alignY": "bottom",
-		"opacity": 100,
-		"renderOrder": 0
-	}
+  "dialogBox": {
+    "texture": "chatbox:textures/chatbox/default_dialog_box.png",
+    "lineWidth": 70,
+    "nameX": 0,
+    "nameY": 0,
+    "textX": 0,
+    "textY": 0,
+    "x": 0,
+    "y": 0,
+    "width": 10,
+    "height": 10,
+    "alignX": "left",
+    "alignY": "bottom",
+    "opacity": 100,
+    "renderOrder": 0
+  }
 }
 ```
 
@@ -332,7 +332,7 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
     "alignX": "left",
     "alignY": "bottom",
     "opacity": 100,
-    "renderOrder": 40
+    "renderOrder": 30
   }
 }
 ```
@@ -355,7 +355,7 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
 
 * opacity（可选，默认100）：透明度，范围`0-100`
 
-* renderOrder（可选，默认40）：渲染顺序的权重
+* renderOrder（可选，默认30）：渲染顺序的权重
 
 ### mod资源包自带的贴图
 
@@ -391,54 +391,61 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 ## 对话文本
 
-基础框架如下：
+在介绍对话文件的架构前，先介绍一下我对对话部分的架构设计，这将有利于你理解为什么要这么写这个文件。我的对话架构总结一下就是这么一张图：
+[![3EF1592F7ED83EEA468C0E0617287F60](https://img.picgo.net/2025/06/19/3EF1592F7ED83EEA468C0E0617287F6034de19905dc206ad.md.png)](https://www.picgo.net/image/3EF1592F7ED83EEA468C0E0617287F60.yeYndG)
+
+将所有的对话分模块分组，每个模块都有一个唯一的标识，这也是为什么我进入一个对话，需要一个分组id和一个数字的序号。这个架构的好处是可以很好的支持多分支的剧本，不会使大量对话堆在一起而乱套了。
+
+介绍完架构后，我们展示对话文件的基础框架：
 
 ```json
 {
   "$introduce": "这是一段介绍本模组的文本",
   "dialogues": {
     "start":[{}]
-  }
+  },
+  "isTranslatable": false,
+  "isEsc": true,
+  "isPause": true,
 }
 ```
 
-其中\$introduce纯装饰作用，不写也可以，我这里写是提供一个建议，给整个文件一个大致的主题防止开发者迷路找不到自己写的文本，比如主线，支线1，支线2等等标识。而dialogues将包含该文件中所有的对话文本，这里的start则是分组的唯一标识，在这里可以编写这个分组里的多段对话。
+其中\$introduce纯装饰作用，不写也可以，我这里写是提供一个建议，给整个文件一个大致的主题防止开发者迷路找不到自己写的文本，比如主线，支线1，支线2等等标识。而dialogues将包含该文件中所有的对话文本，这里的start则是分组的唯一标识，在这里可以编写这个分组里的多段对话。isTranslatable表示的是对话框中所有和文本有关的参数是翻译键还是硬编码，默认为硬编码。isEsc表示的是玩家是否可以通过esc关闭对话框，默认能关闭。isPause表示单机模式下打开对话框是否时停，默认时停。
 
 接下来我们来介绍一下一段对话里都有哪些参数：
 
 ```json
 {
-	"dialogBox": {
-		"name": "chatbox.test.name.1",
-		"text": "chatbox.test.text.1",
-		"isTranslatable": true
-	},
-	"portrait": [
-		"authors"
-	],
-	"options": [{
-		"text": "chatbox.test.option.1",
-		"isTranslatable": true,
-		"isLock": true,
-		"lock": {
-			"objective": "",
-			"value": ""
-		},
-		"hidden": {
-			"objective": "",
-			"value": ""
-		},
-		"isHidden": false,
-		"next": 1 ,
-        "click": {
-			"type": "",
-			"value": ""
-		},
-		"tooltip": "chatbox.test.tooltip.1"
-	}],
-	"sound": "minecraft:ambient.cave",
-	"volume": 1,
-	"pitch": 1
+  "dialogBox": {
+    "name": "chatbox.test.name.1",
+    "text": "chatbox.test.text.1",
+  },
+  "portrait": [
+    "authors"
+  ],
+  "options": [{
+    "text": "chatbox.test.option.1",
+    "isLock": true,
+    "lock": {
+      "objective": "",
+      "value": ""
+    },
+    "hidden": {
+      "objective": "",
+      "value": ""
+    },
+    "isHidden": false,
+    "next": 1 ,
+    "click": {
+      "type": "",
+      "value": ""
+    },
+    "tooltip": "chatbox.test.tooltip.1"
+  }],
+  "sound": "minecraft:ambient.cave",
+  "volume": 1,
+  "pitch": 1,
+  "command": "give @s minecraft:diamond"
 }
 ```
 
@@ -452,13 +459,15 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 * pitch（可选）：音高
 
+**自定义指令**
+
+* command（可选）：执行一段自定义的指令
+
   **对话框**
 
 * name（可选）：名称
 
 * text（可选）：文本
-
-* isTranslatable（可选，默认为false）：是否为翻译键
 
   **立绘**
 
@@ -467,8 +476,6 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
   **选项**
 
 * text（选填）：选项文本
-
-* isTranslatable（选填，默认false）：是否为翻译键
 
 * isLock（选填，默认false）：是否上锁
 
@@ -517,6 +524,8 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
   })
   ```
 
+  除此之外，本模组还给KubeJS提供了一个全局变量`ChatBoxUtil`，这个方法中包含api化的对话框指令。~~no command行动~~
+
   # Q & A
 
   Q：这个模组未来会移植到其它版本或者其它模组加载器吗？
@@ -524,6 +533,22 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
   A：至少我不会，但是欢迎其它感兴趣的开发者来fork我的模组
 
   # 更新日志
+
+  **1.0.3**
+
+* 在进入每句话的时候都可以选择执行一条指令
+
+* 自定义动画参数中x、y、scale、opacity都不再为必填项
+
+* 为KubeJS提供了全局变量`ChatBoxUtil`，包括服务端调用和客户端调用的两套api
+
+* 将翻译键参数独立出来，只需要在对话文件中配置一次即可（应该不会有人一会用翻译键一会用硬编码的吧）
+
+* 当前对话是否是否能被esc关闭（默认能），是否允许玩家单机打开对话框的时候被时停（默认单机时停，多人正常）
+
+* 在玩家输入`/reload`后会自动按照玩家上次切换的主题样式更新玩家当前主题的样式，不再需要每次修改主题样式的参数还需要先切换主题指令来刷新当前的样式
+
+* 修复服务端运行失败以及服务端无法显示选项的bug
 
   **1.0.2**
 
@@ -541,7 +566,7 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 # 未来可能更新的功能
 
-1. 给立绘图片提供自定义动画支持
-2. 联动一个字体动画的mod（欢迎提提建议）
-3. 联动一个npc模组（欢迎提提建议）
+1.联动一个字体动画的mod（欢迎提提建议）
+
+2.联动一个npc模组（欢迎提提建议）
 
