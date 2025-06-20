@@ -5,12 +5,15 @@ import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerScoreboard;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.ScoreAccess;
 import net.minecraft.world.scores.ScoreHolder;
+import net.minecraft.world.scores.Scoreboard;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
@@ -61,16 +64,16 @@ public class ChatBoxDialogues {
 
         public static List<ChatOption> setChatOptionDialogues(ChatBoxTheme theme, ResourceLocation dialoguesResourceLocation, String group, int index, boolean isTranslatable) {
             List<ChatBoxDialogues> chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation).get(group);
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            ServerScoreboard scoreboard = null;
-            if (server != null) {
+            ClientLevel level = Minecraft.getInstance().level;
+            Scoreboard scoreboard = null;
+            if (level != null) {
                 List<ChatOption> chatOptions = new ArrayList<>();
                 if (index >= 0 && index < chatBoxDialogues.size()) {
                     ChatBoxDialogues chatBoxDialogue = chatBoxDialogues.get(index);
                     int i = -1;
                     ChatBoxTheme.Option option = theme.option;
                     for (Option value : chatBoxDialogue.options) {
-                        scoreboard = server.getScoreboard();
+                        scoreboard = level.getScoreboard();
                         Objective objective = scoreboard.getObjective(value.hidden.objective);
                         ScoreAccess scoreAccess = null;
                         if (objective != null) {
