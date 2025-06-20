@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -61,7 +61,7 @@ public class HistoricalDialogue extends AbstractWidget {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         float direction = (float) Math.signum(verticalAmount);
-        float baseSpeed = ChatBox.conf.historicalScrollSpeed /*Config.historicalScrollSpeed.get()*/;
+        float baseSpeed = ChatBoxClient.conf.historicalScrollSpeed /*Config.historicalScrollSpeed.get()*/;
         verticalScrollAmount = direction * baseSpeed;
         return true;
     }

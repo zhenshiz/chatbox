@@ -5,8 +5,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.1",
-          "isTranslatable": true
+          "text": "chatbox.test.text.1"
         },
         "portrait": [
           "authors"
@@ -16,8 +15,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.2",
-          "isTranslatable": true
+          "text": "chatbox.test.text.2"
         },
         "portrait": [
           "authors"
@@ -26,8 +24,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.3",
-          "isTranslatable": true
+          "text": "chatbox.test.text.3"
         },
         "portrait": [
           "authors"
@@ -36,8 +33,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.4",
-          "isTranslatable": true
+          "text": "chatbox.test.text.4"
         },
         "portrait": [
           "authors"
@@ -45,31 +41,29 @@
         "options": [
           {
             "text": "chatbox.test.option.1",
-            "isTranslatable": true,
             "isLock": true,
             "tooltip": "chatbox.test.tooltip.1"
           },
           {
-            "text": "chatbox.test.option.2",
-            "isTranslatable": true
+            "text": "chatbox.test.option.2"
           }
         ]
       },
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.5",
-          "isTranslatable": true
+          "text": "chatbox.test.text.5"
         },
         "portrait": [
-          "authors","head","item"
+          "authors",
+          "head",
+          "item"
         ]
       },
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.6",
-          "isTranslatable": true
+          "text": "chatbox.test.text.6"
         },
         "portrait": [
           "authors_fade_in"
@@ -78,18 +72,16 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.7",
-          "isTranslatable": true
+          "text": "chatbox.test.text.7"
         },
         "portrait": [
-         "authors_slide_in_from_bottom"
+          "authors_slide_in_from_bottom"
         ]
       },
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.8",
-          "isTranslatable": true
+          "text": "chatbox.test.text.8"
         },
         "portrait": [
           "authors_bounce"
@@ -98,8 +90,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.9",
-          "isTranslatable": true
+          "text": "chatbox.test.text.9"
         },
         "portrait": [
           "authors"
@@ -108,8 +99,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.10",
-          "isTranslatable": true
+          "text": "chatbox.test.text.10"
         },
         "portrait": [
           "authors"
@@ -118,8 +108,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.11",
-          "isTranslatable": true
+          "text": "chatbox.test.text.11"
         },
         "portrait": [
           "authors"
@@ -128,8 +117,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.12",
-          "isTranslatable": true
+          "text": "chatbox.test.text.12"
         },
         "portrait": [
           "authors"
@@ -138,8 +126,7 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.13",
-          "isTranslatable": true
+          "text": "chatbox.test.text.13"
         },
         "portrait": [
           "authors"
@@ -148,13 +135,13 @@
       {
         "dialogBox": {
           "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.14",
-          "isTranslatable": true
+          "text": "chatbox.test.text.14"
         },
         "portrait": [
           "authors"
         ]
       }
     ]
-  }
+  },
+  "isTranslatable": true
 }

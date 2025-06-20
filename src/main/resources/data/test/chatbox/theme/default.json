@@ -50,21 +50,11 @@
       "customAnimation": [
         {
           "time": 50,
-          "x": 20,
-          "y": 30,
-          "scale": 1,
-          "opacity": 100,
-          "easing": "EASE_OUT_SINE"
-        },
-        {
-          "time": 100,
-          "x": 20,
-          "y": 30,
           "scale": 3,
-          "opacity": 0,
           "easing": "EASE_OUT_SINE"
         }
       ],
+      "renderOrder": -10,
       "loop": true
     },
     "item": {

@@ -44,9 +44,9 @@ public class ChatBoxUtil {
         if (index >= 0 && index < chatBoxDialogues.size()) {
             ChatBoxDialogues dialogue = chatBoxDialogues.get(index);
             ChatBoxDialogues.DialogBox dialogBox = dialogue.dialogBox;
-            chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index) : new DialogBox())
+            chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxScreen.isTranslatable) : new DialogBox())
                     .setPortrait(!CollUtil.isEmpty(dialogue.portrait) ? ChatBoxDialogues.setPortraitDialogues(dialogue.portrait, chatBoxTheme) : new ArrayList<>())
-                    .setChatOptions(!CollUtil.isEmpty(dialogue.options) ? ChatBoxDialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index) : new ArrayList<>());
+                    .setChatOptions(!CollUtil.isEmpty(dialogue.options) ? ChatBoxDialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxScreen.isTranslatable) : new ArrayList<>());
 
             chatBoxScreen.dialogBox.resetTickCount();
             chatBoxScreen.dialogBox.setAllOver(false);
@@ -59,8 +59,8 @@ public class ChatBoxUtil {
             if (dialogBox != null && minecraft.player != null) {
                 //添加历史聊天记录
                 historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesResourceLocation, group, index)
-                        .setName(dialogBox.name, dialogBox.isTranslatable)
-                        .setText(dialogBox.text, dialogBox.isTranslatable)
+                        .setName(dialogBox.name, chatBoxScreen.isTranslatable)
+                        .setText(dialogBox.text, chatBoxScreen.isTranslatable)
                 );
                 //进入对话执行自定义指令
                 if (dialogue.command != null) {
@@ -149,6 +149,13 @@ public class ChatBoxUtil {
                 }
                 dialoguesMap.put(resourceLocation, ChatBoxDialoguesMap);
             }
+
+            JsonElement je = jsonElement.getAsJsonObject().get("isTranslatable");
+            chatBoxScreen.setIsTranslatable(je != null && je.getAsBoolean());
+            je = jsonElement.getAsJsonObject().get("isEsc");
+            chatBoxScreen.setIsEsc(je == null || je.getAsBoolean());
+            je = jsonElement.getAsJsonObject().get("isPause");
+            chatBoxScreen.setIsPause(je == null || je.getAsBoolean());
         });
     }
 

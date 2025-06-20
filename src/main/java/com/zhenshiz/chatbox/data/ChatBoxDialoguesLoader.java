@@ -15,6 +15,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,6 +24,8 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener imp
             (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     public static final ChatBoxDialoguesLoader INSTANCE = new ChatBoxDialoguesLoader();
     public final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
+    //记录对应对话文件里的组名
+    public static final Map<ResourceLocation, Set<String>> dialoguesGroupMap = new HashMap<>();
 
     public ChatBoxDialoguesLoader() {
         super(GSON, "chatbox/dialogues");
@@ -45,6 +48,21 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener imp
         if (ChatBox.server != null) {
             ChatBox.server.getPlayerList().getPlayers().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, new ChatBoxPayload.AllChatBoxDialoguesToClient(dialoguesMap)));
         }
+
+        setDialogues(dialoguesMap);
+    }
+
+    private static void setDialogues(Map<ResourceLocation, String> map) {
+        map.forEach((resourceLocation, str) -> {
+            JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
+            if (jsonElement == null) return;
+            JsonElement dialoguesElement = jsonElement.getAsJsonObject().get("dialogues");
+            if (dialoguesElement != null) {
+                Map<String, List<ChatBoxDialogues>> ChatBoxDialoguesMap = GSON.fromJson(dialoguesElement, new com.google.common.reflect.TypeToken<Map<String, List<ChatBoxDialogues>>>() {
+                }.getType());
+                dialoguesGroupMap.put(resourceLocation, ChatBoxDialoguesMap.keySet());
+            }
+        });
     }
 
     @Override

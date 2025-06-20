@@ -1,17 +1,16 @@
 package com.zhenshiz.chatbox.data;
 
-import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ServerScoreboard;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.ScoreAccess;
 import net.minecraft.world.scores.ScoreHolder;
+import net.minecraft.world.scores.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,20 +30,15 @@ public class ChatBoxDialogues {
     public static class DialogBox {
         public String name;
         public String text;
-        public Boolean isTranslatable;
 
         public ResourceLocation dialoguesResourceLocation;
         public String group;
         public Integer index;
 
-        public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
-            return setDialogBoxDialogues(dialogBox, this.index);
-        }
-
-        public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, int index) {
+        public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, int index, boolean isTranslatable) {
             this.index = index;
-            return dialogBox.setName(this.name, this.isTranslatable)
-                    .setText(this.text, this.isTranslatable)
+            return dialogBox.setName(this.name, isTranslatable)
+                    .setText(this.text, isTranslatable)
                     .setDialoguesInfo(this.dialoguesResourceLocation, this.group, index)
                     .resetTickCount();
         }
@@ -52,7 +46,6 @@ public class ChatBoxDialogues {
 
     public static class Option {
         public String text;
-        public Boolean isTranslatable;
         public Boolean isLock;
         public Condition lock = new Condition();
         public Condition hidden = new Condition();
@@ -65,46 +58,41 @@ public class ChatBoxDialogues {
         public String group;
         public Integer index;
 
-        public static List<ChatOption> setChatOptionDialogues(ChatBoxTheme theme, ResourceLocation dialoguesResourceLocation, String group, int index) {
+        public static List<ChatOption> setChatOptionDialogues(ChatBoxTheme theme, ResourceLocation dialoguesResourceLocation, String group, int index, boolean isTranslatable) {
             List<ChatBoxDialogues> chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation).get(group);
-            MinecraftServer server = ChatBox.server;
-            ServerScoreboard scoreboard = null;
-            if (server != null) {
-                List<ChatOption> chatOptions = new ArrayList<>();
-                if (index >= 0 && index < chatBoxDialogues.size()) {
-                    ChatBoxDialogues chatBoxDialogue = chatBoxDialogues.get(index);
-                    int i = -1;
-                    ChatBoxTheme.Option option = theme.option;
-                    for (Option value : chatBoxDialogue.options) {
-                        scoreboard = server.getScoreboard();
-                        Objective objective = scoreboard.getObjective(value.hidden.objective);
-                        ScoreAccess scoreAccess = null;
-                        if (objective != null) {
-                            scoreAccess = scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(value.hidden.value), objective);
-                        }
-                        //如果这个选项标记隐藏，那么如果对应的计分板不在或者计分板的值不为1则隐藏这个选项
-                        if (value.isHidden && (scoreAccess == null || scoreAccess.get() != 1)) {
-                            continue;
-                        }
-                        i++;
-                        objective = scoreboard.getObjective(value.lock.objective);
-                        if (objective != null) {
-                            scoreAccess = scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(value.lock.value), objective);
-                        }
-                        ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, value.isTranslatable)
-                                .setOptionChat(value.text, value.isTranslatable)
-                                //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
-                                .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.get() != 1))
-                                .setNext(value.next)
-                                .setClickEvent(value.click.type, value.click.value)
-                                .setDialoguesInfo(dialoguesResourceLocation, group, index);
-
-                        chatOptions.add(option.setChatOptionTheme(chatOption, i));
+            List<ChatOption> chatOptions = new ArrayList<>();
+            if (index >= 0 && index < chatBoxDialogues.size()) {
+                ChatBoxDialogues chatBoxDialogue = chatBoxDialogues.get(index);
+                int i = -1;
+                ChatBoxTheme.Option option = theme.option;
+                for (Option value : chatBoxDialogue.options) {
+                    Scoreboard scoreboard = Minecraft.getInstance().level.getScoreboard();
+                    Objective objective = scoreboard.getObjective(value.hidden.objective);
+                    ScoreAccess scoreAccess = null;
+                    if (objective != null) {
+                        scoreAccess = scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(value.hidden.value), objective);
                     }
+                    //如果这个选项标记隐藏，那么如果对应的计分板不在或者计分板的值不为1则隐藏这个选项
+                    if (value.isHidden && (scoreAccess == null || scoreAccess.get() != 1)) {
+                        continue;
+                    }
+                    i++;
+                    objective = scoreboard.getObjective(value.lock.objective);
+                    if (objective != null) {
+                        scoreAccess = scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(value.lock.value), objective);
+                    }
+                    ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, isTranslatable)
+                            .setOptionChat(value.text, isTranslatable)
+                            //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
+                            .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.get() != 1))
+                            .setNext(value.next)
+                            .setClickEvent(value.click.type, value.click.value)
+                            .setDialoguesInfo(dialoguesResourceLocation, group, index);
+
+                    chatOptions.add(option.setChatOptionTheme(chatOption, i));
                 }
-                return chatOptions;
             }
-            return new ArrayList<>();
+            return chatOptions;
         }
 
         public static class Click {
@@ -151,14 +139,12 @@ public class ChatBoxDialogues {
         this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
         this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
 
-        this.dialogBox.isTranslatable = BeanUtil.getValueOrDefault(this.dialogBox.isTranslatable, DEFAULT_BOOL);
         this.dialogBox.dialoguesResourceLocation = resourceLocation;
         this.dialogBox.group = group;
         this.dialogBox.index = index;
 
         if (!CollUtil.isEmpty(this.options)) {
             for (Option option : this.options) {
-                option.isTranslatable = BeanUtil.getValueOrDefault(option.isTranslatable, DEFAULT_BOOL);
                 option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
                 option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
                 option.dialoguesResourceLocation = resourceLocation;

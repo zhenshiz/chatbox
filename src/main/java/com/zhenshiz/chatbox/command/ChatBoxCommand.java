@@ -31,6 +31,11 @@ public class ChatBoxCommand {
                 .then(Commands.literal("skip")
                         .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("Group", StringArgumentType.string())
+                                        .suggests(((context, builder) -> {
+                                            ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
+                                            ChatBoxDialoguesLoader.dialoguesGroupMap.get(dialogues).forEach(builder::suggest);
+                                            return builder.buildFuture();
+                                        }))
                                         .executes(context -> ChatBoxCommand.skipDialogues(context, 0))
                                         .then(Commands.argument("Index", IntegerArgumentType.integer())
                                                 .executes(context -> ChatBoxCommand.skipDialogues(context, IntegerArgumentType.getInteger(context, "Index")))
