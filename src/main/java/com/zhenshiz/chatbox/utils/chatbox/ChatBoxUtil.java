@@ -14,7 +14,7 @@ import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
@@ -64,7 +64,7 @@ public class ChatBoxUtil {
                 );
                 //进入对话执行自定义指令
                 if (dialogue.command != null) {
-                    minecraft.player.connection.sendCommand(dialogue.command);
+                    ChatBoxCommandUtil.sendCommandToServer(dialogue.command);
                 }
                 //播放音乐
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialogue.sound);
@@ -72,11 +72,9 @@ public class ChatBoxUtil {
                     if (lastSoundResourceLocation != null) {
                         minecraft.getSoundManager().stop(lastSoundResourceLocation, null);
                     }
-                    SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.get(soundResourceLocation);
-                    if (soundEvent != null) {
-                        lastSoundResourceLocation = soundResourceLocation;
-                        minecraft.player.playSound(soundEvent, dialogue.volume, dialogue.pitch);
-                    }
+                    SoundEvent soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(soundResourceLocation)).value();
+                    lastSoundResourceLocation = soundResourceLocation;
+                    minecraft.player.playSound(soundEvent, dialogue.volume, dialogue.pitch);
                 }
 
                 SkipChatEvent.EVENT.invoker().skipChat(chatBoxScreen, dialoguesResourceLocation, group, index);

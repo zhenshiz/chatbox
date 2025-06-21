@@ -22,6 +22,17 @@ public class HistoricalDialogueScreen extends Screen {
     }
 
     @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 1) {
+            //右键关闭历史记录页面（想做成鼠标滚轮向下滚到底之后关闭的，暂时不会写）
+            if (minecraft != null) {
+                minecraft.setScreen(ChatBoxUtil.chatBoxScreen);
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
     public boolean shouldCloseOnEsc() {
         if (minecraft != null && minecraft.player != null) {
             minecraft.setScreen(ChatBoxUtil.chatBoxScreen);

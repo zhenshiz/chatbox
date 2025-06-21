@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -102,7 +103,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
             this.onClickEvent = () -> {
                 if (minecraft.player != null) {
                     if (type.equals("command")) {
-                        minecraft.player.connection.sendCommand(value);
+                        ChatBoxCommandUtil.sendCommandToServer(value);
                     }
                 }
             };
