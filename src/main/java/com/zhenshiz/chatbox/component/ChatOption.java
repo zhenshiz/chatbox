@@ -2,11 +2,11 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.payload.c2s.SendCommandPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
@@ -40,12 +40,12 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setTextures(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
         setSelectTexture(ChatBox.ResourceLocationMod("textures/options/default_checked_option.png"));
         setLockTexture(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
-        setOptionChat("",false);
-        setOptionChatPosition(0,0);
+        setOptionChat("", false);
+        setOptionChatPosition(0, 0);
         setClickEvent(() -> {
         });
         setIsLock(false);
-        setOptionTooltip("",false);
+        setOptionTooltip("", false);
         setTextAlign(TextAlign.LEFT);
         setNext("");
         defaultOption();
@@ -103,7 +103,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
             this.onClickEvent = () -> {
                 if (minecraft.player != null) {
                     if (type.equals("command")) {
-                        minecraft.player.connection.sendCommand(value);
+                        minecraft.player.connection.send(new SendCommandPayload(value));
                     }
                 }
             };
