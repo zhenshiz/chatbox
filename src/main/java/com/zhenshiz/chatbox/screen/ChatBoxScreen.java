@@ -101,17 +101,15 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (chatOptions.isEmpty()) {
-            //鼠标滚轮向下滚动，操作同左键点击
-            if (scrollY < 0 && dialogBox != null) {
-                dialogBox.click(false);
-                return true;
-            }
-            //鼠标滚轮向上滚动，打开历史记录
-            if (scrollY > 0) {
-                logButton.click();
-                return true;
-            }
+        //鼠标滚轮向下滚动，操作同左键点击
+        if (scrollY < 0 && dialogBox != null) {
+            dialogBox.click(!chatOptions.isEmpty());
+            return true;
+        }
+        //鼠标滚轮向上滚动，打开历史记录
+        if (scrollY > 0) {
+            logButton.click();
+            return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }

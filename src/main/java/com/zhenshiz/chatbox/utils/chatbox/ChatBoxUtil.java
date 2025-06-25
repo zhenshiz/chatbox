@@ -10,9 +10,11 @@ import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.fabric.SkipChatEvent;
+import com.zhenshiz.chatbox.payload.c2s.SendCommandPayload;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -50,10 +52,9 @@ public class ChatBoxUtil {
 
             chatBoxScreen.dialogBox.resetTickCount();
             chatBoxScreen.dialogBox.setAllOver(false);
-            if (minecraft.screen == null) {
-                //清除历史记录 打开screen
+            if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
+                //如果不是对话框或历史记录界面跳转，就清除历史记录
                 historicalDialogue = new HistoricalDialogueScreen();
-                minecraft.setScreen(chatBoxScreen);
             }
             //新增聊天记录
             if (dialogBox != null && minecraft.player != null) {
@@ -64,7 +65,7 @@ public class ChatBoxUtil {
                 );
                 //进入对话执行自定义指令
                 if (dialogue.command != null) {
-                    ChatBoxCommandUtil.sendCommandToServer(dialogue.command);
+                    ClientPlayNetworking.send(new SendCommandPayload(dialogue.command));
                 }
                 //播放音乐
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialogue.sound);
@@ -79,6 +80,8 @@ public class ChatBoxUtil {
 
                 SkipChatEvent.EVENT.invoker().skipChat(chatBoxScreen, dialoguesResourceLocation, group, index);
                 //NeoForge.EVENT_BUS.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
+
+                minecraft.setScreen(chatBoxScreen);
             }
         } else {
             if (minecraft.screen != null) {

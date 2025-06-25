@@ -2,7 +2,6 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
-import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
@@ -71,6 +70,9 @@ public class HistoricalDialogue extends AbstractWidget {
         if (button == 0) {
             for (HistoricalInfo historicalInfo : historicalInfos) {
                 if (historicalInfo.isMouseInRect(mouseX, mouseY)) {
+                    int i = historicalInfos.indexOf(historicalInfo);
+                    //清除该index之后的所有记录
+                    historicalInfos = historicalInfos.subList(0, i);
                     historicalInfo.click();
                     return super.mouseClicked(mouseX, mouseY, button);
                 }
@@ -131,13 +133,7 @@ public class HistoricalDialogue extends AbstractWidget {
         }
 
         public void click() {
-            if (minecraft.player != null) {
-                if (minecraft.screen != null) {
-                    minecraft.screen.onClose();
-                }
-                ChatBoxUtil.historicalDialogue= new HistoricalDialogueScreen();
-                ChatBoxUtil.skipDialogues(resourceLocation, group, index);
-            }
+            ChatBoxUtil.skipDialogues(resourceLocation, group, index);
         }
 
         public boolean isMouseInRect(double mouseX, double mouseY) {

@@ -25,6 +25,10 @@ repositories {
 
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.terraformersmc.com/releases/" }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
 }
 
 dependencies {
@@ -42,6 +46,8 @@ dependencies {
     modApi("me.shedaniel.cloth:cloth-config-fabric:15.0.127") {
         exclude(group: "net.fabricmc.fabric-api")
     }
+
+    modImplementation "maven.modrinth:watermedia:2.1.25"
 }
 
 processResources {

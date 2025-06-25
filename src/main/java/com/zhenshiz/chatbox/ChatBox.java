@@ -3,7 +3,7 @@ package com.zhenshiz.chatbox;
 import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
-import com.zhenshiz.chatbox.network.client.ChatBoxClient;
+import com.zhenshiz.chatbox.network.server.Packets;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -20,7 +20,7 @@ public class ChatBox implements ModInitializer {
     @Override
     public void onInitialize() {
         ChatBoxSettingLoader.chatBoxLoader();
-        ChatBoxClient.register();
+        Packets.register();
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);
         ServerTickEvents.END_SERVER_TICK.register(minecraftServer -> server = minecraftServer);
     }

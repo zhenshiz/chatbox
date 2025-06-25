@@ -2,7 +2,6 @@ package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -53,7 +52,4 @@ public class ChatBoxCommandUtil {
         }
     }
 
-    public static void sendCommandToServer(String command) {
-        ClientPlayNetworking.send(new ChatBoxPayload.ExecuteServerCommand(command));
-    }
 }

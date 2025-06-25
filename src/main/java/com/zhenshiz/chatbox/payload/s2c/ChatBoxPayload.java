@@ -97,18 +97,4 @@ public class ChatBoxPayload {
             return TYPE;
         }
     }
-
-    public record ExecuteServerCommand(String command) implements CustomPacketPayload {
-        public static final Type<ExecuteServerCommand> TYPE = new Type<>(ChatBox.ResourceLocationMod("execute_server_command"));
-        public static final StreamCodec<FriendlyByteBuf, ExecuteServerCommand> CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8,
-                ExecuteServerCommand::command,
-                ExecuteServerCommand::new
-        );
-
-        @Override
-        public @NotNull Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
 }
