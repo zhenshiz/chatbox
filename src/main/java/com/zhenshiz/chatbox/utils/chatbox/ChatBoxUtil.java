@@ -48,12 +48,13 @@ public class ChatBoxUtil {
             ChatBoxDialogues.DialogBox dialogBox = dialogue.dialogBox;
             chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxScreen.isTranslatable) : new DialogBox())
                     .setPortrait(!CollUtil.isEmpty(dialogue.portrait) ? ChatBoxDialogues.setPortraitDialogues(dialogue.portrait, chatBoxTheme) : new ArrayList<>())
-                    .setChatOptions(!CollUtil.isEmpty(dialogue.options) ? ChatBoxDialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxScreen.isTranslatable) : new ArrayList<>());
+                    .setChatOptions(!CollUtil.isEmpty(dialogue.options) ? ChatBoxDialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxScreen.isTranslatable) : new ArrayList<>())
+                    .setBackgroundImage(dialogue.backgroundImage);
 
             chatBoxScreen.dialogBox.resetTickCount();
             chatBoxScreen.dialogBox.setAllOver(false);
-            if (minecraft.screen instanceof HistoricalDialogueScreen) {
-                //清除历史记录
+            if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
+                //如果不是对话框和历史记录界面跳转，就清除历史记录
                 historicalDialogue = new HistoricalDialogueScreen();
             }
             //新增聊天记录
@@ -150,12 +151,18 @@ public class ChatBoxUtil {
                 dialoguesMap.put(resourceLocation, ChatBoxDialoguesMap);
             }
 
+            //是否为翻译键
             JsonElement je = jsonElement.getAsJsonObject().get("isTranslatable");
             chatBoxScreen.setIsTranslatable(je != null && je.getAsBoolean());
+            //是否能esc关闭
             je = jsonElement.getAsJsonObject().get("isEsc");
             chatBoxScreen.setIsEsc(je == null || je.getAsBoolean());
+            //是否单人时停
             je = jsonElement.getAsJsonObject().get("isPause");
             chatBoxScreen.setIsPause(je == null || je.getAsBoolean());
+            //是否允许通过历史记录界面回溯
+            je = jsonElement.getAsJsonObject().get("isHistoricalSkip");
+            chatBoxScreen.setIsHistoricalSkip(je == null || je.getAsBoolean());
         });
     }
 

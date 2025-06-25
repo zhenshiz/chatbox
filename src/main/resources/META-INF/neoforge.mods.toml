@@ -5,7 +5,7 @@ license = "GPL-3.0 license"
 
 [[mods]]
 modId = "chatbox"
-version = "1.0.3"
+version = "1.0.5"
 displayName = "ChatBox"
 authors = "zhenshiz"
 description = '''

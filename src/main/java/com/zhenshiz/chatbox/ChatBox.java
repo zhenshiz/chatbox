@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ICommand;
+import com.zhenshiz.chatbox.event.CommonEventsPostJS;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.Commands;

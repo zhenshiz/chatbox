@@ -2,10 +2,12 @@ package com.zhenshiz.chatbox.screen;
 
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRender;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import lombok.Setter;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,12 +20,15 @@ public class ChatBoxScreen extends Screen {
     public List<Portrait> portraits = new ArrayList<>();
     public DialogBox dialogBox = new DialogBox();
     public LogButton logButton = new LogButton();
+    public ResourceLocation backgroundImage;
     @Setter
     public Boolean isTranslatable;
     @Setter
     public Boolean isEsc;
     @Setter
     public Boolean isPause;
+    @Setter
+    public Boolean isHistoricalSkip;
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -54,11 +59,25 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
+    public ChatBoxScreen setBackgroundImage(ResourceLocation backgroundImage) {
+        if (backgroundImage != null) this.backgroundImage = backgroundImage;
+        return this;
+    }
+
+    public ChatBoxScreen setBackgroundImage(String backgroundImage) {
+        if (backgroundImage != null) return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
+        return this;
+    }
+
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (dialogBox != null) {
             if (NeoForge.EVENT_BUS.post(new ChatBoxRender.Pre(guiGraphics)).isCanceled()) {
                 return;
+            }
+
+            if (backgroundImage != null) {
+                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();

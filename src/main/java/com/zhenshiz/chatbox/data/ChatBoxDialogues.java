@@ -30,6 +30,7 @@ public class ChatBoxDialogues {
     public Float volume;
     public Float pitch;
     public String command;
+    public String backgroundImage;
 
     public static class DialogBox {
         public String name;

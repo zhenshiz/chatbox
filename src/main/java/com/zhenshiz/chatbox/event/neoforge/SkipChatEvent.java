@@ -9,8 +9,8 @@ import net.neoforged.bus.api.Event;
 @Getter
 @AllArgsConstructor
 public class SkipChatEvent extends Event {
-    public final ChatBoxScreen chatBoxScreen;
-    public final ResourceLocation resourceLocation;
-    public final String group;
-    public final Integer index;
+    private final ChatBoxScreen chatBoxScreen;
+    private final ResourceLocation resourceLocation;
+    private final String group;
+    private final Integer index;
 }

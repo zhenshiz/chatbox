@@ -1,18 +1,7 @@
 # TODO
 
-1.自定义动画
+1.做一个字体动画
 
-2.兼容https://modrinth.com/mod/immersive-messages-api
+2.联动一个npc模组
 
-3.联动一个npc模组，做触发式交互
-
-# 立绘
-
-1.texture 
-- value | opacity | animation | duration | easing | x | y | width | height | z | alignX | alignY
-
-2.player_head
-- value | x | y | width | height | alignX | alignY
-
-3.item
-- value | customItemData | x | y | alignX | alignY | scale
+3.新增一个参数设置一段对话是否只能触发一次
