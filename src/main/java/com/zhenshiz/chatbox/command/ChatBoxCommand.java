@@ -7,6 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -42,6 +43,16 @@ public class ChatBoxCommand implements ICommand {
                 )
                 .then(Commands.literal("open")
                         .executes(ChatBoxCommand::openChatBox)
+                )
+                .then(Commands.literal("maxTriggerCount")
+                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap.keySet(), builder))
+                                .then(Commands.argument("MaxTriggerCount", IntegerArgumentType.integer())
+                                        .executes(ChatBoxCommand::setMaxTriggerCount)
+                                )
+                        )
+                        .then(Commands.literal("reset")
+                                .executes(ChatBoxCommand::resetMaxTriggerCount)
+                        )
                 )
         );
     }
@@ -80,6 +91,34 @@ public class ChatBoxCommand implements ICommand {
         if (player != null) {
             player.connection.send(new ChatBoxPayload.OpenChatBox());
 
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
+    }
+
+    private static int setMaxTriggerCount(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player != null) {
+            ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
+            int maxTriggerCount = IntegerArgumentType.getInteger(context, "MaxTriggerCount");
+            ChatBoxCommandUtil.serverSetMaxTriggerCount(player, dialogues, maxTriggerCount);
+            player.connection.send(new ChatBoxPayload.SetMaxTriggerCount(dialogues, maxTriggerCount));
+            context.getSource().sendSuccess(() -> Component.translatable("commands.set.max.trigger.count", dialogues.toString(), maxTriggerCount), true);
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
+    }
+
+    private static int resetMaxTriggerCount(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player != null) {
+            ChatBoxCommandUtil.serverResetMaxTriggerCount(player);
+            player.connection.send(new ChatBoxPayload.ResetMaxTriggerCount());
+            context.getSource().sendSuccess(() -> Component.translatable("commands.reset.max.trigger.count"), true);
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);

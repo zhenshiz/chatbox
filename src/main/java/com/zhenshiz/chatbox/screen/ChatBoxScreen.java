@@ -21,14 +21,11 @@ public class ChatBoxScreen extends Screen {
     public DialogBox dialogBox = new DialogBox();
     public LogButton logButton = new LogButton();
     public ResourceLocation backgroundImage;
-    @Setter
     public Boolean isTranslatable;
-    @Setter
     public Boolean isEsc;
-    @Setter
     public Boolean isPause;
-    @Setter
     public Boolean isHistoricalSkip;
+    public Integer maxTriggerCount;
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -66,6 +63,31 @@ public class ChatBoxScreen extends Screen {
 
     public ChatBoxScreen setBackgroundImage(String backgroundImage) {
         if (backgroundImage != null) return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
+        return this;
+    }
+
+    public ChatBoxScreen setIsTranslatable(Boolean isTranslatable) {
+        if (isTranslatable != null) this.isTranslatable = isTranslatable;
+        return this;
+    }
+
+    public ChatBoxScreen setIsEsc(Boolean isEsc) {
+        if (isEsc != null) this.isEsc = isEsc;
+        return this;
+    }
+
+    public ChatBoxScreen setIsPause(Boolean isPause) {
+        if (isPause != null) this.isPause = isPause;
+        return this;
+    }
+
+    public ChatBoxScreen setIsHistoricalSkip(Boolean isHistoricalSkip) {
+        if (isHistoricalSkip != null) this.isHistoricalSkip = isHistoricalSkip;
+        return this;
+    }
+
+    public ChatBoxScreen setMaxTriggerCount(Integer maxTriggerCount) {
+        if (maxTriggerCount != null) this.maxTriggerCount = maxTriggerCount;
         return this;
     }
 

@@ -21,7 +21,7 @@ public class ChatBoxClient {
                 ChatBoxPayload.OpenScreenPayload.TYPE,
                 ChatBoxPayload.OpenScreenPayload.CODEC,
                 new DirectionalPayloadHandler<>(
-                        (payload, context) -> ChatBoxUtil.skipDialogues(payload.dialogues(), payload.group(), payload.index()),
+                        (payload, context) -> ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index()),
                         (payload, context) -> {
                         }
                 )
@@ -70,6 +70,26 @@ public class ChatBoxClient {
                 ChatBoxPayload.AllChatBoxDialoguesToClient.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> ChatBoxUtil.setDialogues(payload.dialoguesMap()),
+                        (payload, context) -> {
+                        }
+                )
+        );
+
+        registrar.playBidirectional(
+                ChatBoxPayload.SetMaxTriggerCount.TYPE,
+                ChatBoxPayload.SetMaxTriggerCount.CODEC,
+                new DirectionalPayloadHandler<>(
+                        (payload, context) -> ChatBoxCommandUtil.clientSetMaxTriggerCount(payload.resourceLocation(), payload.maxTriggerCount()),
+                        (payload, context) -> {
+                        }
+                )
+        );
+
+        registrar.playBidirectional(
+                ChatBoxPayload.ResetMaxTriggerCount.TYPE,
+                ChatBoxPayload.ResetMaxTriggerCount.CODEC,
+                new DirectionalPayloadHandler<>(
+                        (payload, context) -> ChatBoxCommandUtil.clientResetMaxTriggerCount(),
                         (payload, context) -> {
                         }
                 )

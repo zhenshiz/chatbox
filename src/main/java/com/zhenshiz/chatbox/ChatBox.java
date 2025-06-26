@@ -3,7 +3,7 @@ package com.zhenshiz.chatbox;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ICommand;
-import com.zhenshiz.chatbox.event.CommonEventsPostJS;
+import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.Commands;
@@ -34,6 +34,7 @@ public class ChatBox {
 
     public ChatBox(IEventBus modEventBus, ModContainer modContainer, Dist dist) {
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
+        ChatBoxTriggerCount.ATTACHMENT_TYPES.register(modEventBus);
 
         if (dist == Dist.CLIENT) {
             modContainer.registerConfig(ModConfig.Type.COMMON, Config.CONFIG_SPEC, StrUtil.format("{}_config.toml", MOD_ID));

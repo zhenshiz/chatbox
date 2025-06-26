@@ -3,6 +3,8 @@
   "command.target.entity.only": "此命令的目标对象应该是实体",
   "commands.toggle.theme": "成功切换对话框主题样式",
   "commands.skip.dialogues": "成功跳转到 %s 组第 %s 句话",
+  "commands.set.max.trigger.count": "成功设置 %s 的最多访问次数为 %s",
+  "commands.reset.max.trigger.count": "成功重置所有对话的最多访问次数",
 
   "chatbox.configuration.config": "ChatBox模组配置",
   "chatbox.configuration.historical_scroll_speed": "历史记录界面滚轮速度",
