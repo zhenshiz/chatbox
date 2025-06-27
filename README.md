@@ -2,8 +2,6 @@
 
 这是一款类似于Gal的对话框，为整合包或者地图的作者们制作。使用数据包编写对话框的主题样式和对话文本内容，提供更多的事件给KubeJS使用。
 
-# 运行方式
-
 ## 指令
 
 ChatBox添加自定义的指令，允许开发者使用指令来与mod交互。
@@ -24,6 +22,14 @@ ChatBox添加自定义的指令，允许开发者使用指令来与mod交互。
 * 数据包路径：对话框主题的位置
 
 /chatbox open  打开最近一次对话
+
+/chatbox maxTriggerCount <数据包路径: ResourceLocation> <最大访问次数:int>
+
+* 数据包路径：对话框主题的位置
+
+* 最大访问次数：<0表示无限访问次数，0表示无法访问，>0则为设置最大访问次数
+
+/chatbox maxTriggerCount reset  重置最大访问次数
 
 ## 数据包路径
 
@@ -87,7 +93,6 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
           "opacity": 100,
           "easing": "EASE_OUT_SINE"
         },
-        }
       ],
       "player": {
         "type": "player_head",
@@ -118,7 +123,6 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
             "opacity": 100,
             "easing": "EASE_OUT_SINE"
           },
-          }
         ],
         "item": {
           "type": "item",
@@ -147,7 +151,6 @@ ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话�
               "opacity": 100,
               "easing": "EASE_OUT_SINE"
             },
-            }
           ],
         }
       }
@@ -407,12 +410,31 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
   "isTranslatable": false,
   "isEsc": true,
   "isPause": true,
+  "isHistoricalSkip": true,
+  "maxTriggerCount": -1,
+  "criteria": {}
 }
 ```
 
-其中\$introduce纯装饰作用，不写也可以，我这里写是提供一个建议，给整个文件一个大致的主题防止开发者迷路找不到自己写的文本，比如主线，支线1，支线2等等标识。而dialogues将包含该文件中所有的对话文本，这里的start则是分组的唯一标识，在这里可以编写这个分组里的多段对话。isTranslatable表示的是对话框中所有和文本有关的参数是翻译键还是硬编码，默认为硬编码。isEsc表示的是玩家是否可以通过esc关闭对话框，默认能关闭。isPause表示单机模式下打开对话框是否时停，默认时停。
+* \$introduce（可选）：纯装饰作用，不写也可以，我这里写是提供一个建议，给整个文件一个大致的主题防止开发者迷路找不到自己写的文本，比如主线，支线1，支线2等等标识。
 
-接下来我们来介绍一下一段对话里都有哪些参数：
+* dialogues（必填）：包含该文件中所有的对话文本，这里的start则是分组的唯一标识，在这里可以编写这个分组里的多段对话。
+
+* isTranslatable（可选，默认false）：对话框中所有和文本有关的参数是否为翻译键。
+
+* isEsc（可选，默认true）：玩家是否可以通过Esc关闭对话框。
+
+* isPause（可选，默认true）：玩家在单机模式下打开对话框是否能时停。
+
+* isHistoricalSkip（可选，默认true）：历史记录界面是否可以回溯对话。
+
+* maxTriggerCount（可选，默认-1）：这段对话可被触发的次数，默认为无限触发。
+
+* criteria（可选）：提供一个自定义的进度触发器，写法和原版进度一模一样，具体可以参考[McWiki](https://zh.minecraft.wiki/w/%E8%BF%9B%E5%BA%A6%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F)，你也可以利用[生成器](https://misode.github.io/advancement/)去生成进度的Json。
+
+  ***
+
+接下来我们来介绍一下一句对话里都有哪些参数：
 
 ```json
 {
@@ -445,13 +467,12 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
   "sound": "minecraft:ambient.cave",
   "volume": 1,
   "pitch": 1,
-  "command": "give @s minecraft:diamond"
+  "command": "give @s minecraft:diamond",
+  "backgroundImage": ""
 }
 ```
 
 这段就包含了一段文本里的所有的参数，接下来我们一点一点来介绍吧：
-
-**音乐**
 
 * sound（可选）：音乐的路径比如`minecraft:ambient.cave`
 
@@ -459,9 +480,9 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 * pitch（可选）：音高
 
-**自定义指令**
-
 * command（可选）：执行一段自定义的指令
+
+* backgroundImage（可选）：背景图片
 
   **对话框**
 
@@ -491,6 +512,14 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
 * tooltip（选题）：鼠标悬浮时弹出的文本
 
+  ## 格式化文本
+
+  具体介绍参考：<https://zh.minecraft.wiki/w/%E6%A0%BC%E5%BC%8F%E5%8C%96%E4%BB%A3%E7%A0%81?variant=zh-cn>
+
+  使用§加一个值可以设置粗体、斜体和各式各样的颜色等，比如：§1彩§2色§3字§4体，就可以实现每个字的颜色都是不一样的。
+
+  最后推荐一个vscode插件`Minecraft Color Highlighter`可以看到格式化代码的效果
+
 ## 占位符
 
 你可以自由地在说话者和对话文本、选项中使用占位符，目前已有的占位符如下：
@@ -499,27 +528,24 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 
   # 关于KubeJS联动
 
-  本模组提供了3个事件给KubeJS调用来添加自己想加的东西，你需要在NeoForge的事件中调用它们，例子如下：
+  本模组提供了3个事件给KubeJS调用来添加自己想加的东西，例子如下：
 
   ```javascript
-  let $ChatBoxRender$Post = Java.loadClass("com.zhenshiz.chatbox.event.ChatBoxRender$Post");
+  //client_script
 
   //在对话框渲染前触发，提供了GuiGraphics可以添加自己想要的渲染，可取消事件
-  NativeEvents.onEvent($ChatBoxRender$Post,event=>{
+  ChatBoxEvents.renderPre(event=>{
     let getGuiGraphics = event.getGuiGraphics()
+    event.cancel()
   })
-
-  let $ChatBoxRender$Pre = Java.loadClass("com.zhenshiz.chatbox.event.ChatBoxRender$Pre");
 
   //在对话框渲染后触发，提供了GuiGraphics可以添加自己想要的渲染
-  NativeEvents.onEvent($ChatBoxRender$Pre,event=>{
+  ChatBoxEvents.renderPost(event=>{
     let getGuiGraphics = event.getGuiGraphics()
   })
 
-  let $SkipChatEvent = Java.loadClass("com.zhenshiz.chatbox.event.SkipChatEvent");
-
   //在跳转对话时触发，提供了对话的数据包文件，分组和序号来方便用户对特别某一句对话添加自己想要的功能。还有chatBoxScreen包含当前对话的所有信息
-  NativeEvents.onEvent($SkipChatEvent, event => {
+  ChatBoxEvents.skipChat(event => {
     let { chatBoxScreen, resourceLocation, group, index } = event
   })
   ```
@@ -533,6 +559,32 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
   A：至少我不会，但是欢迎其它感兴趣的开发者来fork我的模组
 
   # 更新日志
+
+  **1.0.5**
+
+* 历史记录跳转后保留的记录更加合理
+
+* 添加参数限制一段话是否可以通过历史记录界面回溯
+
+* 一句对话中添加一个backgroundImage参数可以设置背景图片
+
+* 支持KubeJS样式的事件
+
+* 修复对话框只会获取最后一个对话里的isTranslatable等参数的Bug
+
+* 新增maxTriggerCount参数设置一段对话的最大访问次数
+
+* 新增进度触发器，可以通过进度为条件来打开对话框
+
+* 新增指令`/chatbox maxTriggerCount`修改和重置最大访问次数
+
+  **1.0.4**
+
+* 修复ftb执行指令打不开对话框的bug
+
+* 无权限玩家无法执行点击选项时应该触发的指令
+
+* 在对话框内滚轮下滑跳转剧情，上滑打开历史记录界面。历史记录页面右键关闭
 
   **1.0.3**
 
@@ -549,6 +601,8 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 * 在玩家输入`/reload`后会自动按照玩家上次切换的主题样式更新玩家当前主题的样式，不再需要每次修改主题样式的参数还需要先切换主题指令来刷新当前的样式
 
 * 修复服务端运行失败以及服务端无法显示选项的bug
+
+* `chatbox skip`的组名参数也支持补全
 
   **1.0.2**
 
@@ -569,4 +623,3 @@ A：所有的枚举字符串参数都是无视大小写的，你可以任意选�
 1.联动一个字体动画的mod（欢迎提提建议）
 
 2.联动一个npc模组（欢迎提提建议）
-
