@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "chatbox.refmap.json",
   "mixins": [
+    "SimpleCriterionTriggerMixin"
   ],
   "client": [
     "MouseHandlerMixin"

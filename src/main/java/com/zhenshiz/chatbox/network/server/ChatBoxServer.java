@@ -28,5 +28,18 @@ public class ChatBoxServer {
                         }
                 )
         );
+
+        registrar.playBidirectional(
+                ServerChatBoxPayload.ResetMaxTriggerCount.TYPE,
+                ServerChatBoxPayload.ResetMaxTriggerCount.CODEC,
+                new DirectionalPayloadHandler<>(
+                        (payload, context) -> {
+                        },
+                        (payload, context) -> {
+                            ServerPlayer player = (ServerPlayer) context.player();
+                            ChatBoxCommandUtil.serverResetMaxTriggerCount(player);
+                        }
+                )
+        );
     }
 }

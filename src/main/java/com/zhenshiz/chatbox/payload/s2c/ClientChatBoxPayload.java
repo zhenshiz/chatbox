@@ -133,7 +133,7 @@ public class ClientChatBoxPayload {
     }
 
     public record ResetMaxTriggerCount() implements CustomPacketPayload {
-        public static final Type<ResetMaxTriggerCount> TYPE = new Type<>(ChatBox.ResourceLocationMod("reset_max_trigger_count"));
+        public static final Type<ResetMaxTriggerCount> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_reset_max_trigger_count"));
         public static final StreamCodec<FriendlyByteBuf, ResetMaxTriggerCount> CODEC = StreamCodec.ofMember(ResetMaxTriggerCount::write, ResetMaxTriggerCount::new);
 
         public ResetMaxTriggerCount(FriendlyByteBuf friendlyByteBuf) {

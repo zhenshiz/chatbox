@@ -40,6 +40,11 @@ public class ChatBoxCommandUtil {
         if (player != null) player.connection.send(new ClientChatBoxPayload.OpenChatBox());
     }
 
+    @Info("""
+            服务端设置最大访问次数，不包含同步
+            需要自行发包保证双端同步
+            player.connection.send(new ClientChatBoxPayload.SetMaxTriggerCount(ResourceLocation,int));
+            """)
     public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
         if (player != null) {
             ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
@@ -49,10 +54,14 @@ public class ChatBoxCommandUtil {
             newTriggerCounts.put(resourceLocation, count);
             maxTriggerCount.setTriggerCounts(newTriggerCounts);
             player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
-            ChatBox.LOGGER.info("serverTest:{}", player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT).getTriggerCounts());
         }
     }
 
+    @Info("""
+            服务端重置访问次数，不包含同步
+            需要自行发包保证双端同步
+            player.connection.send(new ClientChatBoxPayload.ResetMaxTriggerCount());
+            """)
     public static void serverResetMaxTriggerCount(ServerPlayer player) {
         if (player != null) {
             player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, new ChatBoxTriggerCount.MaxTriggerCount());
@@ -108,6 +117,11 @@ public class ChatBoxCommandUtil {
         }
     }
 
+    @Info("""
+            客户端设置最大访问次数，不包含同步
+            需要自行发包保证双端同步
+            player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(ResourceLocation,int));
+            """)
     public static void clientSetMaxTriggerCount(ResourceLocation dialogResourceLocation, int count) {
         if (minecraft.player == null) return;
         ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
@@ -115,9 +129,13 @@ public class ChatBoxCommandUtil {
         Map<String, Integer> triggerCounts = maxTriggerCount.getTriggerCounts();
         triggerCounts.put(resourceLocation, count);
         minecraft.player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
-        ChatBox.LOGGER.info("clientTest:{}", minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT).getTriggerCounts());
     }
 
+    @Info("""
+            客户端重置访问次数，不包含同步
+            需要自行发包保证双端同步
+            player.connection.send(new ServerChatBoxPayload.ResetMaxTriggerCount());
+            """)
     public static void clientResetMaxTriggerCount() {
         if (minecraft.player == null) return;
         minecraft.player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, new ChatBoxTriggerCount.MaxTriggerCount());

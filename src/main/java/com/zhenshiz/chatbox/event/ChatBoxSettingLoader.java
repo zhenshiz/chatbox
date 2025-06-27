@@ -9,6 +9,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
 @EventBusSubscriber(modid = ChatBox.MOD_ID)
 public class ChatBoxSettingLoader {
@@ -25,5 +26,10 @@ public class ChatBoxSettingLoader {
         //发包到客户端
         player.connection.send(new ClientChatBoxPayload.AllChatBoxThemeToClient(ChatBoxThemeLoader.INSTANCE.themeMap));
         player.connection.send(new ClientChatBoxPayload.AllChatBoxDialoguesToClient(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap));
+    }
+
+    @SubscribeEvent
+    public static void initializeServer(ServerStartingEvent event) {
+        ChatBoxDialoguesLoader.loadCriteria(event.getServer());
     }
 }
