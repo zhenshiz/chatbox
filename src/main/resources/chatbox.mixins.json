@@ -4,7 +4,8 @@
   "package": "com.zhenshiz.chatbox.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PlayerListMixin"
+    "PlayerListMixin",
+    "SimpleCriterionTriggerMixin"
   ],
   "client": [
     "client.MouseHandlerMixin"

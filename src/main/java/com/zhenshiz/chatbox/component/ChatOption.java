@@ -70,7 +70,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     public ChatOption setTextures(String textures) {
-        if (textures != null) return setTextures(ResourceLocation.parse(textures));
+        if (textures != null) return setTextures(ResourceLocation.tryParse(textures));
         return this;
     }
 
@@ -80,7 +80,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     public ChatOption setSelectTexture(String selectTexture) {
-        if (selectTexture != null) return setSelectTexture(ResourceLocation.parse(selectTexture));
+        if (selectTexture != null) return setSelectTexture(ResourceLocation.tryParse(selectTexture));
         return this;
     }
 
@@ -90,7 +90,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     public ChatOption setLockTexture(String lockTexture) {
-        if (lockTexture != null) return setLockTexture(ResourceLocation.parse(lockTexture));
+        if (lockTexture != null) return setLockTexture(ResourceLocation.tryParse(lockTexture));
         return this;
     }
 

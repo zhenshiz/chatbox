@@ -1,5 +1,28 @@
 {
-  "$introduce": "这是一段介绍本模组的文本",
+  "$introduce": "这是一段介绍本模组的文本，判据仅供测试使用",
+  "criteria": {
+    "diamond": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:diamond"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "used_totem": {
+      "conditions": {
+        "item": {
+          "items": "minecraft:totem_of_undying"
+        }
+      },
+      "trigger": "minecraft:used_totem"
+    },
+    "traded": {
+      "trigger": "minecraft:villager_trade"
+    }
+  },
   "dialogues": {
     "start": [
       {

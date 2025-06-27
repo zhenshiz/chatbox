@@ -3,6 +3,8 @@
   "command.target.entity.only": "The target of this command should be the an entity",
   "commands.toggle.theme": "Successfully switched the theme style of the dialog box",
   "commands.skip.dialogues": "Successfully jumped to the %s sentence of the %s group",
+  "commands.set.max.trigger.count": "Successfully set maximum trigger count of %s to %s",
+  "commands.reset.max.trigger.count": "Successfully reset maximum trigger count for all dialogues",
 
   "chatbox.configuration.config": "ChatBox Mod Config Screen",
   "chatbox.configuration.historical_scroll_speed": "The speed of the historical record interface scroll wheel",

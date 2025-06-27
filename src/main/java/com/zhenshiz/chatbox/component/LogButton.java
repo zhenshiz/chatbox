@@ -22,7 +22,7 @@ public class LogButton extends AbstractComponent<LogButton> {
     }
 
     public LogButton setLogTexture(String logTexture) {
-        if (logTexture != null) setLogTexture(ResourceLocation.parse(logTexture));
+        if (logTexture != null) setLogTexture(ResourceLocation.tryParse(logTexture));
         return this;
     }
 
@@ -32,7 +32,7 @@ public class LogButton extends AbstractComponent<LogButton> {
     }
 
     public LogButton setHoverLogTexture(String hoverLogTexture) {
-        if (hoverLogTexture != null) setHoverLogTexture(ResourceLocation.parse(hoverLogTexture));
+        if (hoverLogTexture != null) setHoverLogTexture(ResourceLocation.tryParse(hoverLogTexture));
         return this;
     }
 

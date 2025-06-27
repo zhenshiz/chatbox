@@ -62,7 +62,7 @@ public class ChatBoxPayload {
         }
     }
 
-    public record AllChatBoxThemeToClient(Map<ResourceLocation,String> themeMap) implements CustomPacketPayload {
+    public record AllChatBoxThemeToClient(Map<ResourceLocation, String> themeMap) implements CustomPacketPayload {
         public static final Type<AllChatBoxThemeToClient> TYPE = new Type<>(ChatBox.ResourceLocationMod("all_chat_box_theme_to_client"));
         public static final StreamCodec<FriendlyByteBuf, AllChatBoxThemeToClient> CODEC = StreamCodec.composite(
                 ByteBufCodecs.map(

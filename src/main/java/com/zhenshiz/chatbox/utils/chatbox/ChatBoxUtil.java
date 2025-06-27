@@ -29,7 +29,7 @@ public class ChatBoxUtil {
     //所有的对话框主题
     public static final Map<ResourceLocation, ChatBoxTheme> themeMap = new HashMap<>();
     //所有的对话信息
-    public static final Map<ResourceLocation, Map<String, List<ChatBoxDialogues>>> dialoguesMap = new HashMap<>();
+    public static final Map<ResourceLocation, ChatBoxDialogues> dialoguesMap = new HashMap<>();
     //玩家的对话框主题
     public static ChatBoxTheme chatBoxTheme;
     //玩家的对话框信息
@@ -41,41 +41,49 @@ public class ChatBoxUtil {
 
     //跳转对话
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index) {
-        List<ChatBoxDialogues> chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation).get(group);
+        if (minecraft.player == null) return;
 
-        if (index >= 0 && index < chatBoxDialogues.size()) {
-            ChatBoxDialogues dialogue = chatBoxDialogues.get(index);
-            ChatBoxDialogues.DialogBox dialogBox = dialogue.dialogBox;
-            chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxScreen.isTranslatable) : new DialogBox())
-                    .setPortrait(!CollUtil.isEmpty(dialogue.portrait) ? ChatBoxDialogues.setPortraitDialogues(dialogue.portrait, chatBoxTheme) : new ArrayList<>())
-                    .setChatOptions(!CollUtil.isEmpty(dialogue.options) ? ChatBoxDialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxScreen.isTranslatable) : new ArrayList<>());
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
+        List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
+
+        if (index >= 0 && index < dialogues.size()) {
+            ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
+            ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
+            chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxDialogues.isTranslatable) : new DialogBox())
+                    .setPortrait(!CollUtil.isEmpty(dialog.portrait) ? ChatBoxDialogues.Dialogues.setPortraitDialogues(dialog.portrait, chatBoxTheme) : new ArrayList<>())
+                    .setChatOptions(!CollUtil.isEmpty(dialog.options) ? ChatBoxDialogues.Dialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxDialogues.isTranslatable) : new ArrayList<>())
+                    .setBackgroundImage(dialog.backgroundImage)
+                    .setIsTranslatable(chatBoxDialogues.isTranslatable)
+                    .setIsEsc(chatBoxDialogues.isEsc)
+                    .setIsPause(chatBoxDialogues.isPause)
+                    .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip);
 
             chatBoxScreen.dialogBox.resetTickCount();
             chatBoxScreen.dialogBox.setAllOver(false);
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
-                //如果不是对话框或历史记录界面跳转，就清除历史记录
+                //如果不是对话框和历史记录界面跳转，就清除历史记录
                 historicalDialogue = new HistoricalDialogueScreen();
             }
             //新增聊天记录
-            if (dialogBox != null && minecraft.player != null) {
+            if (dialogBox != null) {
                 //添加历史聊天记录
                 historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesResourceLocation, group, index)
-                        .setName(dialogBox.name, chatBoxScreen.isTranslatable)
-                        .setText(dialogBox.text, chatBoxScreen.isTranslatable)
+                        .setName(dialogBox.name, chatBoxDialogues.isTranslatable)
+                        .setText(dialogBox.text, chatBoxDialogues.isTranslatable)
                 );
                 //进入对话执行自定义指令
-                if (dialogue.command != null) {
-                    ClientPlayNetworking.send(new SendCommandPayload(dialogue.command));
+                if (dialog.command != null) {
+                    ClientPlayNetworking.send(new SendCommandPayload(dialog.command));
                 }
                 //播放音乐
-                ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialogue.sound);
+                ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialog.sound);
                 if (soundResourceLocation != null) {
                     if (lastSoundResourceLocation != null) {
                         minecraft.getSoundManager().stop(lastSoundResourceLocation, null);
                     }
                     SoundEvent soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(soundResourceLocation)).value();
                     lastSoundResourceLocation = soundResourceLocation;
-                    minecraft.player.playSound(soundEvent, dialogue.volume, dialogue.pitch);
+                    minecraft.player.playSound(soundEvent, dialog.volume, dialog.pitch);
                 }
 
                 SkipChatEvent.EVENT.invoker().skipChat(chatBoxScreen, dialoguesResourceLocation, group, index);
@@ -137,26 +145,12 @@ public class ChatBoxUtil {
     public static void setDialogues(Map<ResourceLocation, String> map) {
         map.forEach((resourceLocation, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
-            if (jsonElement == null) return;
-            JsonElement dialoguesElement = jsonElement.getAsJsonObject().get("dialogues");
-            if (dialoguesElement != null) {
-                Map<String, List<ChatBoxDialogues>> ChatBoxDialoguesMap = GSON.fromJson(dialoguesElement, new com.google.common.reflect.TypeToken<Map<String, List<ChatBoxDialogues>>>() {
+            if (jsonElement != null) {
+                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(jsonElement, new com.google.common.reflect.TypeToken<ChatBoxDialogues>() {
                 }.getType());
-                for (Map.Entry<String, List<ChatBoxDialogues>> entry : ChatBoxDialoguesMap.entrySet()) {
-                    int index = 0;
-                    entry.getValue().forEach(chatBoxDialogues -> {
-                        chatBoxDialogues.setDefaultValue(resourceLocation, entry.getKey(), index);
-                    });
-                }
-                dialoguesMap.put(resourceLocation, ChatBoxDialoguesMap);
+                chatBoxDialogues.setDefaultValue(resourceLocation);
+                dialoguesMap.put(resourceLocation, chatBoxDialogues);
             }
-
-            JsonElement je = jsonElement.getAsJsonObject().get("isTranslatable");
-            chatBoxScreen.setIsTranslatable(je != null && je.getAsBoolean());
-            je = jsonElement.getAsJsonObject().get("isEsc");
-            chatBoxScreen.setIsEsc(je == null || je.getAsBoolean());
-            je = jsonElement.getAsJsonObject().get("isPause");
-            chatBoxScreen.setIsPause(je == null || je.getAsBoolean());
         });
     }
 

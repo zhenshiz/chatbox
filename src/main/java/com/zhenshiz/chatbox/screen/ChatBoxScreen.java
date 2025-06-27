@@ -2,10 +2,11 @@ package com.zhenshiz.chatbox.screen;
 
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRender;
-import lombok.Setter;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -17,12 +18,11 @@ public class ChatBoxScreen extends Screen {
     public List<Portrait> portraits = new ArrayList<>();
     public DialogBox dialogBox = new DialogBox();
     public LogButton logButton = new LogButton();
-    @Setter
+    public ResourceLocation backgroundImage;
     public Boolean isTranslatable;
-    @Setter
     public Boolean isEsc;
-    @Setter
     public Boolean isPause;
+    public Boolean isHistoricalSkip;
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -53,6 +53,36 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
+    public ChatBoxScreen setBackgroundImage(ResourceLocation backgroundImage) {
+        if (backgroundImage != null) this.backgroundImage = backgroundImage;
+        return this;
+    }
+
+    public ChatBoxScreen setBackgroundImage(String backgroundImage) {
+        if (backgroundImage != null) return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
+        return this;
+    }
+
+    public ChatBoxScreen setIsTranslatable(Boolean isTranslatable) {
+        if (isTranslatable != null) this.isTranslatable = isTranslatable;
+        return this;
+    }
+
+    public ChatBoxScreen setIsEsc(Boolean isEsc) {
+        if (isEsc != null) this.isEsc = isEsc;
+        return this;
+    }
+
+    public ChatBoxScreen setIsPause(Boolean isPause) {
+        if (isPause != null) this.isPause = isPause;
+        return this;
+    }
+
+    public ChatBoxScreen setIsHistoricalSkip(Boolean isHistoricalSkip) {
+        if (isHistoricalSkip != null) this.isHistoricalSkip = isHistoricalSkip;
+        return this;
+    }
+
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (dialogBox != null) {
@@ -60,6 +90,9 @@ public class ChatBoxScreen extends Screen {
 /*            if (NeoForge.EVENT_BUS.post(new ChatBoxRender.Pre(guiGraphics)).isCanceled()) {
                 return;
             }*/
+            if (backgroundImage != null) {
+                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1);
+            }
 
             List<AbstractComponent<?>> list = new ArrayList<>();
             list.add(dialogBox);

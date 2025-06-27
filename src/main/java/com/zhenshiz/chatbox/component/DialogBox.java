@@ -56,7 +56,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     }
 
     public DialogBox setTexture(String texture) {
-        if (texture != null) return setTexture(ResourceLocation.parse(texture));
+        if (texture != null) return setTexture(ResourceLocation.tryParse(texture));
         return this;
     }
 
