@@ -1,9 +1,11 @@
 package com.zhenshiz.chatbox.network.client;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
+import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -18,8 +20,8 @@ public class ChatBoxClient {
     public static void register(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(ChatBox.MOD_ID);
         registrar.playBidirectional(
-                ChatBoxPayload.OpenScreenPayload.TYPE,
-                ChatBoxPayload.OpenScreenPayload.CODEC,
+                ClientChatBoxPayload.OpenScreenPayload.TYPE,
+                ClientChatBoxPayload.OpenScreenPayload.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index()),
                         (payload, context) -> {
@@ -28,8 +30,8 @@ public class ChatBoxClient {
         );
 
         registrar.playBidirectional(
-                ChatBoxPayload.OpenChatBox.TYPE,
-                ChatBoxPayload.OpenChatBox.CODEC,
+                ClientChatBoxPayload.OpenChatBox.TYPE,
+                ClientChatBoxPayload.OpenChatBox.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> ChatBoxCommandUtil.clientOpenChatBox(),
                         (payload, context) -> {
@@ -38,8 +40,8 @@ public class ChatBoxClient {
         );
 
         registrar.playBidirectional(
-                ChatBoxPayload.ToggleTheme.TYPE,
-                ChatBoxPayload.ToggleTheme.CODEC,
+                ClientChatBoxPayload.ToggleTheme.TYPE,
+                ClientChatBoxPayload.ToggleTheme.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> ChatBoxCommandUtil.clientToggleTheme(payload.theme()),
                         (payload, context) -> {
@@ -48,8 +50,8 @@ public class ChatBoxClient {
         );
 
         registrar.playBidirectional(
-                ChatBoxPayload.AllChatBoxThemeToClient.TYPE,
-                ChatBoxPayload.AllChatBoxThemeToClient.CODEC,
+                ClientChatBoxPayload.AllChatBoxThemeToClient.TYPE,
+                ClientChatBoxPayload.AllChatBoxThemeToClient.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> {
                             ChatBoxUtil.setTheme(payload.themeMap());
@@ -66,8 +68,8 @@ public class ChatBoxClient {
         );
 
         registrar.playBidirectional(
-                ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE,
-                ChatBoxPayload.AllChatBoxDialoguesToClient.CODEC,
+                ClientChatBoxPayload.AllChatBoxDialoguesToClient.TYPE,
+                ClientChatBoxPayload.AllChatBoxDialoguesToClient.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> ChatBoxUtil.setDialogues(payload.dialoguesMap()),
                         (payload, context) -> {
@@ -76,8 +78,8 @@ public class ChatBoxClient {
         );
 
         registrar.playBidirectional(
-                ChatBoxPayload.SetMaxTriggerCount.TYPE,
-                ChatBoxPayload.SetMaxTriggerCount.CODEC,
+                ClientChatBoxPayload.SetMaxTriggerCount.TYPE,
+                ClientChatBoxPayload.SetMaxTriggerCount.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> ChatBoxCommandUtil.clientSetMaxTriggerCount(payload.resourceLocation(), payload.maxTriggerCount()),
                         (payload, context) -> {
@@ -86,8 +88,21 @@ public class ChatBoxClient {
         );
 
         registrar.playBidirectional(
-                ChatBoxPayload.ResetMaxTriggerCount.TYPE,
-                ChatBoxPayload.ResetMaxTriggerCount.CODEC,
+                ClientChatBoxPayload.SetMaxTriggerCountPlus.TYPE,
+                ClientChatBoxPayload.SetMaxTriggerCountPlus.CODEC,
+                new DirectionalPayloadHandler<>(
+                        (payload, context) -> {
+                            ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = payload.maxTriggerCount();
+                            context.player().setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
+                        },
+                        (payload, context) -> {
+                        }
+                )
+        );
+
+        registrar.playBidirectional(
+                ClientChatBoxPayload.ResetMaxTriggerCount.TYPE,
+                ClientChatBoxPayload.ResetMaxTriggerCount.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> ChatBoxCommandUtil.clientResetMaxTriggerCount(),
                         (payload, context) -> {

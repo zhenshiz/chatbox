@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -62,7 +62,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            player.connection.send(new ChatBoxPayload.ToggleTheme(theme));
+            player.connection.send(new ClientChatBoxPayload.ToggleTheme(theme));
             context.getSource().sendSuccess(() -> Component.translatable("commands.toggle.theme"), true);
             return 1;
         } else {
@@ -77,7 +77,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            player.connection.send(new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
+            player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index));
             context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             return 1;
         } else {
@@ -89,7 +89,7 @@ public class ChatBoxCommand implements ICommand {
     private static int openChatBox(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
-            player.connection.send(new ChatBoxPayload.OpenChatBox());
+            player.connection.send(new ClientChatBoxPayload.OpenChatBox());
 
             return 1;
         } else {
@@ -104,7 +104,7 @@ public class ChatBoxCommand implements ICommand {
             ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
             int maxTriggerCount = IntegerArgumentType.getInteger(context, "MaxTriggerCount");
             ChatBoxCommandUtil.serverSetMaxTriggerCount(player, dialogues, maxTriggerCount);
-            player.connection.send(new ChatBoxPayload.SetMaxTriggerCount(dialogues, maxTriggerCount));
+            player.connection.send(new ClientChatBoxPayload.SetMaxTriggerCount(dialogues, maxTriggerCount));
             context.getSource().sendSuccess(() -> Component.translatable("commands.set.max.trigger.count", dialogues.toString(), maxTriggerCount), true);
             return 1;
         } else {
@@ -117,7 +117,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
             ChatBoxCommandUtil.serverResetMaxTriggerCount(player);
-            player.connection.send(new ChatBoxPayload.ResetMaxTriggerCount());
+            player.connection.send(new ClientChatBoxPayload.ResetMaxTriggerCount());
             context.getSource().sendSuccess(() -> Component.translatable("commands.reset.max.trigger.count"), true);
             return 1;
         } else {

@@ -1,10 +1,12 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
-import com.zhenshiz.chatbox.payload.c2s.SetMaxTriggerCountPayload;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.payload.c2s.ServerChatBoxPayload;
+import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
+import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,20 +18,26 @@ public class ChatBoxCommandUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
     public static String themeResourceLocation = null;
 
+    @Info("服务端切换对话框主题样式")
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
-        if (player != null) player.connection.send(new ChatBoxPayload.ToggleTheme(theme));
+        if (player != null) player.connection.send(new ClientChatBoxPayload.ToggleTheme(theme));
     }
 
+    @Info("服务端跳转对话，自带同步数据附件")
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index) {
-        if (player != null) player.connection.send(new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
+        if (player != null) {
+            player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index));
+        }
     }
 
+    @Info("服务端跳转对话，默认第一句话")
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
         serverSkipDialogues(player, dialogues, group, 0);
     }
 
+    @Info("服务端打开对话框，无视最大访问次数")
     public static void serverOpenChatBox(ServerPlayer player) {
-        if (player != null) player.connection.send(new ChatBoxPayload.OpenChatBox());
+        if (player != null) player.connection.send(new ClientChatBoxPayload.OpenChatBox());
     }
 
     public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
@@ -41,6 +49,7 @@ public class ChatBoxCommandUtil {
             newTriggerCounts.put(resourceLocation, count);
             maxTriggerCount.setTriggerCounts(newTriggerCounts);
             player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
+            ChatBox.LOGGER.info("serverTest:{}", player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT).getTriggerCounts());
         }
     }
 
@@ -50,11 +59,13 @@ public class ChatBoxCommandUtil {
         }
     }
 
+    @Info("客户端切换对话框主题样式")
     public static void clientToggleTheme(ResourceLocation theme) {
         ChatBoxUtil.toggleTheme(theme);
         themeResourceLocation = theme.toString();
     }
 
+    @Info("客户端跳转对话，自带同步数据附件")
     public static void clientSkipDialogues(ResourceLocation dialoguesResourceLocation, String group, Integer index) {
         if (minecraft.player == null) return;
 
@@ -68,22 +79,23 @@ public class ChatBoxCommandUtil {
             Map<String, Integer> triggerCounts = maxTriggerCount.getTriggerCounts();
             Integer count = triggerCounts.get(resourceLocation);
             if (count == null) {
-                triggerCounts.put(resourceLocation, chatBoxDialogues.maxTriggerCount - 1);
-                minecraft.player.connection.send(new SetMaxTriggerCountPayload(dialoguesResourceLocation, chatBoxDialogues.maxTriggerCount - 1));
+                clientSetMaxTriggerCount(dialoguesResourceLocation, chatBoxDialogues.maxTriggerCount - 1);
+                minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, chatBoxDialogues.maxTriggerCount - 1));
             } else {
                 if (count == 0) return;
-                triggerCounts.put(resourceLocation, count - 1);
-                minecraft.player.connection.send(new SetMaxTriggerCountPayload(dialoguesResourceLocation, count - 1));
+                clientSetMaxTriggerCount(dialoguesResourceLocation, count - 1);
+                minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, count - 1));
             }
-            minecraft.player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
         }
         ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
     }
 
+    @Info("客户端跳转对话，默认第一句话")
     public static void clientSkipDialogues(ResourceLocation dialogues, String group) {
         clientSkipDialogues(dialogues, group, 0);
     }
 
+    @Info("客户端打开对话框，无视最大访问次数")
     public static void clientOpenChatBox() {
         if (minecraft.player != null) {
             DialogBox dialogBox = ChatBoxUtil.chatBoxScreen.dialogBox;
@@ -103,6 +115,7 @@ public class ChatBoxCommandUtil {
         Map<String, Integer> triggerCounts = maxTriggerCount.getTriggerCounts();
         triggerCounts.put(resourceLocation, count);
         minecraft.player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
+        ChatBox.LOGGER.info("clientTest:{}", minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT).getTriggerCounts());
     }
 
     public static void clientResetMaxTriggerCount() {

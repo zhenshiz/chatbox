@@ -1,10 +1,10 @@
 package com.zhenshiz.chatbox.payload.s2c;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ChatBoxPayload {
+public class ClientChatBoxPayload {
     public record OpenScreenPayload(ResourceLocation dialogues, String group,
                                     int index) implements CustomPacketPayload {
         public static final Type<OpenScreenPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_screen"));
@@ -100,7 +100,8 @@ public class ChatBoxPayload {
         }
     }
 
-    public record SetMaxTriggerCount(ResourceLocation resourceLocation, int maxTriggerCount) implements CustomPacketPayload {
+    public record SetMaxTriggerCount(ResourceLocation resourceLocation,
+                                     int maxTriggerCount) implements CustomPacketPayload {
         public static final Type<SetMaxTriggerCount> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_set_max_trigger_count"));
         public static final StreamCodec<FriendlyByteBuf, SetMaxTriggerCount> CODEC = StreamCodec.composite(
                 ResourceLocation.STREAM_CODEC,
@@ -108,6 +109,21 @@ public class ChatBoxPayload {
                 ByteBufCodecs.INT,
                 SetMaxTriggerCount::maxTriggerCount,
                 SetMaxTriggerCount::new
+        );
+
+        @Override
+        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    public record SetMaxTriggerCountPlus(
+            ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount) implements CustomPacketPayload {
+        public static final Type<SetMaxTriggerCountPlus> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_set_max_trigger_count_plus"));
+        public static final StreamCodec<FriendlyByteBuf, SetMaxTriggerCountPlus> CODEC = StreamCodec.composite(
+                ChatBoxTriggerCount.MaxTriggerCount.STREAM_CODEC,
+                SetMaxTriggerCountPlus::maxTriggerCount,
+                SetMaxTriggerCountPlus::new
         );
 
         @Override
