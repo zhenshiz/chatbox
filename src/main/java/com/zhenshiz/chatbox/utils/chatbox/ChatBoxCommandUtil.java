@@ -1,6 +1,5 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
-import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
@@ -80,7 +79,9 @@ public class ChatBoxCommandUtil {
 
         ChatBoxDialogues chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation);
         //判断该对话是否有触发的次数限制
-        if (chatBoxDialogues.maxTriggerCount == 0) {
+        if (chatBoxDialogues == null) {
+            return;
+        } else if (chatBoxDialogues.maxTriggerCount == 0) {
             return;
         } else if (chatBoxDialogues.maxTriggerCount > 0) {
             ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);

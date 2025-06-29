@@ -3,7 +3,6 @@ package com.zhenshiz.chatbox.screen;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
-import lombok.Setter;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -57,13 +56,17 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setBackgroundImage(ResourceLocation backgroundImage) {
-        if (backgroundImage != null) this.backgroundImage = backgroundImage;
+        this.backgroundImage = backgroundImage;
         return this;
     }
 
     public ChatBoxScreen setBackgroundImage(String backgroundImage) {
-        if (backgroundImage != null) return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
-        return this;
+        if (backgroundImage != null) {
+            return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
+        } else {
+            this.backgroundImage = null;
+            return this;
+        }
     }
 
     public ChatBoxScreen setIsTranslatable(Boolean isTranslatable) {
