@@ -5,10 +5,9 @@
   "commands.skip.dialogues": "Successfully jumped to the %s sentence of the %s group",
   "commands.set.max.trigger.count": "Successfully set maximum trigger count of %s to %s",
   "commands.reset.max.trigger.count": "Successfully reset maximum trigger count for all dialogues",
-
   "chatbox.configuration.config": "ChatBox Mod Config Screen",
   "chatbox.configuration.historical_scroll_speed": "The speed of the historical record interface scroll wheel",
-
+  "chatbox.configuration.sound_interruption_enabled": "Whether to interrupt currently playing sound when no new sound is available",
   "chatbox.test.name.1": "Inaba Meguru",
   "chatbox.test.text.1": "This module features dialog boxes, options, character illustrations, and a history button. Dialog text supports formatting codes like §1color§2coding§3, §f§lbold, §oitalic§r, etc. The placeholder @@s will be replaced with the player's ID: @s. Illustrations can display custom images, item textures, and player avatars.",
   "chatbox.test.text.2": "Options support hiding and locking functionality, with customizable tooltips displayed on hover.",
