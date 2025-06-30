@@ -10,4 +10,7 @@ public class Config implements ConfigData {
     @ConfigEntry.BoundedDiscrete(min = 1, max = 200)
     public int historicalScrollSpeed = 10;
 
+    @ConfigEntry.Gui.Tooltip()
+    public boolean soundInterruptionEnabled = true;
+
 }

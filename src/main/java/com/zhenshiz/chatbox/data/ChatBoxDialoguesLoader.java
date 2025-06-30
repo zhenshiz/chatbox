@@ -63,11 +63,6 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener imp
             })));
         });
 
-        //给所有玩家发包
-        if (ChatBox.server != null) {
-            ChatBox.server.getPlayerList().getPlayers().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, new ChatBoxPayload.AllChatBoxDialoguesToClient(dialoguesMap)));
-        }
-
         setDialogues(dialoguesMap);
     }
 

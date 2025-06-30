@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -77,6 +78,8 @@ public class ChatBoxUtil {
                 }
                 //播放音乐
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialog.sound);
+                //如果新的一句话没有音效，根据配置决定是否中断上一句话的音效
+                if (!ChatBoxClient.conf.soundInterruptionEnabled && Objects.equals(dialog.sound, "")) soundResourceLocation = null;
                 if (soundResourceLocation != null) {
                     if (lastSoundResourceLocation != null) {
                         minecraft.getSoundManager().stop(lastSoundResourceLocation, null);
@@ -86,6 +89,8 @@ public class ChatBoxUtil {
                     minecraft.player.playSound(soundEvent, dialog.volume, dialog.pitch);
                 }
 
+                //调试用
+                //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);
                 SkipChatEvent.EVENT.invoker().skipChat(chatBoxScreen, dialoguesResourceLocation, group, index);
                 //NeoForge.EVENT_BUS.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
 

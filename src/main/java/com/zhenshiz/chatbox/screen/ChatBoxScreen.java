@@ -54,13 +54,17 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setBackgroundImage(ResourceLocation backgroundImage) {
-        if (backgroundImage != null) this.backgroundImage = backgroundImage;
+        this.backgroundImage = backgroundImage;
         return this;
     }
 
     public ChatBoxScreen setBackgroundImage(String backgroundImage) {
-        if (backgroundImage != null) return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
-        return this;
+        if (backgroundImage != null) {
+            return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
+        } else {
+            this.backgroundImage = null;
+            return this;
+        }
     }
 
     public ChatBoxScreen setIsTranslatable(Boolean isTranslatable) {

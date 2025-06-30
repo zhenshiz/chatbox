@@ -5,8 +5,14 @@ import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ChatBoxSettingLoader {
 
@@ -17,8 +23,27 @@ public class ChatBoxSettingLoader {
     }
 
     public static void initializeChatBoxScreen(ServerPlayer player) {
-        //发包到客户端
-        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxThemeToClient(ChatBoxThemeLoader.INSTANCE.themeMap));
-        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxDialoguesToClient(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap));
+        //玩家进入以及重载数据包后，发包到客户端
+        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxThemeToClient(cutString(ChatBoxThemeLoader.INSTANCE.themeMap)));
+        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxDialoguesToClient(cutString(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap)));
+    }
+
+    //由于字符串长度的限制为32767，所以需要把字符串分割成多个字符串，然后再发送给客户端
+    private static final int STRING_SIZE_LIMIT = 32000;
+    //经过测试，单人游戏正常运行，多人游戏无法打开我的对话框，原因未知
+    //你可以用我做的星白测试一下，顺便探讨解决方案？
+    //【星空列车与白的旅行资源包等2个项目】 链接：https://qfile.qq.com/q/qWoy086KIg
+    private static Map<ResourceLocation, List<String>> cutString(Map<ResourceLocation, String> map) {
+        Map<ResourceLocation, List<String>> result = new HashMap<>();
+        for (var entry : map.entrySet()) {
+            ResourceLocation rl = entry.getKey();
+            String data = entry.getValue();
+            List<String> parts = new ArrayList<>();
+            for (int i = 0; i < data.length(); i += STRING_SIZE_LIMIT) {
+                parts.add(data.substring(i, Math.min(i + STRING_SIZE_LIMIT, data.length())));
+            }
+            result.put(rl, parts);
+        }
+        return result;
     }
 }

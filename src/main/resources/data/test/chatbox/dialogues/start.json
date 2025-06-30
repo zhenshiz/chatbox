@@ -1,28 +1,5 @@
 {
-  "$introduce": "这是一段介绍本模组的文本，判据仅供测试使用",
-  "criteria": {
-    "diamond": {
-      "conditions": {
-        "items": [
-          {
-            "items": "minecraft:diamond"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "used_totem": {
-      "conditions": {
-        "item": {
-          "items": "minecraft:totem_of_undying"
-        }
-      },
-      "trigger": "minecraft:used_totem"
-    },
-    "traded": {
-      "trigger": "minecraft:villager_trade"
-    }
-  },
+  "$introduce": "这是一段介绍本模组的文本",
   "dialogues": {
     "start": [
       {
@@ -31,9 +8,21 @@
           "text": "chatbox.test.text.1"
         },
         "portrait": [
-          "authors"
+          "authors",
+          "head",
+          "item"
         ],
-        "sound": "minecraft:ambient.cave"
+        "options": [
+          {
+            "text": "chatbox.test.option.1"
+          },
+          {
+            "text": "chatbox.test.option.2"
+          },
+          {
+            "text": "chatbox.test.option.3"
+          }
+        ]
       },
       {
         "dialogBox": {
@@ -42,6 +31,28 @@
         },
         "portrait": [
           "authors"
+        ],
+        "options": [
+          {
+            "text": "chatbox.test.option.1",
+            "isHidden": true,
+            "hidden": {
+              "objective": "test",
+              "value": "test"
+            }
+          },
+          {
+            "text": "chatbox.test.option.4",
+            "isLock": true,
+            "lock": {
+              "objective": "test",
+              "value": "test"
+            },
+            "tooltip": "chatbox.test.tooltip.1"
+          },
+          {
+            "text": "chatbox.test.option.5"
+          }
         ]
       },
       {
@@ -51,6 +62,30 @@
         },
         "portrait": [
           "authors"
+        ],
+        "command": "weather clear",
+        "options": [
+          {
+            "text": "chatbox.test.option.6",
+            "click": {
+              "type": "command",
+              "value": "weather rain"
+            }
+          },
+          {
+            "text": "chatbox.test.option.7",
+            "click": {
+              "type": "command",
+              "value": "weather clear"
+            }
+          },
+          {
+            "text": "chatbox.test.option.8",
+            "click": {
+              "type": "command",
+              "value": "weather thunder"
+            }
+          }
         ]
       },
       {
@@ -61,16 +96,7 @@
         "portrait": [
           "authors"
         ],
-        "options": [
-          {
-            "text": "chatbox.test.option.1",
-            "isLock": true,
-            "tooltip": "chatbox.test.tooltip.1"
-          },
-          {
-            "text": "chatbox.test.option.2"
-          }
-        ]
+        "sound": "minecraft:ambient.cave"
       },
       {
         "dialogBox": {
@@ -79,8 +105,9 @@
         },
         "portrait": [
           "authors",
-          "head",
-          "item"
+          "authors_fade_in",
+          "authors_slide_in_from_bottom",
+          "authors_bounce"
         ]
       },
       {
@@ -89,7 +116,8 @@
           "text": "chatbox.test.text.6"
         },
         "portrait": [
-          "authors_fade_in"
+          "authors",
+          "custom_animation"
         ]
       },
       {
@@ -98,7 +126,7 @@
           "text": "chatbox.test.text.7"
         },
         "portrait": [
-          "authors_slide_in_from_bottom"
+          "authors"
         ]
       },
       {
@@ -107,7 +135,7 @@
           "text": "chatbox.test.text.8"
         },
         "portrait": [
-          "authors_bounce"
+          "authors"
         ]
       },
       {
@@ -126,7 +154,8 @@
         },
         "portrait": [
           "authors"
-        ]
+        ],
+        "backgroundImage": "chatbox:textures/chatbox/default_dialog_box.png"
       },
       {
         "dialogBox": {
@@ -141,24 +170,6 @@
         "dialogBox": {
           "name": "chatbox.test.name.1",
           "text": "chatbox.test.text.12"
-        },
-        "portrait": [
-          "authors"
-        ]
-      },
-      {
-        "dialogBox": {
-          "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.13"
-        },
-        "portrait": [
-          "authors"
-        ]
-      },
-      {
-        "dialogBox": {
-          "name": "chatbox.test.name.1",
-          "text": "chatbox.test.text.14"
         },
         "portrait": [
           "authors"

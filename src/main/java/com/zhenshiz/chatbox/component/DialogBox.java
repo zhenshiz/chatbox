@@ -38,10 +38,10 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox() {
         setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
-        setText("",false);
-        setTextPosition(0,0);
-        setName("",false);
-        setNamePosition(0,0);
+        setText("", false);
+        setTextPosition(0, 0);
+        setName("", false);
+        setNamePosition(0, 0);
         setLineWidth(100);
 
         setAllOver(false);
@@ -60,16 +60,16 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    public DialogBox setText(String text,boolean isTranslatable) {
+    public DialogBox setText(String text, boolean isTranslatable) {
         if (text != null) {
-            this.text = isTranslatable ? Component.translatable(text): Component.nullToEmpty(text);
+            this.text = isTranslatable ? Component.translatable(text) : Component.nullToEmpty(text);
             textToTextBuffer();
         }
         return this;
     }
 
-    public DialogBox setName(String name,boolean isTranslatable) {
-        if (name != null) this.name = isTranslatable ? Component.translatable(name): Component.nullToEmpty(name);
+    public DialogBox setName(String name, boolean isTranslatable) {
+        if (name != null) this.name = isTranslatable ? Component.translatable(name) : Component.nullToEmpty(name);
         return this;
     }
 
@@ -142,8 +142,11 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public void tick() {
         if (!this.isAllOver) {
             //未全部加载，开始加载
+            if (this.tickCount == this.textBuffer.length - 1) {
+                setAllOver(true);
+                return;
+            }
             this.tickCount++;
-            if (this.tickCount == this.textBuffer.length - 1) setAllOver(true);
         }
     }
 

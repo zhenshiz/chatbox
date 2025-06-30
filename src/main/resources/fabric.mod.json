@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "chatbox",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "name": "ChatBox",
   "description": "GalGame DialogBox",
   "authors": ["zhenshiz"],

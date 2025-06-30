@@ -8,54 +8,14 @@
       "height": 40,
       "alignX": "left",
       "alignY": "bottom",
-      "value": "chatbox:textures/portrait/authors.png",
-      "renderOrder": 30,
-      "animation": "none"
-    },
-    "authors_fade_in": {
-      "type": "texture",
-      "width": 40,
-      "height": 80,
-      "alignX": "center",
-      "alignY": "bottom",
-      "value": "chatbox:textures/portrait/authors.png",
-      "animation": "FADE_IN"
-    },
-    "authors_slide_in_from_bottom": {
-      "type": "texture",
-      "x": 0,
-      "y": 10,
-      "width": 40,
-      "height": 80,
-      "alignX": "center",
-      "alignY": "bottom",
-      "value": "chatbox:textures/portrait/authors.png",
-      "animation": "SLIDE_IN_FROM_BOTTOM"
-    },
-    "authors_bounce": {
-      "type": "texture",
-      "width": 40,
-      "height": 80,
-      "alignX": "center",
-      "alignY": "bottom",
-      "value": "chatbox:textures/portrait/authors.png",
-      "animation": "BOUNCE"
+      "value": "chatbox:textures/portrait/authors.png"
     },
     "head": {
       "type": "player_head",
       "x": 20,
       "y": 30,
       "width": 10,
-      "value": "@s",
-      "customAnimation": [
-        {
-          "time": 50,
-          "scale": 3,
-          "easing": "EASE_OUT_SINE"
-        }
-      ],
-      "renderOrder": -10,
-      "loop": true
+      "value": "@s"
     },
     "item": {
       "type": "item",
@@ -63,6 +23,63 @@
       "y": 30,
       "scale": 3,
       "value": "diamond"
+    },
+    "authors_fade_in": {
+      "type": "texture",
+      "x": 20,
+      "y": -5,
+      "width": 20,
+      "height": 40,
+      "alignX": "left",
+      "alignY": "bottom",
+      "value": "chatbox:textures/portrait/authors.png",
+      "renderOrder": -10,
+      "animation": "FADE_IN"
+    },
+    "authors_slide_in_from_bottom": {
+      "type": "texture",
+      "x": 40,
+      "y": -5,
+      "width": 20,
+      "height": 40,
+      "alignX": "left",
+      "alignY": "bottom",
+      "value": "chatbox:textures/portrait/authors.png",
+      "renderOrder": -10,
+      "animation": "SLIDE_IN_FROM_BOTTOM"
+    },
+    "authors_bounce": {
+      "type": "texture",
+      "x": 60,
+      "y": -5,
+      "width": 20,
+      "height": 40,
+      "alignX": "left",
+      "alignY": "bottom",
+      "value": "chatbox:textures/portrait/authors.png",
+      "renderOrder": -10,
+      "animation": "BOUNCE"
+    },
+    "custom_animation": {
+      "type": "player_head",
+      "value": "@s",
+      "x": 0,
+      "y": 20,
+      "width": 10,
+      "customAnimation": [
+        {
+          "time": 50,
+          "x": 20,
+          "easing": "EASE_OUT_SINE"
+        },
+        {
+          "time": 50,
+          "scale": 1.2,
+          "opacity": 0,
+          "easing": "EASE_OUT_SINE"
+        }
+      ],
+      "loop": true
     }
   },
   "option": {

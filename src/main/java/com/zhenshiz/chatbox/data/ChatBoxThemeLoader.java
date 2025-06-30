@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -40,11 +38,6 @@ public class ChatBoxThemeLoader extends SimpleJsonResourceReloadListener impleme
                 if (jsonElement != null) themeMap.put(rl, jsonElement.toString());
             })));
         });
-
-        //给所有玩家发包
-        if (ChatBox.server != null) {
-            ChatBox.server.getPlayerList().getPlayers().forEach(serverPlayer -> ServerPlayNetworking.send(serverPlayer, new ChatBoxPayload.AllChatBoxThemeToClient(themeMap)));
-        }
     }
 
     @Override
