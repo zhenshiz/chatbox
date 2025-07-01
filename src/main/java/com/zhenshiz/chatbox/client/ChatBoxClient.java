@@ -16,7 +16,6 @@ import java.util.Map;
 
 public class ChatBoxClient implements ClientModInitializer {
     public static Config conf;
-    private static final Map<ChatboxData, Map<Integer, String>> receivedParts = new HashMap<>();
 
     @Override
     public void onInitializeClient() {
@@ -24,8 +23,6 @@ public class ChatBoxClient implements ClientModInitializer {
         conf = AutoConfig.getConfigHolder(Config.class).getConfig();
         registerReceiver();
     }
-
-    private record ChatboxData(String type, ResourceLocation rl, int totalPart) {}
 
     private static void registerReceiver() {
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreenPayload.TYPE,

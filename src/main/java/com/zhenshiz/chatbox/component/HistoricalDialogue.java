@@ -67,7 +67,7 @@ public class HistoricalDialogue extends AbstractWidget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+        if (button == 0 && ChatBoxUtil.chatBoxScreen.isHistoricalSkip) {
             for (HistoricalInfo historicalInfo : historicalInfos) {
                 if (historicalInfo.isMouseInRect(mouseX, mouseY)) {
                     int i = historicalInfos.indexOf(historicalInfo);

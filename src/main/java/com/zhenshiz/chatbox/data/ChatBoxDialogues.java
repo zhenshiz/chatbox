@@ -181,6 +181,6 @@ public class ChatBoxDialogues {
         this.isTranslatable = BeanUtil.getValueOrDefault(this.isTranslatable, false);
         this.isEsc = BeanUtil.getValueOrDefault(this.isEsc, true);
         this.isPause = BeanUtil.getValueOrDefault(this.isPause, true);
-        this.isHistoricalSkip = BeanUtil.getValueOrDefault(this.isHistoricalSkip, false);
+        this.isHistoricalSkip = BeanUtil.getValueOrDefault(this.isHistoricalSkip, true);
     }
 }

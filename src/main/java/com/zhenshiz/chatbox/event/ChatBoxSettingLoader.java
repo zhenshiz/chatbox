@@ -31,8 +31,6 @@ public class ChatBoxSettingLoader {
     //由于字符串长度的限制为32767，所以需要把字符串分割成多个字符串，然后再发送给客户端
     private static final int STRING_SIZE_LIMIT = 32000;
     //经过测试，单人游戏正常运行，多人游戏无法打开我的对话框，原因未知
-    //你可以用我做的星白测试一下，顺便探讨解决方案？
-    //【星空列车与白的旅行资源包等2个项目】 链接：https://qfile.qq.com/q/qWoy086KIg
     private static Map<ResourceLocation, List<String>> cutString(Map<ResourceLocation, String> map) {
         Map<ResourceLocation, List<String>> result = new HashMap<>();
         for (var entry : map.entrySet()) {
