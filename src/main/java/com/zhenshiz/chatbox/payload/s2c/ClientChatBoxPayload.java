@@ -9,7 +9,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ClientChatBoxPayload {
@@ -63,13 +65,14 @@ public class ClientChatBoxPayload {
         }
     }
 
-    public record AllChatBoxThemeToClient(Map<ResourceLocation, String> themeMap) implements CustomPacketPayload {
+    public record AllChatBoxThemeToClient(
+            Map<ResourceLocation, List<String>> themeMap) implements CustomPacketPayload {
         public static final Type<AllChatBoxThemeToClient> TYPE = new Type<>(ChatBox.ResourceLocationMod("all_chat_box_theme_to_client"));
         public static final StreamCodec<FriendlyByteBuf, AllChatBoxThemeToClient> CODEC = StreamCodec.composite(
                 ByteBufCodecs.map(
                         HashMap::new,
                         ResourceLocation.STREAM_CODEC,
-                        ByteBufCodecs.STRING_UTF8
+                        ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)
                 ),
                 AllChatBoxThemeToClient::themeMap,
                 AllChatBoxThemeToClient::new
@@ -82,13 +85,13 @@ public class ClientChatBoxPayload {
     }
 
     public record AllChatBoxDialoguesToClient(
-            Map<ResourceLocation, String> dialoguesMap) implements CustomPacketPayload {
+            Map<ResourceLocation, List<String>> dialoguesMap) implements CustomPacketPayload {
         public static final Type<AllChatBoxDialoguesToClient> TYPE = new Type<>(ChatBox.ResourceLocationMod("all_chat_box_dialogues_to_client"));
         public static final StreamCodec<FriendlyByteBuf, AllChatBoxDialoguesToClient> CODEC = StreamCodec.composite(
                 ByteBufCodecs.map(
                         HashMap::new,
                         ResourceLocation.STREAM_CODEC,
-                        ByteBufCodecs.STRING_UTF8
+                        ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)
                 ),
                 AllChatBoxDialoguesToClient::dialoguesMap,
                 AllChatBoxDialoguesToClient::new

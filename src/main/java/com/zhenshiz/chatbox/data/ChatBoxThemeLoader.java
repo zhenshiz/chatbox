@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
 import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -41,7 +42,7 @@ public class ChatBoxThemeLoader extends SimpleJsonResourceReloadListener {
 
         //给所有玩家发包
         if (ServerLifecycleHooks.getCurrentServer() != null) {
-            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ClientChatBoxPayload.AllChatBoxThemeToClient(themeMap)));
+            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ClientChatBoxPayload.AllChatBoxThemeToClient(ChatBoxSettingLoader.cutString(themeMap))));
         }
     }
 }

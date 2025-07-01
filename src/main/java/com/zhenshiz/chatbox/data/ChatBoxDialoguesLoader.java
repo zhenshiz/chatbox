@@ -8,6 +8,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
 import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.advancements.Criterion;
@@ -63,7 +64,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
 
         //给所有玩家发包
         if (ServerLifecycleHooks.getCurrentServer() != null) {
-            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ClientChatBoxPayload.AllChatBoxDialoguesToClient(dialoguesMap)));
+            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ClientChatBoxPayload.AllChatBoxDialoguesToClient(ChatBoxSettingLoader.cutString(dialoguesMap))));
             loadCriteria(ServerLifecycleHooks.getCurrentServer());
         }
 
@@ -100,12 +101,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
                     try {
                         T t = (T) instance;
                         if (testTrigger.test(t)) {
-                            //判断玩家的触发次数是否为0，为0则不触发对话
-                            ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
-                            int count = maxTriggerCount.getTriggerCounts().get(rl.toString());
-                            if (count != 0) {
-                                ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
-                            }
+                            ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
                         }
                     } catch (ClassCastException e) {
                         continue;

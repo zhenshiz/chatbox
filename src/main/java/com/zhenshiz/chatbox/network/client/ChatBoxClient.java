@@ -5,13 +5,16 @@ import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @EventBusSubscriber(modid = ChatBox.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class ChatBoxClient {
@@ -54,7 +57,7 @@ public class ChatBoxClient {
                 ClientChatBoxPayload.AllChatBoxThemeToClient.CODEC,
                 new DirectionalPayloadHandler<>(
                         (payload, context) -> {
-                            ChatBoxUtil.setTheme(payload.themeMap());
+                            ChatBoxUtil.setTheme(mergeString(payload.themeMap()));
                             if (ChatBoxCommandUtil.themeResourceLocation != null) {
                                 ResourceLocation theme = ResourceLocation.tryParse(ChatBoxCommandUtil.themeResourceLocation);
                                 if (theme != null) {
@@ -71,7 +74,7 @@ public class ChatBoxClient {
                 ClientChatBoxPayload.AllChatBoxDialoguesToClient.TYPE,
                 ClientChatBoxPayload.AllChatBoxDialoguesToClient.CODEC,
                 new DirectionalPayloadHandler<>(
-                        (payload, context) -> ChatBoxUtil.setDialogues(payload.dialoguesMap()),
+                        (payload, context) -> ChatBoxUtil.setDialogues(mergeString(payload.dialoguesMap())),
                         (payload, context) -> {
                         }
                 )
@@ -109,5 +112,19 @@ public class ChatBoxClient {
                         }
                 )
         );
+    }
+
+    private static Map<ResourceLocation, String> mergeString(Map<ResourceLocation, List<String>> map) {
+        Map<ResourceLocation, String> result = new HashMap<>();
+        for (var entry : map.entrySet()) {
+            ResourceLocation rl = entry.getKey();
+            List<String> parts = entry.getValue();
+            StringBuilder builder = new StringBuilder();
+            for (String part : parts) {
+                builder.append(part);
+            }
+            result.put(rl, builder.toString());
+        }
+        return result;
     }
 }

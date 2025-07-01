@@ -77,26 +77,21 @@ public class ChatBoxCommandUtil {
     public static void clientSkipDialogues(ResourceLocation dialoguesResourceLocation, String group, Integer index) {
         if (minecraft.player == null) return;
 
-        ChatBoxDialogues chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation);
         //判断该对话是否有触发的次数限制
-        if (chatBoxDialogues == null) {
-            return;
-        } else if (chatBoxDialogues.maxTriggerCount == 0) {
-            return;
-        } else if (chatBoxDialogues.maxTriggerCount > 0) {
-            ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
-            String resourceLocation = dialoguesResourceLocation.toString();
-            Map<String, Integer> triggerCounts = maxTriggerCount.getTriggerCounts();
-            Integer count = triggerCounts.get(resourceLocation);
-            if (count == null) {
-                clientSetMaxTriggerCount(dialoguesResourceLocation, chatBoxDialogues.maxTriggerCount - 1);
-                minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, chatBoxDialogues.maxTriggerCount - 1));
-            } else {
-                if (count == 0) return;
-                clientSetMaxTriggerCount(dialoguesResourceLocation, count - 1);
-                minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, count - 1));
-            }
+        ChatBoxDialogues chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation);
+        ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
+        String resourceLocation = dialoguesResourceLocation.toString();
+        Map<String, Integer> triggerCounts = maxTriggerCount.getTriggerCounts();
+        Integer count = triggerCounts.get(resourceLocation);
+        if (count == null) {
+            clientSetMaxTriggerCount(dialoguesResourceLocation, chatBoxDialogues.maxTriggerCount - 1);
+            minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, chatBoxDialogues.maxTriggerCount - 1));
+        } else {
+            if (count == 0) return;
+            clientSetMaxTriggerCount(dialoguesResourceLocation, count - 1);
+            minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, count - 1));
         }
+
         ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
     }
 
