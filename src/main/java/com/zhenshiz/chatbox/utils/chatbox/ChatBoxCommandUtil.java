@@ -41,7 +41,9 @@ public class ChatBoxCommandUtil {
 
     @Info("""
             服务端设置最大访问次数，不包含同步
+            
             需要自行发包保证双端同步
+            
             player.connection.send(new ClientChatBoxPayload.SetMaxTriggerCount(ResourceLocation,int));
             """)
     public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
@@ -58,7 +60,9 @@ public class ChatBoxCommandUtil {
 
     @Info("""
             服务端重置访问次数，不包含同步
+            
             需要自行发包保证双端同步
+            
             player.connection.send(new ClientChatBoxPayload.ResetMaxTriggerCount());
             """)
     public static void serverResetMaxTriggerCount(ServerPlayer player) {
@@ -92,6 +96,7 @@ public class ChatBoxCommandUtil {
             minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, count - 1));
         }
 
+        if (chatBoxDialogues.theme != null) clientToggleTheme(ResourceLocation.parse(chatBoxDialogues.theme));
         ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
     }
 
@@ -115,7 +120,9 @@ public class ChatBoxCommandUtil {
 
     @Info("""
             客户端设置最大访问次数，不包含同步
+            
             需要自行发包保证双端同步
+            
             player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(ResourceLocation,int));
             """)
     public static void clientSetMaxTriggerCount(ResourceLocation dialogResourceLocation, int count) {
@@ -129,7 +136,9 @@ public class ChatBoxCommandUtil {
 
     @Info("""
             客户端重置访问次数，不包含同步
+            
             需要自行发包保证双端同步
+            
             player.connection.send(new ServerChatBoxPayload.ResetMaxTriggerCount());
             """)
     public static void clientResetMaxTriggerCount() {

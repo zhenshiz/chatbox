@@ -22,17 +22,17 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     //对话框文本
     public Component text;
     //文本x位置
-    public int textX;
+    public float textX;
     //文本y位置
-    public int textY;
+    public float textY;
     //名称
     public Component name;
     //名称x位置
-    public int nameX;
+    public float nameX;
     //名称y位置
-    public int nameY;
+    public float nameY;
     //一行文本的宽度
-    public int lineWidth;
+    public float lineWidth;
 
     //全部文字是否全部显示
     public boolean isAllOver;
@@ -45,7 +45,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         setTextPosition(0, 0);
         setName("", false);
         setNamePosition(0, 0);
-        setLineWidth(100);
+        setLineWidth(100f);
 
         setAllOver(false);
         resetTickCount();
@@ -76,23 +76,19 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    public DialogBox setNamePosition(int x, int y) {
-        if (checkPos(x) && checkPos(y)) {
-            this.nameX = x;
-            this.nameY = y;
-        }
+    public DialogBox setNamePosition(float x, float y) {
+        this.nameX = x;
+        this.nameY = y;
         return this;
     }
 
-    public DialogBox setTextPosition(int x, int y) {
-        if (checkPos(x) && checkPos(y)) {
-            this.textX = x;
-            this.textY = y;
-        }
+    public DialogBox setTextPosition(float x, float y) {
+        this.textX = x;
+        this.textY = y;
         return this;
     }
 
-    public DialogBox setLineWidth(int lineWidth) {
+    public DialogBox setLineWidth(Float lineWidth) {
         if (checkSize(lineWidth)) this.lineWidth = lineWidth;
         return this;
     }
@@ -156,20 +152,20 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         //chatBox image
-        renderImage(guiGraphics, this.texture);
+        if (this.texture != null) renderImage(guiGraphics, this.texture);
 
         //name and text
         Vec2 position = getCurrentPosition();
-        int x = (int) position.x;
-        int y = (int) position.y;
+        float x = position.x;
+        float y = position.y;
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
         if (StrUtil.isNotEmpty(this.name.getString())) {
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(StrUtil.format("[{}]", name.getString()))), getResponsiveWidth(x + this.nameX), getResponsiveHeight(y + this.nameY), getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(StrUtil.format("[{}]", name.getString()))), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
         if (StrUtil.isNotEmpty(this.text.getString())) {
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.tickCount])), getResponsiveWidth(x + this.textX), getResponsiveHeight(y + this.textY), getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.tickCount])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
         poseStack.popPose();
     }

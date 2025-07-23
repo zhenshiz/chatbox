@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.data;
 
+import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -27,16 +28,103 @@ public class ChatBoxDialogues {
     public Boolean isPause;
     public Boolean isHistoricalSkip;
     public Integer maxTriggerCount;
+    public String theme;
+
+    public void setDefaultValue(ResourceLocation resourceLocation) {
+        for (Map.Entry<String, List<Dialogues>> entry : dialogues.entrySet()) {
+            int index = 0;
+            entry.getValue().forEach(dialogues -> {
+                dialogues.setDefaultValue(resourceLocation, entry.getKey(), index);
+            });
+        }
+
+        this.isTranslatable = BeanUtil.getValueOrDefault(this.isTranslatable, false);
+        this.isEsc = BeanUtil.getValueOrDefault(this.isEsc, true);
+        this.isPause = BeanUtil.getValueOrDefault(this.isPause, true);
+        this.isHistoricalSkip = BeanUtil.getValueOrDefault(this.isHistoricalSkip, true);
+        this.maxTriggerCount = BeanUtil.getValueOrDefault(this.maxTriggerCount, -1);
+    }
 
     public static class Dialogues {
         public DialogBox dialogBox;
-        public List<String> portrait;
+        public List<JsonElement> portrait;
         public List<Option> options;
         public String sound;
         public Float volume;
         public Float pitch;
         public String command;
         public String backgroundImage;
+
+        public static List<Portrait> setPortraitDialogues(List<Object> portraits, ChatBoxTheme theme) {
+            Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
+
+            List<Portrait> portraitList = new ArrayList<>();
+            if (map != null && !map.isEmpty()) {
+                portraits.forEach(p -> {
+                    Portrait portrait = null;
+                    if (p instanceof String) {
+                        portrait = map.get(p)
+                                .setPortraitTheme()
+                                .build();
+                    } else if (p instanceof ReplacePortrait replacePortrait) {
+                        portrait = replacePortrait.replace(map.get(replacePortrait.id))
+                                .setPortraitTheme()
+                                .build();
+                    }
+
+                    if (portrait != null) {
+                        if (!CollUtil.isEmpty(portrait.customAnimation)) {
+                            BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity), portrait.customAnimation.getFirst());
+                            if (portrait.customAnimation.size() > 1) {
+                                for (int i = 1; i < portrait.customAnimation.size(); i++) {
+                                    BeanUtil.copyPropertiesIfTargetNull(portrait.customAnimation.get(i - 1), portrait.customAnimation.get(i));
+                                }
+                            }
+                            portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                            if (portrait.loop)
+                                portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                        } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
+                            portrait.setIsAnimation(true).setTarget();
+                        }
+                        portraitList.add(portrait);
+                    }
+                });
+            }
+            return portraitList;
+        }
+
+        public static List<Object> parsePortrait(List<JsonElement> jsonElements) {
+            List<Object> portraitList = new ArrayList<>();
+            for (JsonElement element : jsonElements) {
+                if (element.isJsonPrimitive()) {
+                    portraitList.add(element.getAsString());
+                } else if (element.isJsonObject()) {
+                    ReplacePortrait obj = ChatBoxUtil.GSON.fromJson(element, ReplacePortrait.class);
+                    portraitList.add(obj);
+                }
+            }
+            return portraitList;
+        }
+
+        public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {
+            this.sound = BeanUtil.getValueOrDefault(this.sound, "");
+            this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
+            this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
+
+            this.dialogBox.dialoguesResourceLocation = resourceLocation;
+            this.dialogBox.group = group;
+            this.dialogBox.index = index;
+
+            if (!CollUtil.isEmpty(this.options)) {
+                for (Option option : this.options) {
+                    option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
+                    option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
+                    option.dialoguesResourceLocation = resourceLocation;
+                    option.group = group;
+                    option.index = index;
+                }
+            }
+        }
 
         public static class DialogBox {
             public String name;
@@ -52,6 +140,28 @@ public class ChatBoxDialogues {
                         .setText(this.text, isTranslatable)
                         .setDialoguesInfo(this.dialoguesResourceLocation, this.group, index)
                         .resetTickCount();
+            }
+        }
+
+        public static class ReplacePortrait {
+            public String id;
+            public Integer customItemData;
+            public String animation;
+            public Integer duration;
+            public String easing;
+            public Float scale;
+            public List<ChatBoxTheme.Portrait.CustomAnimation> customAnimation = new ArrayList<>();
+            public Boolean loop;
+
+            public ChatBoxTheme.Portrait replace(ChatBoxTheme.Portrait portrait) {
+                if (customItemData != null) portrait.customItemData = this.customItemData;
+                if (animation != null) portrait.animation = this.animation;
+                if (duration != null) portrait.duration = this.duration;
+                if (easing != null) portrait.easing = this.easing;
+                if (scale != null) portrait.scale = this.scale;
+                if (customAnimation != null) portrait.customAnimation = this.customAnimation;
+                if (loop != null) portrait.loop = this.loop;
+                return portrait;
             }
         }
 
@@ -121,68 +231,5 @@ public class ChatBoxDialogues {
                 public String value;
             }
         }
-
-        public static List<com.zhenshiz.chatbox.component.Portrait> setPortraitDialogues(List<String> portraits, ChatBoxTheme theme) {
-            Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
-
-            List<com.zhenshiz.chatbox.component.Portrait> portraitList = new ArrayList<>();
-            if (map != null && !map.isEmpty()) {
-                portraits.forEach(p -> {
-                    com.zhenshiz.chatbox.component.Portrait portrait = map.get(p)
-                            .setPortraitTheme()
-                            .build();
-                    if (!CollUtil.isEmpty(portrait.customAnimation)) {
-                        BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity), portrait.customAnimation.getFirst());
-                        if (portrait.customAnimation.size() > 1) {
-                            for (int i = 1; i < portrait.customAnimation.size(); i++) {
-                                BeanUtil.copyPropertiesIfTargetNull(portrait.customAnimation.get(i - 1), portrait.customAnimation.get(i));
-                            }
-                        }
-                        portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
-                        if (portrait.loop)
-                            portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
-                    } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
-                        portrait.setIsAnimation(true).setTarget();
-                    }
-                    portraitList.add(portrait);
-                });
-            }
-            return portraitList;
-        }
-
-        public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {
-            this.sound = BeanUtil.getValueOrDefault(this.sound, "");
-            this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
-            this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
-
-            this.dialogBox.dialoguesResourceLocation = resourceLocation;
-            this.dialogBox.group = group;
-            this.dialogBox.index = index;
-
-            if (!CollUtil.isEmpty(this.options)) {
-                for (Option option : this.options) {
-                    option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
-                    option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
-                    option.dialoguesResourceLocation = resourceLocation;
-                    option.group = group;
-                    option.index = index;
-                }
-            }
-        }
-    }
-
-    public void setDefaultValue(ResourceLocation resourceLocation) {
-        for (Map.Entry<String, List<Dialogues>> entry : dialogues.entrySet()) {
-            int index = 0;
-            entry.getValue().forEach(dialogues -> {
-                dialogues.setDefaultValue(resourceLocation, entry.getKey(), index);
-            });
-        }
-
-        this.isTranslatable = BeanUtil.getValueOrDefault(this.isTranslatable, false);
-        this.isEsc = BeanUtil.getValueOrDefault(this.isEsc, true);
-        this.isPause = BeanUtil.getValueOrDefault(this.isPause, true);
-        this.isHistoricalSkip = BeanUtil.getValueOrDefault(this.isHistoricalSkip, true);
-        this.maxTriggerCount = BeanUtil.getValueOrDefault(this.maxTriggerCount, -1);
     }
 }

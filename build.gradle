@@ -13,20 +13,21 @@ repositories {
     mavenLocal()
 
     //KubeJS
-//    maven {
-//        url "https://maven.latvian.dev/releases"
-//        content {
-//            includeGroup "dev.latvian.mods"
-//            includeGroup "dev.latvian.apps"
-//        }
-//    }
-//
-//    maven {
-//        url 'https://jitpack.io'
-//        content {
-//            includeGroup "com.github.rtyley"
-//        }
-//    }
+    maven {
+        name = "Latvian"
+        url = "https://maven.latvian.dev/releases"
+        content {
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.latvian.apps"
+        }
+    }
+    maven {
+        name = "JitPack"
+        url = "https://jitpack.io"
+        content {
+            includeGroup "com.github.rtyley"
+        }
+    }
 }
 
 base {
@@ -107,10 +108,8 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     // KubeJS
-//    implementation "dev.latvian.mods:rhino:${rhino_version}"
-//    implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
-    implementation files('libs/rhino-2101.2.7-build.74.jar')
-    implementation files('libs/kubejs-neoforge-2101.7.1-build.181.jar')
+    implementation "dev.latvian.mods:rhino:${rhino_version}"
+    implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

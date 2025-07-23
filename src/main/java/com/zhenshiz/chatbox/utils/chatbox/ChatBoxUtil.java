@@ -25,7 +25,7 @@ import java.util.*;
 
 public class ChatBoxUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
-    private static final Gson GSON =
+    public static final Gson GSON =
             (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     //所有的对话框主题
     public static final Map<ResourceLocation, ChatBoxTheme> themeMap = new HashMap<>();
@@ -51,7 +51,7 @@ public class ChatBoxUtil {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
             chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxDialogues.isTranslatable) : new DialogBox())
-                    .setPortrait(!CollUtil.isEmpty(dialog.portrait) ? ChatBoxDialogues.Dialogues.setPortraitDialogues(dialog.portrait, chatBoxTheme) : new ArrayList<>())
+                    .setPortrait(!CollUtil.isEmpty(dialog.portrait) ? ChatBoxDialogues.Dialogues.setPortraitDialogues(ChatBoxDialogues.Dialogues.parsePortrait(dialog.portrait), chatBoxTheme) : new ArrayList<>())
                     .setChatOptions(!CollUtil.isEmpty(dialog.options) ? ChatBoxDialogues.Dialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxDialogues.isTranslatable) : new ArrayList<>())
                     .setBackgroundImage(dialog.backgroundImage)
                     .setIsTranslatable(chatBoxDialogues.isTranslatable)
@@ -75,7 +75,11 @@ public class ChatBoxUtil {
                 );
                 //进入对话执行自定义指令
                 if (dialog.command != null) {
-                    minecraft.player.connection.send(new SendCommandPayload(dialog.command));
+                    String[] commands = dialog.command.split(";");
+                    for (String command : commands) {
+                        command = command.trim();
+                        if (!command.isBlank()) minecraft.player.connection.send(new SendCommandPayload(command));
+                    }
                 }
                 //播放音乐
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialog.sound);
