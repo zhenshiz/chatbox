@@ -61,12 +61,12 @@ public class ChatBoxTheme {
         public Boolean loop;
 
         public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
-            com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.customAnimation, this.loop);
+            com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.customAnimation, this.loop, this.scale);
             switch (portrait.type) {
                 case TEXTURE ->
                         portrait.createTexture(portrait, this.value, this.animation, this.easing, this.duration).build();
                 case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value).build();
-                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData, this.scale).build();
+                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData).build();
             }
             return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder);
         }

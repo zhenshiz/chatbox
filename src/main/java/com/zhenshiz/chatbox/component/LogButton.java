@@ -11,7 +11,7 @@ public class LogButton extends AbstractComponent<LogButton> {
     //鼠标悬浮时材质
     public ResourceLocation hoverLogTexture;
 
-    public LogButton(){
+    public LogButton() {
         setLogTexture(ChatBox.ResourceLocationMod("textures/log/default_log.png"));
         setHoverLogTexture(ChatBox.ResourceLocationMod("textures/hover/default_hover_log.png"));
     }

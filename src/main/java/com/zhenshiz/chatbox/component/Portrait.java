@@ -37,8 +37,8 @@ public class Portrait extends AbstractComponent<Portrait> {
     //执行自定义动画的序号
     private int customAnimationIndex = 0;
 
-    public Portrait(Type type, List<ChatBoxTheme.Portrait.CustomAnimation> customAnimation, Boolean loop) {
-        setType(type).setCustomAnimation(customAnimation).setLoop(loop).build();
+    public Portrait(Type type, List<ChatBoxTheme.Portrait.CustomAnimation> customAnimation, Boolean loop, Float scale) {
+        setType(type).setCustomAnimation(customAnimation).setLoop(loop).setScale(scale).build();
         defaultOption();
     }
 
@@ -56,10 +56,9 @@ public class Portrait extends AbstractComponent<Portrait> {
     }
 
     //item
-    public Portrait createItem(Portrait portrait, String value, Integer customItemData, Float scale) {
+    public Portrait createItem(Portrait portrait, String value, Integer customItemData) {
         return portrait.setValue(value)
-                .setCustomItemData(customItemData)
-                .setScale(scale);
+                .setCustomItemData(customItemData);
     }
 
     public Portrait setScale(Float scale) {
@@ -153,8 +152,8 @@ public class Portrait extends AbstractComponent<Portrait> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         if (type != null && value != null) {
             Vec2 position = getCurrentPosition();
-            int x = (int) position.x;
-            int y = (int) position.y;
+            float x = position.x;
+            float y = position.y;
             if (this.isAnimation) this.currentAnimationTick++;
             switch (type) {
                 case TEXTURE -> {
@@ -165,15 +164,15 @@ public class Portrait extends AbstractComponent<Portrait> {
                                 if (this.currentAnimationTick == this.durationAnimationTick) setIsAnimation(false);
                             }
                             case SLIDE_IN_FROM_BOTTOM -> {
-                                setPosition(this.x, (int) EasingUtil.easingFunction(this.targetCustomAnimation.y, 0, this.currentAnimationTick, this.durationAnimationTick, this.easing));
+                                setPosition(this.x, EasingUtil.easingFunction(this.targetCustomAnimation.y, 0, this.currentAnimationTick, this.durationAnimationTick, this.easing));
                                 if (this.currentAnimationTick == this.durationAnimationTick) setIsAnimation(false);
                             }
                             case BOUNCE -> {
                                 int offset = 5;
                                 if (this.currentAnimationTick >= this.durationAnimationTick / 2) {
-                                    setPosition(this.x, (int) EasingUtil.easingFunction(this.targetCustomAnimation.y, this.targetCustomAnimation.y + offset, this.currentAnimationTick, this.durationAnimationTick, this.easing));
+                                    setPosition(this.x, EasingUtil.easingFunction(this.targetCustomAnimation.y, this.targetCustomAnimation.y + offset, this.currentAnimationTick, this.durationAnimationTick, this.easing));
                                 } else {
-                                    setPosition(this.x, (int) EasingUtil.easingFunction(this.targetCustomAnimation.y + offset, this.targetCustomAnimation.y, this.currentAnimationTick, this.durationAnimationTick, this.easing));
+                                    setPosition(this.x, EasingUtil.easingFunction(this.targetCustomAnimation.y + offset, this.targetCustomAnimation.y, this.currentAnimationTick, this.durationAnimationTick, this.easing));
                                 }
                                 if (this.currentAnimationTick == this.durationAnimationTick) setIsAnimation(false);
                             }
@@ -211,7 +210,7 @@ public class Portrait extends AbstractComponent<Portrait> {
         }
         ChatBoxTheme.Portrait.CustomAnimation customAnimation = this.customAnimation.get(this.customAnimationIndex);
         if (this.type.equals(Type.TEXTURE)) setValue(customAnimation.texture);
-        setPosition(EasingUtil.easingFunction(this.targetCustomAnimation.x, customAnimation.x, this.currentAnimationTick, customAnimation.time, customAnimation.easing), (int) EasingUtil.easingFunction(this.targetCustomAnimation.y, customAnimation.y, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
+        setPosition(EasingUtil.easingFunction(this.targetCustomAnimation.x, customAnimation.x, this.currentAnimationTick, customAnimation.time, customAnimation.easing), EasingUtil.easingFunction(this.targetCustomAnimation.y, customAnimation.y, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
         setScale(EasingUtil.easingFunction(this.targetCustomAnimation.scale, customAnimation.scale, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
         setOpacity(EasingUtil.easingFunction(this.targetCustomAnimation.opacity, customAnimation.opacity, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
         if (this.currentAnimationTick == customAnimation.time) {

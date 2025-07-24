@@ -5,7 +5,6 @@ import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ICommand;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
-import lombok.Getter;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;

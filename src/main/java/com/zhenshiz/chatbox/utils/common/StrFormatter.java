@@ -18,7 +18,7 @@ public class StrFormatter {
             StringBuilder sbuf = new StringBuilder(strPatternLength + 50);
             int handledPosition = 0;
 
-            for(int argIndex = 0; argIndex < argArray.length; ++argIndex) {
+            for (int argIndex = 0; argIndex < argArray.length; ++argIndex) {
                 int delimIndex = strPattern.indexOf(placeHolder, handledPosition);
                 if (delimIndex == -1) {
                     if (handledPosition == 0) {
@@ -61,7 +61,7 @@ public class StrFormatter {
             String template2 = template.toString();
             Iterator var5 = map.entrySet().iterator();
 
-            while(true) {
+            while (true) {
                 String value;
                 Map.Entry entry;
                 do {
@@ -69,9 +69,9 @@ public class StrFormatter {
                         return template2;
                     }
 
-                    entry = (Map.Entry)var5.next();
+                    entry = (Map.Entry) var5.next();
                     value = StrUtil.utf8Str(entry.getValue());
-                } while(null == value && ignoreNull);
+                } while (null == value && ignoreNull);
 
                 template2 = StrUtil.replace(template2, "{" + entry.getKey() + "}", value);
             }

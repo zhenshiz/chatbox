@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.data;
 
 import com.google.gson.JsonElement;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -63,13 +64,21 @@ public class ChatBoxDialogues {
                 portraits.forEach(p -> {
                     Portrait portrait = null;
                     if (p instanceof String) {
-                        portrait = map.get(p)
-                                .setPortraitTheme()
-                                .build();
+                        try {
+                            portrait = map.get(p)
+                                    .setPortraitTheme()
+                                    .build();
+                        } catch (Exception e) {
+                            ChatBox.LOGGER.error("portrait {} not found", p);
+                        }
                     } else if (p instanceof ReplacePortrait replacePortrait) {
-                        portrait = replacePortrait.replace(map.get(replacePortrait.id))
-                                .setPortraitTheme()
-                                .build();
+                        try {
+                            portrait = replacePortrait.replace(map.get(replacePortrait.id))
+                                    .setPortraitTheme()
+                                    .build();
+                        } catch (Exception e) {
+                            ChatBox.LOGGER.error("portrait {} not found", replacePortrait.id);
+                        }
                     }
 
                     if (portrait != null) {
@@ -143,25 +152,14 @@ public class ChatBoxDialogues {
             }
         }
 
-        public static class ReplacePortrait {
+        public static class ReplacePortrait extends ChatBoxTheme.Portrait {
             public String id;
-            public Integer customItemData;
-            public String animation;
-            public Integer duration;
-            public String easing;
-            public Float scale;
-            public List<ChatBoxTheme.Portrait.CustomAnimation> customAnimation = new ArrayList<>();
-            public Boolean loop;
 
             public ChatBoxTheme.Portrait replace(ChatBoxTheme.Portrait portrait) {
-                if (customItemData != null) portrait.customItemData = this.customItemData;
-                if (animation != null) portrait.animation = this.animation;
-                if (duration != null) portrait.duration = this.duration;
-                if (easing != null) portrait.easing = this.easing;
-                if (scale != null) portrait.scale = this.scale;
-                if (customAnimation != null) portrait.customAnimation = this.customAnimation;
-                if (loop != null) portrait.loop = this.loop;
-                return portrait;
+                ChatBoxTheme.Portrait copy = new ChatBoxTheme.Portrait();
+                BeanUtil.copyProperties(portrait, copy);
+                BeanUtil.copyProperties(this, copy);
+                return copy;
             }
         }
 

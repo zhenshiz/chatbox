@@ -21,7 +21,7 @@ public class BeanUtil {
     }
 
     /**
-     * 复制源对象属性到目标对象 null值不覆盖
+     * 复制源对象属性到目标对象 只有是null才覆盖
      *
      * @param source 源对象
      * @param target 目标对象
@@ -31,7 +31,7 @@ public class BeanUtil {
     }
 
     /**
-     * 复制源对象属性到目标对象 null值覆盖
+     * 复制源对象属性到目标对象 不是null也覆盖
      *
      * @param source 源对象
      * @param target 目标对象

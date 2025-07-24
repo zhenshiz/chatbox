@@ -108,7 +108,6 @@ public class ChatOption extends AbstractComponent<ChatOption> {
                             command = command.trim();
                             if (!command.isBlank()) minecraft.player.connection.send(new SendCommandPayload(command));
                         }
-                        minecraft.player.connection.send(new SendCommandPayload(value));
                     }
                 }
             };
