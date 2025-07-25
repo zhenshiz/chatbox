@@ -106,7 +106,7 @@ public class ChatBoxScreen extends Screen {
 
             list.sort(Comparator.comparingInt(p -> p.renderOrder));
 
-            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, pMouseX, pMouseY));
+            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, pMouseX, pMouseY, pPartialTick));
 
             ChatBoxRender.POST.invoker().post(guiGraphics);
             //NeoForge.EVENT_BUS.post(new ChatBoxRender.Post(guiGraphics));

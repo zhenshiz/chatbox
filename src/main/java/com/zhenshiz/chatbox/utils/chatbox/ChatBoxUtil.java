@@ -25,7 +25,7 @@ import java.util.*;
 
 public class ChatBoxUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
-    private static final Gson GSON =
+    public static final Gson GSON =
             (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     //所有的对话框主题
     public static final Map<ResourceLocation, ChatBoxTheme> themeMap = new HashMap<>();
@@ -45,13 +45,14 @@ public class ChatBoxUtil {
         if (minecraft.player == null) return;
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
+        if (chatBoxDialogues.theme != null) toggleTheme(ResourceLocation.parse(chatBoxDialogues.theme));
         List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
 
         if (index >= 0 && index < dialogues.size()) {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
             chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxDialogues.isTranslatable) : new DialogBox())
-                    .setPortrait(!CollUtil.isEmpty(dialog.portrait) ? ChatBoxDialogues.Dialogues.setPortraitDialogues(dialog.portrait, chatBoxTheme) : new ArrayList<>())
+                    .setPortrait(!CollUtil.isEmpty(dialog.portrait) ? ChatBoxDialogues.Dialogues.setPortraitDialogues(ChatBoxDialogues.Dialogues.parsePortrait(dialog.portrait), chatBoxTheme) : new ArrayList<>())
                     .setChatOptions(!CollUtil.isEmpty(dialog.options) ? ChatBoxDialogues.Dialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxDialogues.isTranslatable) : new ArrayList<>())
                     .setBackgroundImage(dialog.backgroundImage)
                     .setIsTranslatable(chatBoxDialogues.isTranslatable)
@@ -74,7 +75,11 @@ public class ChatBoxUtil {
                 );
                 //进入对话执行自定义指令
                 if (dialog.command != null) {
-                    ClientPlayNetworking.send(new SendCommandPayload(dialog.command));
+                    var commands = dialog.command.split(";");
+                    for (var command : commands) {
+                        command = command.trim();
+                        if (!command.isBlank()) ClientPlayNetworking.send(new SendCommandPayload(command));
+                    }
                 }
                 //播放音乐
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialog.sound);

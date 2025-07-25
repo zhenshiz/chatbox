@@ -1,5 +1,7 @@
 package com.zhenshiz.chatbox.data;
 
+import com.google.gson.JsonElement;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -26,16 +28,111 @@ public class ChatBoxDialogues {
     public Boolean isEsc;
     public Boolean isPause;
     public Boolean isHistoricalSkip;
+    public String theme;
+
+    public void setDefaultValue(ResourceLocation resourceLocation) {
+        for (Map.Entry<String, List<Dialogues>> entry : dialogues.entrySet()) {
+            int index = 0;
+            entry.getValue().forEach(dialogues -> {
+                dialogues.setDefaultValue(resourceLocation, entry.getKey(), index);
+            });
+        }
+
+        this.isTranslatable = BeanUtil.getValueOrDefault(this.isTranslatable, false);
+        this.isEsc = BeanUtil.getValueOrDefault(this.isEsc, true);
+        this.isPause = BeanUtil.getValueOrDefault(this.isPause, true);
+        this.isHistoricalSkip = BeanUtil.getValueOrDefault(this.isHistoricalSkip, true);
+    }
 
     public static class Dialogues {
         public DialogBox dialogBox;
-        public List<String> portrait;
+        public List<JsonElement> portrait;
         public List<Option> options;
         public String sound;
         public Float volume;
         public Float pitch;
         public String command;
         public String backgroundImage;
+
+        public static List<Portrait> setPortraitDialogues(List<Object> portraits, ChatBoxTheme theme) {
+            Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
+
+            List<Portrait> portraitList = new ArrayList<>();
+            if (map != null && !map.isEmpty()) {
+                portraits.forEach(p -> {
+                    Portrait portrait = null;
+                    //优化建议：使用try-catch来捕获异常，在日志中输出错误信息，便于找到错误，而不是直接抛出异常
+                    if (p instanceof String) {
+                        try {
+                            portrait = map.get(p)
+                                  .setPortraitTheme()
+                                  .build();
+                        } catch (Exception e) {
+                            ChatBox.LOGGER.error("portrait {} not found", p);
+                        }
+                    } else if (p instanceof ReplacePortrait replacePortrait) {
+                        try {
+                            portrait = replacePortrait.replace(map.get(replacePortrait.id))
+                                  .setPortraitTheme()
+                                  .build();
+                        } catch (Exception e) {
+                            ChatBox.LOGGER.error("portrait {} not found", replacePortrait.id);
+                        }
+                    }
+
+                    if (portrait != null) {
+                        if (!CollUtil.isEmpty(portrait.customAnimation)) {
+                            BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity), portrait.customAnimation.getFirst());
+                            if (portrait.customAnimation.size() > 1) {
+                                for (int i = 1; i < portrait.customAnimation.size(); i++) {
+                                    BeanUtil.copyPropertiesIfTargetNull(portrait.customAnimation.get(i - 1), portrait.customAnimation.get(i));
+                                }
+                            }
+                            portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                            if (portrait.loop)
+                                portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                        } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
+                            portrait.setIsAnimation(true).setTarget();
+                        }
+                        portraitList.add(portrait);
+                    }
+                });
+            }
+            return portraitList;
+        }
+
+        public static List<Object> parsePortrait(List<JsonElement> jsonElements) {
+            List<Object> portraitList = new ArrayList<>();
+            for (JsonElement element : jsonElements) {
+                if (element.isJsonPrimitive()) {
+                    portraitList.add(element.getAsString());
+                } else if (element.isJsonObject()) {
+                    ReplacePortrait obj = ChatBoxUtil.GSON.fromJson(element, ReplacePortrait.class);
+                    portraitList.add(obj);
+                }
+            }
+            return portraitList;
+        }
+
+        public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {
+            this.sound = BeanUtil.getValueOrDefault(this.sound, "");
+            this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
+            this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
+
+            this.dialogBox.dialoguesResourceLocation = resourceLocation;
+            this.dialogBox.group = group;
+            this.dialogBox.index = index;
+
+            if (!CollUtil.isEmpty(this.options)) {
+                for (Option option : this.options) {
+                    option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
+                    option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
+                    option.dialoguesResourceLocation = resourceLocation;
+                    option.group = group;
+                    option.index = index;
+                }
+            }
+        }
 
         public static class DialogBox {
             public String name;
@@ -51,6 +148,17 @@ public class ChatBoxDialogues {
                         .setText(this.text, isTranslatable)
                         .setDialoguesInfo(this.dialoguesResourceLocation, this.group, index)
                         .resetTickCount();
+            }
+        }
+
+        public static class ReplacePortrait extends ChatBoxTheme.Portrait {
+            public String id;
+
+            public ChatBoxTheme.Portrait replace(ChatBoxTheme.Portrait portrait) {
+                ChatBoxTheme.Portrait copy = new ChatBoxTheme.Portrait();
+                BeanUtil.copyProperties(portrait, copy);
+                BeanUtil.copyProperties(this, copy);
+                return copy;
             }
         }
 
@@ -120,67 +228,5 @@ public class ChatBoxDialogues {
                 public String value;
             }
         }
-
-        public static List<Portrait> setPortraitDialogues(List<String> portraits, ChatBoxTheme theme) {
-            Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
-
-            List<Portrait> portraitList = new ArrayList<>();
-            if (map != null && !map.isEmpty()) {
-                portraits.forEach(p -> {
-                    Portrait portrait = map.get(p)
-                            .setPortraitTheme()
-                            .build();
-                    if (!CollUtil.isEmpty(portrait.customAnimation)) {
-                        BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity), portrait.customAnimation.getFirst());
-                        if (portrait.customAnimation.size() > 1) {
-                            for (int i = 1; i < portrait.customAnimation.size(); i++) {
-                                BeanUtil.copyPropertiesIfTargetNull(portrait.customAnimation.get(i - 1), portrait.customAnimation.get(i));
-                            }
-                        }
-                        portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
-                        if (portrait.loop)
-                            portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
-                    } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
-                        portrait.setIsAnimation(true).setTarget();
-                    }
-                    portraitList.add(portrait);
-                });
-            }
-            return portraitList;
-        }
-
-        public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {
-            this.sound = BeanUtil.getValueOrDefault(this.sound, "");
-            this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
-            this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
-
-            this.dialogBox.dialoguesResourceLocation = resourceLocation;
-            this.dialogBox.group = group;
-            this.dialogBox.index = index;
-
-            if (!CollUtil.isEmpty(this.options)) {
-                for (Option option : this.options) {
-                    option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
-                    option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
-                    option.dialoguesResourceLocation = resourceLocation;
-                    option.group = group;
-                    option.index = index;
-                }
-            }
-        }
-    }
-
-    public void setDefaultValue(ResourceLocation resourceLocation) {
-        for (Map.Entry<String, List<Dialogues>> entry : dialogues.entrySet()) {
-            int index = 0;
-            entry.getValue().forEach(dialogues -> {
-                dialogues.setDefaultValue(resourceLocation, entry.getKey(), index);
-            });
-        }
-
-        this.isTranslatable = BeanUtil.getValueOrDefault(this.isTranslatable, false);
-        this.isEsc = BeanUtil.getValueOrDefault(this.isEsc, true);
-        this.isPause = BeanUtil.getValueOrDefault(this.isPause, true);
-        this.isHistoricalSkip = BeanUtil.getValueOrDefault(this.isHistoricalSkip, true);
     }
 }

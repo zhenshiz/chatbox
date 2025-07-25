@@ -2,7 +2,7 @@ package com.zhenshiz.chatbox.utils.math;
 
 public class EasingUtil {
 
-    public static double easingFunction(float min, float max, double currentTime, double duration, Easing easing) {
+    public static float easingFunction(float min, float max, double currentTime, double duration, Easing easing) {
         double progress = currentTime / duration;
         progress = Math.min(1.0, Math.max(0.0, progress));
 
@@ -39,7 +39,7 @@ public class EasingUtil {
             case EASE_IN_OUT_BOUNCE -> easeInOutBounce(progress);
             case null -> easeInSine(progress);
         };
-        return min + (max - min) * easedProgress;
+        return (float) (min + (max - min) * easedProgress);
     }
 
     private static double easeInSine(double x) {

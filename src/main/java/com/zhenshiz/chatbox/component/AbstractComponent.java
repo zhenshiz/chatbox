@@ -10,20 +10,21 @@ import net.minecraft.world.phys.Vec2;
 import java.util.Optional;
 
 public abstract class AbstractComponent<T extends AbstractComponent<T>> {
+    protected static final Minecraft minecraft = Minecraft.getInstance();
     //水平对齐: LEFT CENTER RIGHT
     public AlignX alignX;
     //垂直对齐 TOP CENTER BOTTOM
     public AlignY alignY;
     //水平偏移 百分比 -100-100
-    public int x;
+    public float x;
     //垂直偏移 百分比 -100-100
-    public int y;
-    //宽度 百分比 0-100
-    public int width;
-    //高度 百分比 0-100
-    public int height;
+    public float y;
+    //宽度 百分比 >=100
+    public float width;
+    //高度 百分比 >=100
+    public float height;
     //透明度
-    public Integer opacity;
+    public Float opacity;
     //渲染顺序
     public Integer renderOrder;
 
@@ -34,7 +35,17 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     //文本序号
     public Integer index;
 
-    protected static final Minecraft minecraft = Minecraft.getInstance();
+    public static float getResponsiveWidth(float value) {
+        return minecraft.getWindow().getGuiScaledWidth() * value / 100;
+    }
+
+    public static float getResponsiveHeight(float value) {
+        return minecraft.getWindow().getGuiScaledHeight() * value / 100;
+    }
+
+    protected static <T> T getValueOrDefault(T param, T defaultValue) {
+        return Optional.ofNullable(param).orElse(defaultValue);
+    }
 
     protected void defaultOption() {
         setPosition(0, 0);
@@ -42,7 +53,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         setAlign(AlignX.LEFT, AlignY.TOP);
     }
 
-    public T setDefaultOption(int x, int y, int width, int height, AlignX alignX, AlignY alignY, Integer opacity, Integer renderOrder) {
+    public T setDefaultOption(float x, float y, float width, float height, AlignX alignX, AlignY alignY, Float opacity, Integer renderOrder) {
         setPosition(x, y);
         setSize(width, height);
         setAlign(alignX, alignY);
@@ -51,15 +62,13 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T setPosition(int x, int y) {
-        if (checkPos(x) && checkPos(y)) {
-            this.x = x;
-            this.y = y;
-        }
+    public T setPosition(float x, float y) {
+        this.x = x;
+        this.y = y;
         return (T) this;
     }
 
-    public T setSize(int width, int height) {
+    public T setSize(float width, float height) {
         if (checkSize(width) && checkSize(height)) {
             this.width = width;
             this.height = height;
@@ -83,7 +92,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T setOpacity(Integer opacity) {
+    public T setOpacity(Float opacity) {
         if (opacity != null && checkSize(opacity)) this.opacity = opacity;
         return (T) this;
     }
@@ -111,20 +120,8 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public static int getResponsiveWidth(int value) {
-        return minecraft.getWindow().getGuiScaledWidth() * value / 100;
-    }
-
-    public static int getResponsiveHeight(int value) {
-        return minecraft.getWindow().getGuiScaledHeight() * value / 100;
-    }
-
-    protected boolean checkPos(int value) {
-        return value >= -100 && value <= 100;
-    }
-
-    protected boolean checkSize(int value) {
-        return value >= 0 && value <= 100;
+    protected boolean checkSize(float value) {
+        return value >= 0;
     }
 
     protected Vec2 getCurrentPosition() {
@@ -136,14 +133,10 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale) {
-        RenderUtil.renderOpacity(guiGraphics, (float) this.opacity / 100, () -> {
+        RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> {
             Vec2 position = getCurrentPosition();
-            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale);
+            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale);
         });
-    }
-
-    protected static <T> T getValueOrDefault(T param, T defaultValue) {
-        return Optional.ofNullable(param).orElse(defaultValue);
     }
 
     public boolean isSelect(float width, float height, float x, float y, int mouseX, int mouseY) {
@@ -159,27 +152,28 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return ChatBoxUtil.parseText(input, false);
     }
 
-    public abstract void render(GuiGraphics guiGraphics, int mouseX, int mouseY);
+    //为了视频改了一下，影响不大
+    public abstract void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick);
 
     public enum AlignX {
         LEFT,
         CENTER,
         RIGHT;
 
-        public int getPositionX(AbstractComponent<?> abstractComponent) {
-            int x = abstractComponent.x;
-            int width = abstractComponent.width;
+        public static AlignX of(String value) {
+            if (value == null) return AlignX.LEFT;
+            return valueOf(value.toUpperCase());
+        }
+
+        public float getPositionX(AbstractComponent<?> abstractComponent) {
+            float x = abstractComponent.x;
+            float width = abstractComponent.width;
             return switch (abstractComponent.alignX) {
                 case LEFT -> x;
                 case CENTER -> x + 50 - width / 2;
                 case RIGHT -> x + 100 - width;
                 case null -> x;
             };
-        }
-
-        public static AlignX of(String value) {
-            if (value == null) return AlignX.LEFT;
-            return valueOf(value.toUpperCase());
         }
     }
 
@@ -188,20 +182,20 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         CENTER,
         BOTTOM;
 
-        public int getPositionY(AbstractComponent<?> abstractComponent) {
-            int y = abstractComponent.y;
-            int height = abstractComponent.height;
+        public static AlignY of(String value) {
+            if (value == null) return AlignY.TOP;
+            return valueOf(value.toUpperCase());
+        }
+
+        public float getPositionY(AbstractComponent<?> abstractComponent) {
+            float y = abstractComponent.y;
+            float height = abstractComponent.height;
             return switch (abstractComponent.alignY) {
                 case TOP -> y;
                 case CENTER -> y + 50 - height / 2;
                 case BOTTOM -> y + 100 - height;
                 case null -> y;
             };
-        }
-
-        public static AlignY of(String value) {
-            if (value == null) return AlignY.TOP;
-            return valueOf(value.toUpperCase());
         }
     }
 }

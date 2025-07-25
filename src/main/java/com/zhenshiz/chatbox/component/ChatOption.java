@@ -23,9 +23,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     //选项文本
     public Component optionChat;
     //选项x位置
-    public int optionChatX;
+    public float optionChatX;
     //选项y位置
-    public int optionChatY;
+    public float optionChatY;
     //点击后触发内容
     public Runnable onClickEvent;
     //是否上锁
@@ -104,7 +104,11 @@ public class ChatOption extends AbstractComponent<ChatOption> {
             this.onClickEvent = () -> {
                 if (minecraft.player != null) {
                     if (type.equals("command")) {
-                        ClientPlayNetworking.send(new SendCommandPayload(value));
+                        var commands = value.split(";");
+                        for (var command : commands) {
+                            command = command.trim();
+                            if (!command.isBlank()) ClientPlayNetworking.send(new SendCommandPayload(command));
+                        }
                     }
                 }
             };
@@ -122,11 +126,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
-    public ChatOption setOptionChatPosition(int x, int y) {
-        if (checkPos(x) && checkPos(y)) {
-            this.optionChatX = x;
-            this.optionChatY = y;
-        }
+    public ChatOption setOptionChatPosition(float x, float y) {
+        this.optionChatX = x;
+        this.optionChatY = y;
         return this;
     }
 
@@ -156,10 +158,10 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         Vec2 pos = getCurrentPosition();
-        int x = (int) pos.x;
-        int y = (int) pos.y;
+        float x = pos.x;
+        float y = pos.y;
         int color = CommonColors.WHITE;
         ResourceLocation texture = this.texture;
         if (this.isLock) {
@@ -171,18 +173,18 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         }
 
         //render image
-        renderImage(guiGraphics, texture);
+        if (texture != null) renderImage(guiGraphics, texture);
 
         //render option text
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
         switch (this.textAlign) {
             case LEFT ->
-                    RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), getResponsiveWidth(x + this.width / 2 + this.optionChatX), getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+                    RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
             case CENTER ->
-                    RenderUtil.drawCenterScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), getResponsiveWidth(x + this.width / 2 + this.optionChatX), getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+                    RenderUtil.drawCenterScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
             case RIGHT ->
-                    RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), getResponsiveWidth(x + this.width / 2 + this.optionChatX), getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+                    RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
         }
         poseStack.popPose();
 
