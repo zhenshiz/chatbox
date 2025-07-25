@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.screen;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
@@ -23,6 +24,7 @@ public class ChatBoxScreen extends Screen {
     public Boolean isEsc;
     public Boolean isPause;
     public Boolean isHistoricalSkip;
+    public Video video;
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -67,6 +69,13 @@ public class ChatBoxScreen extends Screen {
         }
     }
 
+    public ChatBoxScreen setVideo(Video video) {
+        if (!ChatBox.isWaterMediaLoaded()) return this;
+        if (this.video != null) this.video.close();
+        if (video != null) this.video = video;
+        return this;
+    }
+
     public ChatBoxScreen setIsTranslatable(Boolean isTranslatable) {
         if (isTranslatable != null) this.isTranslatable = isTranslatable;
         return this;
@@ -100,6 +109,7 @@ public class ChatBoxScreen extends Screen {
 
             List<AbstractComponent<?>> list = new ArrayList<>();
             list.add(dialogBox);
+            if (video != null) list.add(video);
             if (chatOptions != null) list.addAll(chatOptions);
             if (portraits != null) list.addAll(portraits);
             if (logButton != null) list.add(logButton);
@@ -112,6 +122,12 @@ public class ChatBoxScreen extends Screen {
             //NeoForge.EVENT_BUS.post(new ChatBoxRender.Post(guiGraphics));
         }
         super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+    }
+
+    private boolean shouldGotoNext() {
+        //如果有视频正在播放，且视频设置为不允许跳过，则不能到下一行对话。（不会有人设置循环加不能跳过吧）
+        if (video != null && video.isPlaying() && !video.canSkip) return false;
+        return chatOptions.isEmpty();
     }
 
     @Override
@@ -130,7 +146,7 @@ public class ChatBoxScreen extends Screen {
                     return super.mouseClicked(pMouseX, pMouseY, pButton);
                 }
 
-                dialogBox.click(!chatOptions.isEmpty());
+                dialogBox.click(shouldGotoNext());
             }
         }
         return super.mouseClicked(pMouseX, pMouseY, pButton);
@@ -140,7 +156,7 @@ public class ChatBoxScreen extends Screen {
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         //鼠标滚轮向下滚动，操作同左键点击
         if (scrollY < 0 && dialogBox != null) {
-            dialogBox.click(!chatOptions.isEmpty());
+            dialogBox.click(shouldGotoNext());
             return true;
         }
         //鼠标滚轮向上滚动，打开历史记录
@@ -149,6 +165,18 @@ public class ChatBoxScreen extends Screen {
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (video != null && video.isPlaying()) video.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public void onClose() {
+        if (video != null) video.close();
+        super.onClose();
     }
 
     @Override

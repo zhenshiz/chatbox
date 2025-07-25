@@ -2,11 +2,13 @@ package com.zhenshiz.chatbox.data;
 
 import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
@@ -15,6 +17,8 @@ import net.minecraft.world.scores.ScoreAccess;
 import net.minecraft.world.scores.ScoreHolder;
 import net.minecraft.world.scores.Scoreboard;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +57,7 @@ public class ChatBoxDialogues {
         public Float pitch;
         public String command;
         public String backgroundImage;
+        public Video video;
 
         public static List<Portrait> setPortraitDialogues(List<Object> portraits, ChatBoxTheme theme) {
             Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
@@ -61,7 +66,6 @@ public class ChatBoxDialogues {
             if (map != null && !map.isEmpty()) {
                 portraits.forEach(p -> {
                     Portrait portrait = null;
-                    //优化建议：使用try-catch来捕获异常，在日志中输出错误信息，便于找到错误，而不是直接抛出异常
                     if (p instanceof String) {
                         try {
                             portrait = map.get(p)
@@ -159,6 +163,42 @@ public class ChatBoxDialogues {
                 BeanUtil.copyProperties(portrait, copy);
                 BeanUtil.copyProperties(this, copy);
                 return copy;
+            }
+        }
+
+        public static class Video extends ChatBoxTheme.Component {
+            public String path;
+            public Boolean canControl;
+            public Boolean canSkip;
+            public Boolean loop;
+
+            public void setDefaultValue() {
+                this.x = BeanUtil.getValueOrDefault(this.x, 0f);
+                this.y = BeanUtil.getValueOrDefault(this.y, 0f);
+                this.width = BeanUtil.getValueOrDefault(this.width, 100f);
+                this.height = BeanUtil.getValueOrDefault(this.height, 100f);
+                this.alignX = BeanUtil.getValueOrDefault(this.alignX, AbstractComponent.AlignX.LEFT.name());
+                this.alignY = BeanUtil.getValueOrDefault(this.alignY, AbstractComponent.AlignY.TOP.name());
+                this.opacity = BeanUtil.getValueOrDefault(this.opacity, 100f);
+                this.renderOrder = BeanUtil.getValueOrDefault(this.renderOrder, -1);
+
+                this.canControl = BeanUtil.getValueOrDefault(this.canControl, true);
+                this.canSkip = BeanUtil.getValueOrDefault(this.canSkip, true);
+                this.loop = BeanUtil.getValueOrDefault(this.loop, false);
+            }
+
+            public com.zhenshiz.chatbox.component.Video setVideo() {
+                if (!ChatBox.isWaterMediaLoaded()) return null;
+                setDefaultValue();
+                Path gameDir = FabricLoader.getInstance().getGameDir();
+                File file = new File(gameDir.toString(), path);
+                if (!file.exists()) file = new File(path);
+                if (!file.exists()) {
+                    ChatBox.LOGGER.error("video {} not found", path);
+                    return null;
+                }
+                return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop)
+                        .setDefaultOption(x, y, width, height, AbstractComponent.AlignX.of(alignX), AbstractComponent.AlignY.of(alignY), opacity, renderOrder);
             }
         }
 

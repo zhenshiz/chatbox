@@ -52,4 +52,6 @@ public class ChatBox implements ModInitializer {
     public static boolean isModLoaded(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
+
+    public static boolean isWaterMediaLoaded() {return isModLoaded("watermedia");}
 }

@@ -52,6 +52,7 @@ public class ChatBoxUtil {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
             chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxDialogues.isTranslatable) : new DialogBox())
+                    .setVideo(dialog.video != null ? dialog.video.setVideo() : null)
                     .setPortrait(!CollUtil.isEmpty(dialog.portrait) ? ChatBoxDialogues.Dialogues.setPortraitDialogues(ChatBoxDialogues.Dialogues.parsePortrait(dialog.portrait), chatBoxTheme) : new ArrayList<>())
                     .setChatOptions(!CollUtil.isEmpty(dialog.options) ? ChatBoxDialogues.Dialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxDialogues.isTranslatable) : new ArrayList<>())
                     .setBackgroundImage(dialog.backgroundImage)
