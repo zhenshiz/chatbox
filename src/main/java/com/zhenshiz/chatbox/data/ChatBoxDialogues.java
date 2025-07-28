@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.data;
 
 import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -14,7 +15,10 @@ import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.ScoreAccess;
 import net.minecraft.world.scores.ScoreHolder;
 import net.minecraft.world.scores.Scoreboard;
+import net.neoforged.fml.loading.FMLPaths;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +59,7 @@ public class ChatBoxDialogues {
         public Float pitch;
         public String command;
         public String backgroundImage;
+        public Video video;
 
         public static List<Portrait> setPortraitDialogues(List<Object> portraits, ChatBoxTheme theme) {
             Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
@@ -160,6 +165,42 @@ public class ChatBoxDialogues {
                 BeanUtil.copyProperties(portrait, copy);
                 BeanUtil.copyProperties(this, copy);
                 return copy;
+            }
+        }
+
+        public static class Video extends ChatBoxTheme.Component {
+            public String path;
+            public Boolean canControl;
+            public Boolean canSkip;
+            public Boolean loop;
+
+            public void setDefaultValue() {
+                this.x = BeanUtil.getValueOrDefault(this.x, 0f);
+                this.y = BeanUtil.getValueOrDefault(this.y, 0f);
+                this.width = BeanUtil.getValueOrDefault(this.width, 100f);
+                this.height = BeanUtil.getValueOrDefault(this.height, 100f);
+                this.alignX = BeanUtil.getValueOrDefault(this.alignX, AbstractComponent.AlignX.LEFT.name());
+                this.alignY = BeanUtil.getValueOrDefault(this.alignY, AbstractComponent.AlignY.TOP.name());
+                this.opacity = BeanUtil.getValueOrDefault(this.opacity, 100f);
+                this.renderOrder = BeanUtil.getValueOrDefault(this.renderOrder, -1);
+
+                this.canControl = BeanUtil.getValueOrDefault(this.canControl, true);
+                this.canSkip = BeanUtil.getValueOrDefault(this.canSkip, true);
+                this.loop = BeanUtil.getValueOrDefault(this.loop, false);
+            }
+
+            public com.zhenshiz.chatbox.component.Video setVideo() {
+                if (!ChatBox.isWaterMediaLoaded()) return null;
+                setDefaultValue();
+                Path gameDir = FMLPaths.GAMEDIR.get().normalize().toAbsolutePath();
+                File file = new File(gameDir.toString(), path);
+                if (!file.exists()) file = new File(path);
+                if (!file.exists()) {
+                    ChatBox.LOGGER.error("video {} not found", path);
+                    return null;
+                }
+                return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop)
+                        .setDefaultOption(x, y, width, height, AbstractComponent.AlignX.of(alignX), AbstractComponent.AlignY.of(alignY), opacity, renderOrder);
             }
         }
 

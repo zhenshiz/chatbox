@@ -110,6 +110,8 @@ dependencies {
     // KubeJS
     implementation "dev.latvian.mods:rhino:${rhino_version}"
     implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
+
+    implementation files("libs/watermedia-2.1.27.jar")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

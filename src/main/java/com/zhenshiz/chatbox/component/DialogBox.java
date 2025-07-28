@@ -123,14 +123,14 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         this.textBuffer = result.toArray(new String[0]);
     }
 
-    public void click(boolean isOptionExist) {
+    public void click(boolean gotoNext) {
         if (!this.isAllOver) {
             //未全部加载时，点击显示所有文本
             this.tickCount = this.textBuffer.length - 1;
             setAllOver(true);
         } else {
-            //全部点击时触发
-            if (!isOptionExist && minecraft.player != null) {
+            //全部加载时触发
+            if (gotoNext && minecraft.player != null) {
                 //只有没有选项的时候才能通过点击空白处跳转到下一句话
                 setIndex(this.index + 1);
                 ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.group, this.index);
@@ -150,7 +150,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY,float pPartialTick) {
         //chatBox image
         if (this.texture != null) renderImage(guiGraphics, this.texture);
 
@@ -168,5 +168,10 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.tickCount])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
         poseStack.popPose();
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, float pPartialTick) {
+        render(guiGraphics,0,0,pPartialTick);
     }
 }

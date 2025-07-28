@@ -12,6 +12,7 @@ import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.payload.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -51,6 +52,7 @@ public class ChatBoxUtil {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
             chatBoxScreen.setDialogBox(dialogBox != null ? dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, index, chatBoxDialogues.isTranslatable) : new DialogBox())
+                    .setVideo(dialog.video != null ? dialog.video.setVideo() : null)
                     .setPortrait(!CollUtil.isEmpty(dialog.portrait) ? ChatBoxDialogues.Dialogues.setPortraitDialogues(ChatBoxDialogues.Dialogues.parsePortrait(dialog.portrait), chatBoxTheme) : new ArrayList<>())
                     .setChatOptions(!CollUtil.isEmpty(dialog.options) ? ChatBoxDialogues.Dialogues.Option.setChatOptionDialogues(chatBoxTheme, dialoguesResourceLocation, group, index, chatBoxDialogues.isTranslatable) : new ArrayList<>())
                     .setBackgroundImage(dialog.backgroundImage)
@@ -99,14 +101,21 @@ public class ChatBoxUtil {
                     }
                 }
 
-
                 NeoForge.EVENT_BUS.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
 
-                minecraft.setScreen(chatBoxScreen);
+                if (Config.isScreen.get()) {
+                    minecraft.setScreen(chatBoxScreen);
+                } else {
+                    ChatBoxRender.isOpenChatBox = true;
+                }
             }
         } else {
-            if (minecraft.screen != null) {
-                minecraft.screen.onClose();
+            if (Config.isScreen.get()) {
+                if (minecraft.screen != null) {
+                    minecraft.screen.onClose();
+                }
+            } else {
+                ChatBoxRender.isOpenChatBox = false;
             }
         }
     }
@@ -119,7 +128,8 @@ public class ChatBoxUtil {
     public static void toggleTheme(ResourceLocation themeResourceLocation) {
         chatBoxTheme = themeMap.get(themeResourceLocation);
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
-                .setLogButton(chatBoxTheme.logButton.setLogButtonTheme(chatBoxScreen.logButton));
+                .setLogButton(chatBoxTheme.logButton.setLogButtonTheme(chatBoxScreen.logButton))
+                .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
     }
 
     public static void setTheme(Map<ResourceLocation, String> map) {
@@ -132,10 +142,12 @@ public class ChatBoxUtil {
             JsonElement chatOptionElement = jsonObject.get("option");
             JsonElement dialogBoxElement = jsonObject.get("dialogBox");
             JsonElement logButtonElement = jsonObject.get("logButton");
+            JsonElement keyPromptElement = jsonObject.get("keyPrompt");
             Map<String, ChatBoxTheme.Portrait> portrait = new HashMap<>();
             ChatBoxTheme.Option option = new ChatBoxTheme.Option();
             ChatBoxTheme.DialogBox dialogBox = new ChatBoxTheme.DialogBox();
             ChatBoxTheme.LogButton logButton = new ChatBoxTheme.LogButton();
+            ChatBoxTheme.KeyPrompt keyPrompt = new ChatBoxTheme.KeyPrompt();
 
             if (portraitElement != null) {
                 portrait = GSON.fromJson(portraitElement, new TypeToken<Map<String, ChatBoxTheme.Portrait>>() {
@@ -150,8 +162,11 @@ public class ChatBoxUtil {
             if (logButtonElement != null) {
                 logButton = GSON.fromJson(logButtonElement, ChatBoxTheme.LogButton.class);
             }
+            if (keyPromptElement != null) {
+                keyPrompt = GSON.fromJson(keyPromptElement, ChatBoxTheme.KeyPrompt.class);
+            }
 
-            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, logButton).setDefaultValue());
+            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, logButton, keyPrompt).setDefaultValue());
         });
     }
 

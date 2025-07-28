@@ -1,8 +1,8 @@
 package com.zhenshiz.chatbox.event;
 
-import com.zhenshiz.chatbox.event.kubejs.ChatBoxRenderJS;
+import com.zhenshiz.chatbox.event.kubejs.ChatBoxRenderEventJS;
 import com.zhenshiz.chatbox.event.kubejs.SkipChatEventJS;
-import com.zhenshiz.chatbox.event.neoforge.ChatBoxRender;
+import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import dev.latvian.mods.kubejs.event.EventResult;
 import net.neoforged.bus.api.EventPriority;
@@ -10,9 +10,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 
 public class CommonEventsPostJS {
     @SubscribeEvent(priority = EventPriority.LOW)
-    public static void chatBoxRenderPre(ChatBoxRender.Pre event) {
+    public static void chatBoxRenderPre(ChatBoxRenderEvent.Pre event) {
         if (ChatBoxEventsJS.CHAT_BOX_RENDER_PRE.hasListeners()) {
-            EventResult result = ChatBoxEventsJS.CHAT_BOX_RENDER_PRE.post(new ChatBoxRenderJS.Pre(event));
+            EventResult result = ChatBoxEventsJS.CHAT_BOX_RENDER_PRE.post(new ChatBoxRenderEventJS.Pre(event));
             if (result.interruptFalse()) {
                 event.setCanceled(true);
             }
@@ -20,9 +20,9 @@ public class CommonEventsPostJS {
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
-    public static void chatBoxRenderPost(ChatBoxRender.Post event) {
+    public static void chatBoxRenderPost(ChatBoxRenderEvent.Post event) {
         if (ChatBoxEventsJS.CHAT_BOX_RENDER_POST.hasListeners()) {
-            ChatBoxEventsJS.CHAT_BOX_RENDER_POST.post(new ChatBoxRenderJS.Post(event));
+            ChatBoxEventsJS.CHAT_BOX_RENDER_POST.post(new ChatBoxRenderEventJS.Post(event));
         }
     }
 

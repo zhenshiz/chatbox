@@ -35,6 +35,8 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     public TextAlign textAlign;
     //选项连接的下一个对话
     public String next;
+    //是否选择，用于render对话框
+    public boolean isSelect;
 
     public ChatOption() {
         setTextures(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
@@ -49,6 +51,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setTextAlign(TextAlign.LEFT);
         setNext("");
         defaultOption();
+        setIsSelect(false);
     }
 
     public ChatOption setOptionChat(String optionChat, boolean isTranslatable) {
@@ -136,6 +139,11 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
+    public ChatOption setIsSelect(boolean isSelect) {
+        this.isSelect = isSelect;
+        return this;
+    }
+
     public void click() {
         if (!this.isLock && minecraft.player != null) {
             //触发自定义事件
@@ -157,7 +165,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         Vec2 pos = getCurrentPosition();
         float x = pos.x;
         float y = pos.y;
@@ -191,6 +199,38 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         if (!this.optionTooltip.getString().isEmpty() && isSelect(mouseX, mouseY)) {
             guiGraphics.renderTooltip(minecraft.font, this.optionTooltip, mouseX, mouseY);
         }
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, float pPartialTick) {
+        Vec2 pos = getCurrentPosition();
+        float x = pos.x;
+        float y = pos.y;
+        int color = CommonColors.WHITE;
+        ResourceLocation texture = this.texture;
+        if (this.isLock) {
+            texture = this.lockTexture;
+            color = CommonColors.GRAY;
+        } else if (isSelect) {
+            texture = this.selectTexture;
+            color = CommonColors.YELLOW;
+        }
+
+        //render image
+        if (texture != null) renderImage(guiGraphics, texture);
+
+        //render option text
+        PoseStack poseStack = guiGraphics.pose();
+        poseStack.pushPose();
+        switch (this.textAlign) {
+            case LEFT ->
+                    RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+            case CENTER ->
+                    RenderUtil.drawCenterScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+            case RIGHT ->
+                    RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+        }
+        poseStack.popPose();
     }
 
     public enum TextAlign {

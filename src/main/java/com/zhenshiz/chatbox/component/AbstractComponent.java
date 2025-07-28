@@ -151,7 +151,9 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return ChatBoxUtil.parseText(input, false);
     }
 
-    public abstract void render(GuiGraphics guiGraphics, int mouseX, int mouseY);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY,float pPartialTick){}
+
+    public void render(GuiGraphics guiGraphics,float pPartialTick){}
 
     public enum AlignX {
         LEFT,

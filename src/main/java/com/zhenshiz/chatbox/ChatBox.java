@@ -75,4 +75,6 @@ public class ChatBox {
     public static boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
     }
+
+    public static boolean isWaterMediaLoaded() {return isModLoaded("watermedia");}
 }

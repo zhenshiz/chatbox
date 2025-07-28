@@ -11,11 +11,15 @@ public class Config {
     //下句话如果没有新音效，是否中断前面正在播放的音效
     public static final ModConfigSpec.BooleanValue soundInterruptionEnabled;
 
+    //对话框主题分支
+    public static final ModConfigSpec.BooleanValue isScreen;
+
     static {
         ModConfigSpec.Builder CONFIG_BUILDER = new ModConfigSpec.Builder();
         CONFIG_BUILDER.push("config");
         historicalScrollSpeed = CONFIG_BUILDER.defineInRange("historical_scroll_speed", 10, 1, Integer.MAX_VALUE);
         soundInterruptionEnabled = CONFIG_BUILDER.define("sound_interruption_enabled", true);
+        isScreen = CONFIG_BUILDER.define("is_screen",true);
         CONFIG_BUILDER.pop();
         CONFIG_SPEC = CONFIG_BUILDER.build();
     }

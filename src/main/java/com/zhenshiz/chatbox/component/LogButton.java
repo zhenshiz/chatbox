@@ -43,7 +43,7 @@ public class LogButton extends AbstractComponent<LogButton> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY,float pPartialTick) {
         if (isSelect(mouseX, mouseY)) {
             if (this.hoverLogTexture != null) renderImage(guiGraphics, this.hoverLogTexture);
         } else {
