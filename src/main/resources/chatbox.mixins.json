@@ -8,7 +8,9 @@
     "SimpleCriterionTriggerMixin"
   ],
   "client": [
-    "client.MouseHandlerMixin"
+    "client.MouseHandlerMixin",
+    "client.SoundEngineAccessor",
+    "client.SoundInstanceAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -139,11 +139,11 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         });
     }
 
-    public boolean isSelect(float width, float height, float x, float y, int mouseX, int mouseY) {
+    public boolean isSelect(float width, float height, float x, float y, double mouseX, double mouseY) {
         return mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height;
     }
 
-    public boolean isSelect(int mouseX, int mouseY) {
+    public boolean isSelect(double mouseX, double mouseY) {
         Vec2 position = getCurrentPosition();
         return isSelect(getResponsiveWidth(this.width), getResponsiveHeight(this.height), getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), mouseX, mouseY);
     }

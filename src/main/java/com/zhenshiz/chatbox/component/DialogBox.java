@@ -131,6 +131,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
                 //只有没有选项的时候才能通过点击空白处跳转到下一句话
                 setIndex(this.index + 1);
                 ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.group, this.index);
+                ChatBoxUtil.chatBoxScreen.tickAutoPlay = 20;
             }
         }
     }

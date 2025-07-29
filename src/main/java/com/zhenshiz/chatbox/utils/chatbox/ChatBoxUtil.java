@@ -38,7 +38,7 @@ public class ChatBoxUtil {
     //玩家的历史对话记录
     public static HistoricalDialogueScreen historicalDialogue = new HistoricalDialogueScreen();
     //上一轮对话放的音乐
-    private static ResourceLocation lastSoundResourceLocation = null;
+    public static ResourceLocation lastSoundResourceLocation = null;
 
     //跳转对话
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index) {
@@ -117,7 +117,7 @@ public class ChatBoxUtil {
     public static void toggleTheme(ResourceLocation themeResourceLocation) {
         chatBoxTheme = themeMap.get(themeResourceLocation);
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
-                .setLogButton(chatBoxTheme.logButton.setLogButtonTheme(chatBoxScreen.logButton));
+                .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionButtons));
     }
 
     public static void setTheme(Map<ResourceLocation, String> map) {
@@ -129,11 +129,14 @@ public class ChatBoxUtil {
             JsonElement portraitElement = jsonObject.get("portrait");
             JsonElement chatOptionElement = jsonObject.get("option");
             JsonElement dialogBoxElement = jsonObject.get("dialogBox");
-            JsonElement logButtonElement = jsonObject.get("logButton");
+            JsonElement fbElement = jsonObject.get("functionalButton");
+            List<JsonElement> functionalButton = new ArrayList<>();
+            if (fbElement != null) functionalButton = fbElement.getAsJsonArray().asList();
+
             Map<String, ChatBoxTheme.Portrait> portrait = new HashMap<>();
             ChatBoxTheme.Option option = new ChatBoxTheme.Option();
             ChatBoxTheme.DialogBox dialogBox = new ChatBoxTheme.DialogBox();
-            ChatBoxTheme.LogButton logButton = new ChatBoxTheme.LogButton();
+            List<ChatBoxTheme.FunctionButton> functionButton = new ArrayList<>();
 
             if (portraitElement != null) {
                 portrait = GSON.fromJson(portraitElement, new TypeToken<Map<String, ChatBoxTheme.Portrait>>() {
@@ -145,11 +148,11 @@ public class ChatBoxUtil {
             if (dialogBoxElement != null) {
                 dialogBox = GSON.fromJson(dialogBoxElement, ChatBoxTheme.DialogBox.class);
             }
-            if (logButtonElement != null) {
-                logButton = GSON.fromJson(logButtonElement, ChatBoxTheme.LogButton.class);
+            for (JsonElement element : functionalButton) {
+                functionButton.add(GSON.fromJson(element, ChatBoxTheme.FunctionButton.class));
             }
 
-            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, logButton).setDefaultValue());
+            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, functionButton).setDefaultValue());
         });
     }
 

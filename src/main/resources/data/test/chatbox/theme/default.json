@@ -108,12 +108,15 @@
     "textX": 20,
     "textY": 15
   },
-  "logButton": {
-    "texture": "chatbox:textures/log/default_log.png",
-    "hoverTexture": "chatbox:textures/log/default_hover_log.png",
-    "alignX": "right",
-    "alignY": "bottom",
-    "width": 5,
-    "height": 10
-  }
+  "functionalButton": [
+    {
+      "type": "log"
+    },
+    {
+      "type": "fastForward"
+    },
+    {
+      "type": "autoPlay"
+    }
+  ]
 }

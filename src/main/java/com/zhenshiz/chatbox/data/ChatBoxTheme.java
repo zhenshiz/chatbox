@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.data;
 
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
+import com.zhenshiz.chatbox.component.FunctionalButton;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.AllArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @AllArgsConstructor
 public class ChatBoxTheme {
@@ -17,7 +19,7 @@ public class ChatBoxTheme {
     public Map<String, Portrait> portrait;
     public Option option;
     public DialogBox dialogBox;
-    public LogButton logButton;
+    public List<FunctionButton> functionButtons;
 
     public ChatBoxTheme setDefaultValue() {
         this.portrait.forEach((key, value) -> {
@@ -43,8 +45,12 @@ public class ChatBoxTheme {
         this.dialogBox.setDefaultValue();
         this.dialogBox.renderOrder = BeanUtil.getValueOrDefault(this.dialogBox.renderOrder, 0);
 
-        this.logButton.setDefaultValue();
-        this.logButton.renderOrder = BeanUtil.getValueOrDefault(this.logButton.renderOrder, 30);
+        for (FunctionButton button : this.functionButtons) {
+            button.setDefaultValue();
+            // 设置默认按钮位置
+            int i = functionButtons.indexOf(button);
+            button.x = (float) ((Objects.equals(button.alignX, AbstractComponent.AlignX.LEFT.name()) ? 5 : -5) * i);
+        }
 
         return this;
     }
@@ -129,15 +135,28 @@ public class ChatBoxTheme {
         }
     }
 
-    public static class LogButton extends Component {
+    public static class FunctionButton extends Component {
+        public String type;
         public String texture;
         public String hoverTexture;
 
-        public com.zhenshiz.chatbox.component.LogButton setLogButtonTheme(com.zhenshiz.chatbox.component.LogButton logButton) {
-            return logButton.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder)
-                    .setLogTexture(this.texture)
-                    .setHoverLogTexture(this.hoverTexture)
-                    .build();
+        public void setDefaultValue() {
+            this.x = BeanUtil.getValueOrDefault(this.x, DEFAULT_FLOAT);
+            this.y = BeanUtil.getValueOrDefault(this.y, DEFAULT_FLOAT);
+            this.width = BeanUtil.getValueOrDefault(this.width, 5f);
+            this.height = BeanUtil.getValueOrDefault(this.height, 8f);
+            this.alignX = BeanUtil.getValueOrDefault(this.alignX, AbstractComponent.AlignX.RIGHT.name());
+            this.alignY = BeanUtil.getValueOrDefault(this.alignY, AbstractComponent.AlignY.BOTTOM.name());
+            this.opacity = BeanUtil.getValueOrDefault(this.opacity, 100f);
+            this.renderOrder = BeanUtil.getValueOrDefault(this.renderOrder, 30);
+        }
+
+        public static List<FunctionalButton> setFunctionalButtonTheme(List<FunctionButton> functionButtons) {
+            return functionButtons.stream().map(b ->
+                    new FunctionalButton(FunctionalButton.Type.of(b.type))
+                            .setDefaultOption(b.x, b.y, b.width, b.height, AbstractComponent.AlignX.of(b.alignX), AbstractComponent.AlignY.of(b.alignY), b.opacity, b.renderOrder)
+                            .setTexture(b.texture).setHoverTexture(b.hoverTexture))
+                    .toList();
         }
     }
 

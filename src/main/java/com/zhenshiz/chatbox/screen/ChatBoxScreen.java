@@ -3,6 +3,9 @@ package com.zhenshiz.chatbox.screen;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRender;
+import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
+import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,13 +21,17 @@ public class ChatBoxScreen extends Screen {
     public List<ChatOption> chatOptions = new ArrayList<>();
     public List<Portrait> portraits = new ArrayList<>();
     public DialogBox dialogBox = new DialogBox();
-    public LogButton logButton = new LogButton();
+    public List<FunctionalButton> functionalButtons = new ArrayList<>();
     public ResourceLocation backgroundImage;
     public Boolean isTranslatable;
     public Boolean isEsc;
     public Boolean isPause;
     public Boolean isHistoricalSkip;
     public Video video;
+
+    public boolean fastForward = false;
+    public boolean autoPlay = false;
+    public int tickAutoPlay = 20;
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -50,8 +57,8 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
-    public ChatBoxScreen setLogButton(LogButton logButton) {
-        if (logButton != null) this.logButton = logButton;
+    public ChatBoxScreen setFunctionalButtons(List<FunctionalButton> functionalButtons) {
+        if (functionalButtons != null) this.functionalButtons = functionalButtons;
         return this;
     }
 
@@ -112,7 +119,7 @@ public class ChatBoxScreen extends Screen {
             if (video != null) list.add(video);
             if (chatOptions != null) list.addAll(chatOptions);
             if (portraits != null) list.addAll(portraits);
-            if (logButton != null) list.add(logButton);
+            if (functionalButtons != null) list.addAll(functionalButtons);
 
             list.sort(Comparator.comparingInt(p -> p.renderOrder));
 
@@ -130,20 +137,27 @@ public class ChatBoxScreen extends Screen {
         return chatOptions.isEmpty();
     }
 
+    private FunctionalButton getButton(FunctionalButton.Type type) {
+        return functionalButtons.stream().filter(b -> b.type == type).findFirst().orElse(null);
+    }
+
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (pButton == 0) {
             if (dialogBox != null) {
+                fastForward = false;
                 for (ChatOption chatOption : chatOptions) {
-                    if (chatOption.isSelect((int) pMouseX, (int) pMouseY) && dialogBox.isAllOver) {
+                    if (chatOption.isSelect(pMouseX, pMouseY) && dialogBox.isAllOver) {
                         chatOption.click();
                         return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
                 }
 
-                if (logButton.isSelect((int) pMouseX, (int) pMouseY)) {
-                    logButton.click();
-                    return super.mouseClicked(pMouseX, pMouseY, pButton);
+                for (FunctionalButton button : functionalButtons) {
+                    if (button.isSelect(pMouseX, pMouseY)) {
+                        button.click();
+                        return super.mouseClicked(pMouseX, pMouseY, pButton);
+                    }
                 }
 
                 dialogBox.click(shouldGotoNext());
@@ -154,6 +168,7 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        fastForward = false;
         //鼠标滚轮向下滚动，操作同左键点击
         if (scrollY < 0 && dialogBox != null) {
             dialogBox.click(shouldGotoNext());
@@ -161,8 +176,11 @@ public class ChatBoxScreen extends Screen {
         }
         //鼠标滚轮向上滚动，打开历史记录
         if (scrollY > 0) {
-            logButton.click();
-            return true;
+            FunctionalButton logButton = getButton(FunctionalButton.Type.LOG);
+            if (logButton != null) {
+                logButton.click();
+                return true;
+            }
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
@@ -175,14 +193,40 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public void onClose() {
+        autoPlay = false;
+        fastForward = false;
         if (video != null) video.close();
         super.onClose();
     }
 
     @Override
     public void tick() {
+        if (!shouldGotoNext()) fastForward = false;
         if (dialogBox != null) {
             dialogBox.tick();
+            if (fastForward) dialogBox.click(shouldGotoNext());
+
+            if (autoPlay && minecraft != null) {
+                var soundEngine = (SoundInstanceAccessor) ((SoundEngineAccessor) minecraft.getSoundManager()).getSoundEngine();
+                // MC不在暂停游戏时tick声音，那我自己tick一下
+                if (isPause) soundEngine.invokeTickNonPaused();
+                if (ChatBoxUtil.lastSoundResourceLocation != null) {
+                    var instanceToChannel = soundEngine.getInstanceToChannel();
+                    for (var soundInstance : instanceToChannel.keySet()) {
+                        if (soundInstance.getLocation().equals(ChatBoxUtil.lastSoundResourceLocation)) {
+                            if (minecraft.getSoundManager().isActive(soundInstance)) return;
+                        }
+                    }
+                }
+                if (!dialogBox.isAllOver || video != null && video.isPlaying()) {
+                    return;
+                }
+                tickAutoPlay--;
+                if (tickAutoPlay <= 0) {
+                    tickAutoPlay = 20;
+                    dialogBox.click(shouldGotoNext());
+                }
+            }
         }
     }
 
