@@ -33,44 +33,45 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     @Override
     public void render(GuiGraphics guiGraphics, float pPartialTick) {
         if (this.visible) {
-            Font font = minecraft.font;
+            RenderUtil.renderOpacity(guiGraphics, this.opacity, () -> {
+                Font font = minecraft.font;
 
-            String keyRightClick = Component.translatable("chatbox.key.right_click").getString();
-            String keyScroll = Component.translatable("chatbox.key.scroll").getString();
-            String keyEsc = Component.translatable("chatbox.key.esc").getString();
-            String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
+                String keyRightClick = Component.translatable("chatbox.key.right_click").getString();
+                String keyScroll = Component.translatable("chatbox.key.scroll").getString();
+                String keyEsc = Component.translatable("chatbox.key.esc").getString();
+                String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
 
-            Vec2 vec2 = getCurrentPosition();
-            float x = vec2.x;
-            float y = vec2.y;
+                Vec2 vec2 = getCurrentPosition();
+                float x = vec2.x;
+                float y = vec2.y;
 
-            //right scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, ResourceLocation.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, 0, 12, 16, 1);
-            drawText(guiGraphics, x + 14, y + (float) font.lineHeight / 2, keyRightClick);
+                //right scroll
+                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, ResourceLocation.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, 0, 12, 16, 1);
+                drawText(guiGraphics, x + 14, y + (float) font.lineHeight / 2, keyRightClick);
 
-            x += 18 + font.width(keyRightClick);
+                x += 18 + font.width(keyRightClick);
 
-            //mouse scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, ResourceLocation.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, 0, 12, 16, 1);
-            drawText(guiGraphics, x + 14, y + (float) font.lineHeight / 2, keyScroll);
+                //mouse scroll
+                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, ResourceLocation.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, 0, 12, 16, 1);
+                drawText(guiGraphics, x + 14, y + (float) font.lineHeight / 2, keyScroll);
 
-            x += 18 + font.width(keyScroll);
+                x += 18 + font.width(keyScroll);
 
-            //esc
-            drawKeyBoardKey(guiGraphics, (int) x, (int) y + font.lineHeight / 2, "Esc");
-            drawText(guiGraphics, x + font.width("Esc") + 6, y + (float) font.lineHeight / 2, keyEsc);
+                //esc
+                drawKeyBoardKey(guiGraphics, (int) x, (int) y + font.lineHeight / 2, "Esc");
+                drawText(guiGraphics, x + font.width("Esc") + 6, y + (float) font.lineHeight / 2, keyEsc);
 
-            x += 10 + font.width("Esc") + font.width(keyEsc);
+                x += 10 + font.width("Esc") + font.width(keyEsc);
 
-            //ctrl
-            drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "Ctrl");
-            drawText(guiGraphics, x + font.width("Ctrl") + 6, y + (float) font.lineHeight / 2, keyCtrl);
+                //ctrl
+                drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "Ctrl");
+                drawText(guiGraphics, x + font.width("Ctrl") + 6, y + (float) font.lineHeight / 2, keyCtrl);
+            });
         }
     }
 
     public static void drawKeyBoardKey(GuiGraphics guiGraphics, int x, int y, String key) {
-        Minecraft mc = Minecraft.getInstance();
-        Font font = mc.font;
+        Font font = minecraft.font;
 
         // 按键尺寸
         int width = font.width(key) + 4;

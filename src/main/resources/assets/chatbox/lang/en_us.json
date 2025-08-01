@@ -16,6 +16,10 @@
   "chatbox.key.esc": "Close dialog",
   "chatbox.key.ctrl": "Fast-forward dialogue",
 
+  "chatbox.button.log": "log",
+  "chatbox.button.fast_forward": "fast forward",
+  "chatbox.button.autoplay": "autoplay",
+
   "chatbox.test.name.1": "Inaba Meguru",
   "chatbox.test.text.1": "This module features dialog boxes, options, character illustrations, and a history button. Dialog text supports formatting codes like §1color§2coding§3, §f§lbold, §oitalic§r, etc. The placeholder @@s will be replaced with the player's ID: @s. Illustrations can display custom images, item textures, and player avatars.",
   "chatbox.test.text.2": "Options support hiding and locking functionality, with customizable tooltips displayed on hover.",

@@ -16,6 +16,10 @@
   "chatbox.key.esc": "关闭对话框",
   "chatbox.key.ctrl": "快进对话",
 
+  "chatbox.button.log": "历史记录",
+  "chatbox.button.fast_forward": "快进",
+  "chatbox.button.autoplay": "自动播放",
+
   "chatbox.test.name.1": "因幡巡",
   "chatbox.test.text.1": "本模组包含对话框、选项、立绘以及历史记录按钮，对话框文本可以使用格式化文本，包括§1彩§2色§3文§4本、§f§l粗体、§o斜体§r等等，以及一个占位符@@s会被替换成玩家的id：@s。立绘则可以展示自定义图片，物品贴图以及玩家的头像。",
   "chatbox.test.text.2": "本模组的选项支持隐藏和上锁功能，鼠标悬停时显示定制化的tooltip说明。",

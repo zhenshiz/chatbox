@@ -113,7 +113,7 @@ public class Video extends AbstractComponent<Video> {
         renderStep30(guiGraphics, pPartialTick);
 
         // DEBUG RENDERING
-        if (FMLLoader.isProduction()) {
+        if (!FMLLoader.isProduction()) {
             draw(guiGraphics, String.format("State: %s", player.getStateName()), getHeightCenter(-12));
             draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(player.getTime())), player.getTime(), FORMAT.format(new Date(player.getDuration())), player.getDuration()), getHeightCenter(0));
         }

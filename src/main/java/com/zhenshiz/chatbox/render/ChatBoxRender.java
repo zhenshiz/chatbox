@@ -105,10 +105,13 @@ public class ChatBoxRender {
                 //向下
                 selectIndex = (selectIndex + 1) % (chatBoxScreen.chatOptions.size());
             }
-            for (int i = 0; i < chatBoxScreen.chatOptions.size(); i++) {
-                ChatOption chatOption = chatBoxScreen.chatOptions.get(i);
-                chatOption.isSelect = i == selectIndex;
+            if (!CollUtil.isEmpty(chatBoxScreen.chatOptions)){
+                for (int i = 0; i < chatBoxScreen.chatOptions.size(); i++) {
+                    ChatOption chatOption = chatBoxScreen.chatOptions.get(i);
+                    chatOption.isSelect = i == selectIndex;
+                }
             }
+            event.setCanceled(true);
         }
     }
 

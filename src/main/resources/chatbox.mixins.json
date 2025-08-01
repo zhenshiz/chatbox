@@ -9,7 +9,9 @@
   ],
   "client": [
     "MinecraftMixin",
-    "MouseHandlerMixin"
+    "MouseHandlerMixin",
+    "SoundEngineAccessor",
+    "SoundInstanceAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
