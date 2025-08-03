@@ -80,16 +80,17 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
         if (texture != null) renderImage(guiGraphics, texture);
 
         if (isSelect(mouseX, mouseY)) {
-            // 暂时的，合并后改
-            String text = switch (type) {
-                case LOG -> "历史记录";
-                case FASTFORWARD -> "快进";
-                case AUTOPLAY -> "自动播放";
+            Component text = switch (type) {
+                case LOG -> Component.translatable("chatbox.button.log");
+                case FASTFORWARD -> Component.translatable("chatbox.button.fast_forward");
+                case AUTOPLAY -> Component.translatable("chatbox.button.autoplay");
             };
             Vec2 position = getCurrentPosition();
-            RenderUtil.drawCenterScaleText(guiGraphics, Component.literal(text), (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, 0xFFFFFF);
+            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, 0xFFFFFF);
         }
     }
+
+    public void render(GuiGraphics guiGraphics, float pPartialTick) {}
 
     public enum Type {
         LOG,

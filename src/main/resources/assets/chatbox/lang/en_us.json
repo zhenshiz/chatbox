@@ -13,6 +13,17 @@
   "text.autoconfig.chatbox_config.option.historicalScrollSpeed": "The speed of the historical record interface scroll wheel",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "sound interruption",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "Whether to interrupt currently playing sound when no new sound is available",
+  "text.autoconfig.chatbox_config.option.isScreen":"Whether it is a screen theme dialog",
+  "text.autoconfig.chatbox_config.option.isScreen.@Tooltip":"In screen theme, players can only click options; in non-screen theme, players can move while the dialog is displayed",
+
+  "chatbox.key.right_click": "Confirm",
+  "chatbox.key.scroll": "Toggle options",
+  "chatbox.key.esc": "Close dialog",
+  "chatbox.key.ctrl": "Fast-forward dialogue",
+
+  "chatbox.button.log": "log",
+  "chatbox.button.fast_forward": "fast forward",
+  "chatbox.button.autoplay": "autoplay",
 
   "chatbox.test.name.1": "Inaba Meguru",
   "chatbox.test.text.1": "This module features dialog boxes, options, character illustrations, and a history button. Dialog text supports formatting codes like §1color§2coding§3, §f§lbold, §oitalic§r, etc. The placeholder @@s will be replaced with the player's ID: @s. Illustrations can display custom images, item textures, and player avatars.",

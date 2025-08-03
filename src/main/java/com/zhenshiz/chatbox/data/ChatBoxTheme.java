@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.data;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.FunctionalButton;
+import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,7 @@ public class ChatBoxTheme {
     public Option option;
     public DialogBox dialogBox;
     public List<FunctionButton> functionButtons;
+    public KeyPrompt keyPrompt;
 
     public ChatBoxTheme setDefaultValue() {
         this.portrait.forEach((key, value) -> {
@@ -51,6 +53,10 @@ public class ChatBoxTheme {
             int i = functionButtons.indexOf(button);
             button.x = (float) ((Objects.equals(button.alignX, AbstractComponent.AlignX.LEFT.name()) ? 5 : -5) * i);
         }
+
+        this.keyPrompt.setDefaultValue();
+        this.keyPrompt.visible = BeanUtil.getValueOrDefault(this.keyPrompt.visible, true);
+        this.keyPrompt.renderOrder = BeanUtil.getValueOrDefault(this.keyPrompt.renderOrder, 40);
 
         return this;
     }
@@ -157,6 +163,23 @@ public class ChatBoxTheme {
                             .setDefaultOption(b.x, b.y, b.width, b.height, AbstractComponent.AlignX.of(b.alignX), AbstractComponent.AlignY.of(b.alignY), b.opacity, b.renderOrder)
                             .setTexture(b.texture).setHoverTexture(b.hoverTexture))
                     .toList();
+        }
+    }
+
+    public static class KeyPrompt extends Component {
+        public Boolean visible;
+        public String rightClickTexture;
+        public String scrollTexture;
+
+        public KeyPromptRender setKeyPromptTheme(KeyPromptRender keyPromptRender) {
+            return keyPromptRender.setPosition(this.x, this.y)
+                    .setAlign(AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY))
+                    .setOpacity(this.opacity)
+                    .setRenderOrder(this.renderOrder)
+                    .setVisible(this.visible)
+                    .setRightClickTexture(this.rightClickTexture)
+                    .setScrollTexture(this.scrollTexture)
+                    .build();
         }
     }
 

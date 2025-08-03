@@ -2,9 +2,10 @@ package com.zhenshiz.chatbox.screen;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.*;
-import com.zhenshiz.chatbox.event.fabric.ChatBoxRender;
+import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
 import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
+import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
@@ -28,6 +29,8 @@ public class ChatBoxScreen extends Screen {
     public Boolean isPause;
     public Boolean isHistoricalSkip;
     public Video video;
+    //render模式对话框用
+    public KeyPromptRender keyPromptRender = new KeyPromptRender();
 
     public boolean fastForward = false;
     public boolean autoPlay = false;
@@ -103,10 +106,15 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
+    public ChatBoxScreen setKeyPromptRender(KeyPromptRender keyPromptRender) {
+        if (keyPromptRender != null) this.keyPromptRender = keyPromptRender;
+        return this;
+    }
+
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (dialogBox != null) {
-            if (ChatBoxRender.PRE.invoker().pre(guiGraphics)) return;
+            if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
 /*            if (NeoForge.EVENT_BUS.post(new ChatBoxRender.Pre(guiGraphics)).isCanceled()) {
                 return;
             }*/
@@ -125,13 +133,13 @@ public class ChatBoxScreen extends Screen {
 
             list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, pMouseX, pMouseY, pPartialTick));
 
-            ChatBoxRender.POST.invoker().post(guiGraphics);
+            ChatBoxRenderEvent.POST.invoker().post(guiGraphics);
             //NeoForge.EVENT_BUS.post(new ChatBoxRender.Post(guiGraphics));
         }
         super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 
-    private boolean shouldGotoNext() {
+    public boolean shouldGotoNext() {
         //如果有视频正在播放，且视频设置为不允许跳过，则不能到下一行对话。（不会有人设置循环加不能跳过吧）
         if (video != null && video.isPlaying() && !video.canSkip) return false;
         return chatOptions.isEmpty();
@@ -209,7 +217,7 @@ public class ChatBoxScreen extends Screen {
             if (autoPlay && minecraft != null) {
                 var soundEngine = (SoundInstanceAccessor) ((SoundEngineAccessor) minecraft.getSoundManager()).getSoundEngine();
                 // MC不在暂停游戏时tick声音，那我自己tick一下
-                if (isPause) soundEngine.invokeTickNonPaused();
+                if (minecraft.isPaused()) soundEngine.invokeTickNonPaused();
                 if (ChatBoxUtil.lastSoundResourceLocation != null) {
                     var instanceToChannel = soundEngine.getInstanceToChannel();
                     for (var soundInstance : instanceToChannel.keySet()) {

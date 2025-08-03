@@ -12,6 +12,7 @@ import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.fabric.SkipChatEvent;
 import com.zhenshiz.chatbox.payload.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -100,11 +101,19 @@ public class ChatBoxUtil {
                 SkipChatEvent.EVENT.invoker().skipChat(chatBoxScreen, dialoguesResourceLocation, group, index);
                 //NeoForge.EVENT_BUS.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
 
-                minecraft.setScreen(chatBoxScreen);
+                if (ChatBoxClient.conf.isScreen) {
+                    minecraft.setScreen(chatBoxScreen);
+                } else {
+                    ChatBoxRender.isOpenChatBox = true;
+                }
             }
         } else {
-            if (minecraft.screen != null) {
-                minecraft.screen.onClose();
+            if (ChatBoxClient.conf.isScreen) {
+                if (minecraft.screen != null) {
+                    minecraft.screen.onClose();
+                }
+            } else {
+                ChatBoxRender.isOpenChatBox = false;
             }
         }
     }
@@ -117,7 +126,8 @@ public class ChatBoxUtil {
     public static void toggleTheme(ResourceLocation themeResourceLocation) {
         chatBoxTheme = themeMap.get(themeResourceLocation);
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
-                .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionButtons));
+                .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionButtons))
+                .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
     }
 
     public static void setTheme(Map<ResourceLocation, String> map) {
@@ -132,11 +142,12 @@ public class ChatBoxUtil {
             JsonElement fbElement = jsonObject.get("functionalButton");
             List<JsonElement> functionalButton = new ArrayList<>();
             if (fbElement != null) functionalButton = fbElement.getAsJsonArray().asList();
-
+            JsonElement keyPromptElement = jsonObject.get("keyPrompt");
             Map<String, ChatBoxTheme.Portrait> portrait = new HashMap<>();
             ChatBoxTheme.Option option = new ChatBoxTheme.Option();
             ChatBoxTheme.DialogBox dialogBox = new ChatBoxTheme.DialogBox();
             List<ChatBoxTheme.FunctionButton> functionButton = new ArrayList<>();
+            ChatBoxTheme.KeyPrompt keyPrompt = new ChatBoxTheme.KeyPrompt();
 
             if (portraitElement != null) {
                 portrait = GSON.fromJson(portraitElement, new TypeToken<Map<String, ChatBoxTheme.Portrait>>() {
@@ -151,8 +162,11 @@ public class ChatBoxUtil {
             for (JsonElement element : functionalButton) {
                 functionButton.add(GSON.fromJson(element, ChatBoxTheme.FunctionButton.class));
             }
+            if (keyPromptElement != null) {
+                keyPrompt = GSON.fromJson(keyPromptElement, ChatBoxTheme.KeyPrompt.class);
+            }
 
-            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, functionButton).setDefaultValue());
+            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, functionButton, keyPrompt).setDefaultValue());
         });
     }
 

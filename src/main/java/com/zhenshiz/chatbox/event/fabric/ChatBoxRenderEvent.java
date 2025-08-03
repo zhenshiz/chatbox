@@ -4,7 +4,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.gui.GuiGraphics;
 
-public class ChatBoxRender {
+public class ChatBoxRenderEvent {
     public static Event<Pre> PRE = EventFactory.createArrayBacked(Pre.class,
             (listeners) -> (guiGraphics) -> {
                 for (Pre event : listeners) {

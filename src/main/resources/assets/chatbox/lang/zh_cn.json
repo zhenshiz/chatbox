@@ -13,6 +13,17 @@
   "text.autoconfig.chatbox_config.option.historicalScrollSpeed": "历史记录界面滚轮速度",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "音效中断",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "下句话如果没有新音效，是否中断前面正在播放的音效",
+  "text.autoconfig.chatbox_config.option.isScreen":"是否为屏幕主题对话框",
+  "text.autoconfig.chatbox_config.option.isScreen.@Tooltip":"屏幕主题可以让鼠标点击选项，非屏幕主题玩家可以在显示对话框的时候移动",
+
+  "chatbox.key.right_click": "确定",
+  "chatbox.key.scroll": "切换选项",
+  "chatbox.key.esc": "关闭对话框",
+  "chatbox.key.ctrl": "快进对话",
+
+  "chatbox.button.log": "历史记录",
+  "chatbox.button.fast_forward": "快进",
+  "chatbox.button.autoplay": "自动播放",
 
   "chatbox.test.name.1": "因幡巡",
   "chatbox.test.text.1": "本模组包含对话框、选项、立绘以及历史记录按钮，对话框文本可以使用格式化文本，包括§1彩§2色§3文§4本、§f§l粗体、§o斜体§r等等，以及一个占位符@@s会被替换成玩家的id：@s。立绘则可以展示自定义图片，物品贴图以及玩家的头像。",

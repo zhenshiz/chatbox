@@ -8,6 +8,8 @@
     "SimpleCriterionTriggerMixin"
   ],
   "client": [
+    "client.KeyboardHandlerMixin",
+    "client.MinecraftMixin",
     "client.MouseHandlerMixin",
     "client.SoundEngineAccessor",
     "client.SoundInstanceAccessor"
