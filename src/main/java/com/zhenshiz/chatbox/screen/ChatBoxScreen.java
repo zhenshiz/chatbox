@@ -225,7 +225,7 @@ public class ChatBoxScreen extends Screen {
             if (autoPlay && minecraft != null) {
                 var soundEngine = (SoundInstanceAccessor) ((SoundEngineAccessor) minecraft.getSoundManager()).getSoundEngine();
                 // MC不在暂停游戏时tick声音，那我自己tick一下
-                if (isPause) soundEngine.invokeTickNonPaused();
+                if (minecraft.isPaused()) soundEngine.invokeTickNonPaused();
                 if (ChatBoxUtil.lastSoundResourceLocation != null) {
                     var instanceToChannel = soundEngine.getInstanceToChannel();
                     for (var soundInstance : instanceToChannel.keySet()) {

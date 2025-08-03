@@ -80,13 +80,13 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
         if (texture != null) renderImage(guiGraphics, texture);
 
         if (isSelect(mouseX, mouseY)) {
-            String text = switch (type) {
-                case LOG -> Component.translatable("chatbox.button.log").getString();
-                case FASTFORWARD -> Component.translatable("chatbox.button.fast_forward").getString();
-                case AUTOPLAY -> Component.translatable("chatbox.button.autoplay").getString();
+            Component text = switch (type) {
+                case LOG -> Component.translatable("chatbox.button.log");
+                case FASTFORWARD -> Component.translatable("chatbox.button.fast_forward");
+                case AUTOPLAY -> Component.translatable("chatbox.button.autoplay");
             };
             Vec2 position = getCurrentPosition();
-            RenderUtil.drawCenterScaleText(guiGraphics, Component.literal(text), (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, 0xFFFFFF);
+            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, 0xFFFFFF);
         }
     }
 

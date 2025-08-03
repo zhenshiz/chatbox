@@ -15,6 +15,7 @@
   "chatbox.key.scroll": "切换选项",
   "chatbox.key.esc": "关闭对话框",
   "chatbox.key.ctrl": "快进对话",
+  "chatbox.key.f6": "自动播放",
 
   "chatbox.button.log": "历史记录",
   "chatbox.button.fast_forward": "快进",
