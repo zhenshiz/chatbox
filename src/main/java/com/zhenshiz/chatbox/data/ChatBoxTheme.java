@@ -55,6 +55,8 @@ public class ChatBoxTheme {
         }
 
         this.keyPrompt.setDefaultValue();
+        this.keyPrompt.mouseTextureWidth = BeanUtil.getValueOrDefault(this.keyPrompt.mouseTextureWidth, 16f);
+        this.keyPrompt.mouseTextureHeight = BeanUtil.getValueOrDefault(this.keyPrompt.mouseTextureHeight, 16f);
         this.keyPrompt.visible = BeanUtil.getValueOrDefault(this.keyPrompt.visible, true);
         this.keyPrompt.renderOrder = BeanUtil.getValueOrDefault(this.keyPrompt.renderOrder, 40);
 
@@ -168,6 +170,8 @@ public class ChatBoxTheme {
 
     public static class KeyPrompt extends Component {
         public Boolean visible;
+        public Float mouseTextureWidth;
+        public Float mouseTextureHeight;
         public String rightClickTexture;
         public String scrollTexture;
 
@@ -177,6 +181,7 @@ public class ChatBoxTheme {
                     .setOpacity(this.opacity)
                     .setRenderOrder(this.renderOrder)
                     .setVisible(this.visible)
+                    .setMouseTextureSize(this.mouseTextureWidth, this.mouseTextureHeight)
                     .setRightClickTexture(this.rightClickTexture)
                     .setScrollTexture(this.scrollTexture)
                     .build();

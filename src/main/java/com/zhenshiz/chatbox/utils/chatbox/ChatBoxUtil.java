@@ -113,7 +113,7 @@ public class ChatBoxUtil {
                     minecraft.screen.onClose();
                 }
             } else {
-                ChatBoxRender.isOpenChatBox = false;
+                ChatBoxRender.onClose();
             }
         }
     }

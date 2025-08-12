@@ -20,6 +20,7 @@
   "chatbox.key.scroll": "Toggle options",
   "chatbox.key.esc": "Close dialog",
   "chatbox.key.ctrl": "Fast-forward dialogue",
+  "chatbox.key.f6": "Autoplay",
 
   "chatbox.button.log": "log",
   "chatbox.button.fast_forward": "fast forward",
