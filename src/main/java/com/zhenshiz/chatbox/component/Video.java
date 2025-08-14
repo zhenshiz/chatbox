@@ -1,17 +1,18 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.utils.chatbox.FloatBlitRenderState;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec2;
-import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
 import org.watermedia.api.image.ImageAPI;
 import org.watermedia.api.image.ImageRenderer;
 import org.watermedia.api.player.videolan.VideoPlayer;
@@ -119,10 +120,7 @@ public class Video extends AbstractComponent<Video> {
 
     private void renderTexture(GuiGraphics guiGraphics, int texture) {
         if (player.dimension() == null) return; // Checking if video available
-
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, texture);
-        drawTexture(guiGraphics, texture, actualX, actualY, actualWidth, actualHeight);
+        drawTexture(guiGraphics, texture, actualX, actualY, actualWidth, actualHeight, -1);
     }
 
     private int getHeightCenter(int offset) {
@@ -134,67 +132,41 @@ public class Video extends AbstractComponent<Video> {
         float xOffset = actualWidth - iconSize + actualX;
         float yOffset = actualHeight - iconSize + actualY;
 
-        drawTexture(guiGraphics, image.texture(tick, 1, true), xOffset, yOffset, iconSize, iconSize);
+        drawTexture(guiGraphics, image.texture(tick, 1, true), xOffset, yOffset, iconSize, iconSize, -1);
     }
 
     private void renderStep30(GuiGraphics guiGraphics, float pPartialTicks) {
         if (fadeStep30 == 0) return;
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         int texture = IMG_STEP30.texture(tick, 1, true);
-        float alpha = fadeStep30;
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, alpha);
-
+        float alpha = fadeStep30 * 100;
         float x = (actualWidth / 2 + 70 + actualX);
         float y = (actualHeight / 2 - 32 + actualY);
         int size = 64;
 
-        drawTexture(guiGraphics, texture, x, y, size, size);
-
+        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(alpha));
         fadeStep30 = Math.max(fadeStep30 - (pPartialTicks / 8), 0.0f);
-        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-        RenderSystem.disableBlend();
     }
 
     private void renderStep10(GuiGraphics guiGraphics, float pPartialTicks) {
         if (fadeStep10 == 0) return;
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         int texture = IMG_STEP10.texture(tick, 1, true);
-        float alpha = fadeStep10;
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, alpha);
-
+        float alpha = fadeStep10 * 100;
         float x = (actualWidth / 2 - 134 + actualX);
         float y = (actualHeight / 2 - 32 + actualY);
         int size = 64;
 
-        drawTexture(guiGraphics, texture, x, y, size, size);
-
+        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(alpha));
         fadeStep10 = Math.max(fadeStep10 - (pPartialTicks / 8), 0.0f);
-        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-        RenderSystem.disableBlend();
     }
 
-    private void drawTexture(GuiGraphics guiGraphics, int texture, float x, float y, float width, float height) {
-        RenderSystem.enableBlend();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, texture);
-
-        Matrix4f matrix4f = guiGraphics.pose().last().pose();
-        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-
-        bufferBuilder.addVertex(matrix4f, x, y + height, 0).setUv(0f, 1f);   // Bottom-left
-        bufferBuilder.addVertex(matrix4f, x + width, y + height, 0).setUv(1f, 1f);  // Bottom-right
-        bufferBuilder.addVertex(matrix4f, x + width, y, 0).setUv(1f, 0f);  // Top-right
-        bufferBuilder.addVertex(matrix4f, x, y, 0).setUv(0f, 0f);   // Top-left
-
-        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
-
-        RenderSystem.disableBlend();
+    private void drawTexture(GuiGraphics guiGraphics, int texture, float x, float y, float width, float height, int color) {
+        // todo 1.21.8还没修好
+        GpuTextureView shaderTexture = RenderSystem.getShaderTexture(texture);
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(shaderTexture), x, y, width, height, 1, 1, color));
     }
 
     private void draw(GuiGraphics guiGraphics, String text, int height) {
-        guiGraphics.drawString(minecraft.font, text, 5 + (int) actualX, height + (int) actualY, 0xffffff);
+        guiGraphics.drawString(minecraft.font, text, 5 + (int) actualX, height + (int) actualY, -1);
     }
 
     public void keyPressed(int pKeyCode, int pScanCode, int pModifiers) {

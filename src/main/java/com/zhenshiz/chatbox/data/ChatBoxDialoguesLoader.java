@@ -14,13 +14,12 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
+public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader implements IdentifiableResourceReloadListener {
     private static final Gson GSON =
             (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     public static final ChatBoxDialoguesLoader INSTANCE = new ChatBoxDialoguesLoader();
@@ -47,22 +46,13 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener imp
     public static final Map<ResourceLocation, Integer> defaultMaxTriggerCount = new HashMap<>();
 
     public ChatBoxDialoguesLoader() {
-        super(GSON, "chatbox/dialogues");
+        super(FileToIdConverter.json("chatbox/dialogues"));
     }
 
     @Override
     protected void apply(@NotNull Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         dialoguesMap.clear();
-        resourceManager.listPacks().forEach(packResources -> {
-            Set<String> namespaces = packResources.getNamespaces(PackType.SERVER_DATA);
-            namespaces.forEach(namespace -> packResources.listResources(PackType.SERVER_DATA, namespace, "chatbox/dialogues", ((resourceLocation, inputStreamIoSupplier) -> {
-                String path = resourceLocation.getPath();
-                ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(namespace, path.substring("chatbox/dialogues/".length(), path.length() - ".json".length()));
-                JsonElement jsonElement = resourceLocationJsonElementMap.get(rl);
-                if (jsonElement != null) dialoguesMap.put(rl, jsonElement.toString());
-            })));
-        });
-
+        resourceLocationJsonElementMap.forEach((resourceLocation, jsonElement) -> dialoguesMap.put(resourceLocation, jsonElement.toString()));
         setDialogues(dialoguesMap);
     }
 

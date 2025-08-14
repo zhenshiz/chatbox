@@ -8,10 +8,16 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
+import org.joml.Matrix3x2fStack;
+
+import java.util.List;
 
 public class ChatOption extends AbstractComponent<ChatOption> {
     //默认材质
@@ -183,7 +189,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
         //render tooltip
         if (!this.optionTooltip.getString().isEmpty() && isSelect(mouseX, mouseY)) {
-            guiGraphics.renderTooltip(minecraft.font, this.optionTooltip, mouseX, mouseY);
+            guiGraphics.renderTooltip(minecraft.font, List.of(new ClientTextTooltip(optionTooltip.getVisualOrderText())), mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
         }
     }
 
@@ -210,8 +216,8 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         if (texture != null) renderImage(guiGraphics, texture);
 
         //render option text
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
+        Matrix3x2fStack poseStack = guiGraphics.pose();
+        poseStack.pushMatrix();
         switch (this.textAlign) {
             case LEFT ->
                     RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
@@ -220,7 +226,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
             case RIGHT ->
                     RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
         }
-        poseStack.popPose();
+        poseStack.popMatrix();
     }
 
     public enum TextAlign {

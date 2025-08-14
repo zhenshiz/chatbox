@@ -34,7 +34,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
             if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
 
             if (chatBoxScreen.backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1);
+                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 100);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();

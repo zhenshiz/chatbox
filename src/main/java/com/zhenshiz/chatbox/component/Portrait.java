@@ -185,15 +185,15 @@ public class Portrait extends AbstractComponent<Portrait> {
                 }
                 case PLAYER_HEAD -> {
                     if (this.isAnimation) execCustomAnimation();
-                    RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), getValueOrDefault(this.scale, 1f)));
+                    RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), getValueOrDefault(this.scale, 1f), this.opacity);
                 }
                 case ITEM -> {
                     if (this.isAnimation) execCustomAnimation();
-                    ItemStack itemStack = BuiltInRegistries.ITEM.get(ResourceLocation.parse(this.value)).getDefaultInstance();
+                    ItemStack itemStack = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(this.value)).getDefaultInstance();
                     if (this.customItemData != null) {
-                        itemStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(this.customItemData));
+                        itemStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), List.of(), List.of(), List.of(this.customItemData)));
                     }
-                    RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> RenderUtil.renderItem(guiGraphics, itemStack, (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), this.scale));
+                    RenderUtil.renderItem(guiGraphics, itemStack, (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), this.scale);
                 }
             }
         }

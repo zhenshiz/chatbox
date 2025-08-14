@@ -15,6 +15,6 @@ public interface SoundInstanceAccessor {
     @Accessor("instanceToChannel")
     Map<SoundInstance, ChannelAccess.ChannelHandle> getInstanceToChannel();
 
-    @Invoker("tickNonPaused")
+    @Invoker("tickInGameSound")
     void invokeTickNonPaused();
 }

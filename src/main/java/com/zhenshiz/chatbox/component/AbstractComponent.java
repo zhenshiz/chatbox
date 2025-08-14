@@ -133,10 +133,8 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale) {
-        RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> {
-            Vec2 position = getCurrentPosition();
-            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale);
-        });
+        Vec2 position = getCurrentPosition();
+        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, opacity);
     }
 
     public boolean isSelect(float width, float height, float x, float y, double mouseX, double mouseY) {

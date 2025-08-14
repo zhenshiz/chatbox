@@ -1,6 +1,5 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -14,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3x2fStack;
 import org.joml.Vector4i;
 
 import java.util.ArrayList;
@@ -47,14 +47,14 @@ public class HistoricalDialogue extends AbstractWidget {
         } else {
             verticalScrollAmount = Math.clamp(verticalScrollAmount + delta * 3, -Float.MAX_VALUE, 0);
         }
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-        poseStack.translate(0, 27 + yOffset, 0);
+        Matrix3x2fStack poseStack = guiGraphics.pose();
+        poseStack.pushMatrix();
+        poseStack.translate(0, 27 + yOffset);
         for (HistoricalInfo historicalInfo : historicalInfos) {
             historicalInfo.render(this, guiGraphics, mouseX, mouseY, delta);
-            poseStack.translate(0, minecraft.font.lineHeight + 27, 0);
+            poseStack.translate(0, minecraft.font.lineHeight + 27);
         }
-        poseStack.popPose();
+        poseStack.popMatrix();
     }
 
     @Override
@@ -116,10 +116,10 @@ public class HistoricalDialogue extends AbstractWidget {
 
         private void render(HistoricalDialogue historicalDialogue, GuiGraphics guiGraphics, double mouseX, double mouseY, float delta) {
             this.vector4i = createEntryAbsoluteRect(guiGraphics);
-            PoseStack poseStack = guiGraphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(historicalDialogue.width * -0.025F * progress, 0, 0);
-            poseStack.scale(1 + 0.05F * progress, 1 + 0.05F * progress, 1 + 0.05F * progress);
+            Matrix3x2fStack poseStack = guiGraphics.pose();
+            poseStack.pushMatrix();
+            poseStack.translate(historicalDialogue.width * -0.025F * progress, 0);
+            poseStack.scale(1 + 0.05F * progress, 1 + 0.05F * progress);
             Vector4i relativelyRect = createEntryRelativelyRect();
             Font font = Minecraft.getInstance().font;
             boolean inRect = isMouseInRect(mouseX, mouseY);
@@ -129,7 +129,7 @@ public class HistoricalDialogue extends AbstractWidget {
             guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name.getString(), true), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
             guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text.getString(), true), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
 
-            poseStack.popPose();
+            poseStack.popMatrix();
         }
 
         public void click() {
@@ -141,7 +141,8 @@ public class HistoricalDialogue extends AbstractWidget {
         }
 
         public Vector4i createEntryAbsoluteRect(GuiGraphics guiGraphics) {
-            int y = (int) guiGraphics.pose().last().pose().m31();
+            //todo int y = (int) guiGraphics.pose().last().pose().m31();
+            int y = (int) guiGraphics.pose().m21();
             return createEntryRelativelyRect().add(0, y, 0, y);
         }
 

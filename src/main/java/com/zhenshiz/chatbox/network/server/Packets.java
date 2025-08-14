@@ -27,7 +27,7 @@ public class Packets {
 
             var command = payload.command();
             try {
-                player.server.getCommands().performPrefixedCommand(commandSource, command);
+                player.level().getServer().getCommands().performPrefixedCommand(commandSource, command);
             } catch (Exception e) {
                 ChatBox.LOGGER.error("Error executing command on server: {}", command, e);
             }

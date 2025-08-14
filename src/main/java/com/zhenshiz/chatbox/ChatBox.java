@@ -29,7 +29,7 @@ public class ChatBox implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);
         ServerWorldEvents.LOAD.register((server, world) -> {
             //只需要保存在主世界的data目录下即可
-            if (world.dimension() == Level.OVERWORLD) triggerCounts = world.getDataStorage().computeIfAbsent(ChatBoxTriggerCount.factory(world), "chatbox_trigger_count");
+            if (world.dimension() == Level.OVERWORLD) triggerCounts = world.getDataStorage().computeIfAbsent(ChatBoxTriggerCount.getType());
         });
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s, manager, bl) -> {
             ChatBoxDialoguesLoader.loadCriteria(s);
@@ -53,5 +53,6 @@ public class ChatBox implements ModInitializer {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
 
-    public static boolean isWaterMediaLoaded() {return isModLoaded("watermedia");}
+    //todo 修改所有元素透明度的渲染方式
+    public static boolean isWaterMediaLoaded() {return false/*视频播放暂时不支持*//*isModLoaded("watermedia")*/;}
 }

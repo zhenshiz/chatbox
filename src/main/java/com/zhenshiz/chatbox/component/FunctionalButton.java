@@ -86,7 +86,7 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
                 case AUTOPLAY -> Component.translatable("chatbox.button.autoplay");
             };
             Vec2 position = getCurrentPosition();
-            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, 0xFFFFFF);
+            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, -1);
         }
     }
 
