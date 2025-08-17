@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+#issueTrackerURL = ""
+license = "GPL-3.0 license"
+
+[[mods]]
+modId = "chatbox"
+version = "${version}"
+displayName = "ChatBox"
+authors = "zhenshiz"
+description = '''GalGame DialogBox'''
+logoFile = "assets/chatbox/icon.png"
+
+[[dependencies.chatbox]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.chatbox]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.chatbox]]
+modId = "cloth_config"
+mandatory = true
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"

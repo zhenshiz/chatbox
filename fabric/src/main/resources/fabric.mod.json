@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "chatbox",
+  "version": "${version}",
+  "name": "ChatBox",
+  "description": "GalGame DialogBox",
+  "authors": ["zhenshiz"],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/chatbox",
+    "sources": "https://github.com/zhenshiz/chatbox",
+    "issues": "https://github.com/zhenshiz/chatbox/issues"
+  },
+  "license": "GPL-3.0 license",
+  "icon": "assets/chatbox/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.zhenshiz.chatbox.ChatBoxFabric"
+    ],
+    "client": [
+      "com.zhenshiz.chatbox.client.ChatBoxClientFabric"
+    ],
+    "modmenu": [
+      "com.zhenshiz.chatbox.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "chatbox.mixins.json",
+    "chatbox.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.21",
+    "minecraft": ">=1.20.1-",
+    "java": ">=17",
+    "fabric-api": "*",
+    "cloth-config": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}

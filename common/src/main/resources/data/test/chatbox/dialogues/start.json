@@ -1,0 +1,204 @@
+{
+  "$introduce": "这是一段介绍本模组的文本",
+  "theme": "test:default",
+  "criteria": {
+    "diamond": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:diamond"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "dialogues": {
+    "start": [
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.1"
+        },
+        "portrait": [
+          "authors",
+          "head",
+          "item"
+        ],
+        "options": [
+          {
+            "text": "chatbox.test.option.1"
+          },
+          {
+            "text": "chatbox.test.option.2"
+          },
+          {
+            "text": "chatbox.test.option.3"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.2"
+        },
+        "portrait": [
+          "authors"
+        ],
+        "video": {
+          "path": "D:/photos/OP00.mp4",
+          "renderOrder": 30,
+          "width": 50,
+          "height": 50,
+          "alignX": "center",
+          "alignY": "center"
+        },
+        "options": [
+          {
+            "text": "chatbox.test.option.1",
+            "isHidden": true,
+            "hidden": {
+              "objective": "test",
+              "value": "test"
+            }
+          },
+          {
+            "text": "chatbox.test.option.4",
+            "isLock": true,
+            "lock": {
+              "objective": "test",
+              "value": "test"
+            },
+            "tooltip": "chatbox.test.tooltip.1"
+          },
+          {
+            "text": "chatbox.test.option.5"
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.3"
+        },
+        "portrait": [
+          "authors"
+        ],
+        "command": "weather clear",
+        "options": [
+          {
+            "text": "chatbox.test.option.6",
+            "click": {
+              "type": "command",
+              "value": "weather rain"
+            }
+          },
+          {
+            "text": "chatbox.test.option.7",
+            "click": {
+              "type": "command",
+              "value": "weather clear"
+            }
+          },
+          {
+            "text": "chatbox.test.option.8",
+            "click": {
+              "type": "command",
+              "value": "weather thunder"
+            }
+          }
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.4"
+        },
+        "portrait": [
+          "authors"
+        ],
+        "sound": "minecraft:ambient.cave"
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.5"
+        },
+        "portrait": [
+          "authors",
+          "authors_fade_in",
+          "authors_slide_in_from_bottom",
+          "authors_bounce"
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.6"
+        },
+        "portrait": [
+          "authors",
+          "custom_animation"
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.7"
+        },
+        "portrait": [
+          "authors"
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.8"
+        },
+        "portrait": [
+          "authors"
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.9"
+        },
+        "portrait": [
+          "authors"
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.10"
+        },
+        "portrait": [
+          "authors"
+        ],
+        "backgroundImage": "chatbox:textures/chatbox/default_dialog_box.png"
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.11"
+        },
+        "portrait": [
+          "authors"
+        ]
+      },
+      {
+        "dialogBox": {
+          "name": "chatbox.test.name.1",
+          "text": "chatbox.test.text.12"
+        },
+        "portrait": [
+          "authors"
+        ]
+      }
+    ]
+  },
+  "isTranslatable": true
+}
