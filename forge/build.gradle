@@ -41,6 +41,9 @@ dependencies {
     shadowBundle project(path: ':common', configuration: 'transformProductionForge')
 
     modApi("me.shedaniel.cloth:cloth-config-forge:11.1.136")
+
+    modImplementation "maven.modrinth:rhino:2001.2.3-build.10+forge"
+    modImplementation "maven.modrinth:kubejs:2001.6.5-build.16+forge"
 }
 
 processResources {

@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -14,17 +15,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public class RenderUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
-    private static ResourceLocation supplier = null;
 
     public static int screenWidth() {
         return minecraft.getWindow().getGuiScaledWidth();
@@ -393,12 +394,11 @@ public class RenderUtil {
     }
 
     public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale) {
-        handleGameProfileAsync(input, gameProfile -> supplier = RenderUtil.texturesSupplier(gameProfile));
         x = (int) (x / scale);
         y = (int) (y / scale);
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
-        PlayerFaceRenderer.draw(guiGraphics, supplier == null ? DefaultPlayerSkin.getDefaultSkin() : supplier, x, y, size);
+        PlayerFaceRenderer.draw(guiGraphics, getSkin(input), x, y, size);
         guiGraphics.pose().popPose();
     }
 
@@ -511,25 +511,30 @@ public class RenderUtil {
         return Tesselator.getInstance().getBuilder();
     }
 
-    private static void handleGameProfileAsync(String input, Consumer<GameProfile> postAction) {
-        GameProfile profile = createProfileComponent(input);
-        postAction.accept(profile);
-    }
-
     private static GameProfile createProfileComponent(String input) {
         try {
-            UUID uuid = UUID.fromString(input);
-            return new GameProfile(uuid, input);
+            return new GameProfile(UUID.fromString(input), null);
         } catch (IllegalArgumentException e) {
-            return new GameProfile(Minecraft.getInstance().getUser().getProfileId(), input);
+            try {
+                return new GameProfile(null, input);
+            } catch (Exception exc) {
+                return new GameProfile(minecraft.getUser().getProfileId(), null);
+            }
         }
     }
 
-    private static ResourceLocation texturesSupplier(GameProfile profile) {
-        SkinManager skinManager = minecraft.getSkinManager();
-        ResourceLocation location = skinManager.getInsecureSkinLocation(profile);
-        boolean bl = !Objects.equals(minecraft.getUser().getProfileId(), profile.getId());
-        ResourceLocation playerSkin = DefaultPlayerSkin.getDefaultSkin(profile.getId());
-        return bl ? location : playerSkin;
+    private static final Map<String, ResourceLocation> skins = new HashMap<>();
+
+    private static ResourceLocation getSkin(String input) {
+        if (skins.containsKey(input)) return skins.get(input);
+        // 尝试获取皮肤，并缓存到map中
+        GameProfile profile = createProfileComponent(input);
+        SkullBlockEntity.updateGameprofile(profile, gameProfile -> {
+            SkinManager manager = minecraft.getSkinManager();
+            var map = manager.getInsecureSkinInformation(gameProfile);
+            if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) skins.put(input, manager.registerTexture(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
+        });
+        if (skins.containsKey(input)) return skins.get(input);
+        return DefaultPlayerSkin.getDefaultSkin(UUID.fromString(minecraft.getUser().getUuid()));
     }
 }
