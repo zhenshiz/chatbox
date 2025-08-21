@@ -18,7 +18,6 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -52,15 +51,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(@NotNull Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         dialoguesMap.clear();
-        resourceManager.listPacks().forEach(packResources -> {
-            Set<String> namespaces = packResources.getNamespaces(PackType.SERVER_DATA);
-            namespaces.forEach(namespace -> packResources.listResources(PackType.SERVER_DATA, namespace, "chatbox/dialogues", ((resourceLocation, inputStreamIoSupplier) -> {
-                String path = resourceLocation.getPath();
-                ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(namespace, path.substring("chatbox/dialogues/".length(), path.length() - ".json".length()));
-                JsonElement jsonElement = resourceLocationJsonElementMap.get(rl);
-                if (jsonElement != null) dialoguesMap.put(rl, jsonElement.toString());
-            })));
-        });
+        resourceLocationJsonElementMap.forEach(((resourceLocation, jsonElement) -> dialoguesMap.put(resourceLocation, jsonElement.toString())));
 
         //给所有玩家发包
         if (ServerLifecycleHooks.getCurrentServer() != null) {

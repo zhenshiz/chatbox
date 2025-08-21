@@ -15,7 +15,6 @@ import net.minecraft.world.phys.Vec2;
 
 import java.util.List;
 
-@NoArgsConstructor
 public class Portrait extends AbstractComponent<Portrait> {
     public Type type;
     public String value;

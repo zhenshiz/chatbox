@@ -5,9 +5,6 @@ import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
-import com.zhenshiz.chatbox.mixin.SoundEngineAccessor;
-import com.zhenshiz.chatbox.mixin.SoundInstanceAccessor;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
@@ -65,42 +62,18 @@ public class ChatBoxRender {
     @SubscribeEvent
     public static void ChatBoxRenderTick(ClientTickEvent.Post event) {
         if (isRenderChatBox()) {
-            if (chatBoxScreen.dialogBox != null) {
-                chatBoxScreen.dialogBox.tick();
-
-                if (chatBoxScreen.autoPlay) {
-                    var soundEngine = (SoundInstanceAccessor) ((SoundEngineAccessor) minecraft.getSoundManager()).getSoundEngine();
-                    // MC不在暂停游戏时tick声音，那我自己tick一下
-                    if (minecraft.isPaused()) soundEngine.invokeTickNonPaused();
-                    if (ChatBoxUtil.lastSoundResourceLocation != null) {
-                        var instanceToChannel = soundEngine.getInstanceToChannel();
-                        for (var soundInstance : instanceToChannel.keySet()) {
-                            if (soundInstance.getLocation().equals(ChatBoxUtil.lastSoundResourceLocation)) {
-                                if (minecraft.getSoundManager().isActive(soundInstance)) return;
-                            }
-                        }
-                    }
-                    if (!chatBoxScreen.dialogBox.isAllOver || chatBoxScreen.video != null && chatBoxScreen.video.isPlaying()) {
-                        return;
-                    }
-                    chatBoxScreen.tickAutoPlay--;
-                    if (chatBoxScreen.tickAutoPlay <= 0) {
-                        chatBoxScreen.tickAutoPlay = 20;
-                        chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
-                    }
-                }
-            }
+            chatBoxScreen.tick();
         }
     }
 
     @SubscribeEvent
     public static void ChatBoxRenderKeyInput(InputEvent.Key event) {
-        if (isRenderChatBox() && event.getAction() == 1) {
+        if (isRenderChatBox()) {
             int key = event.getKey();
             if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
                 //ctrl快进
                 chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
-            } else if (key == GLFW.GLFW_KEY_F6) {
+            } else if (event.getAction() == 1 && key == GLFW.GLFW_KEY_F6) {
                 //自动播放
                 chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
             }
@@ -148,5 +121,13 @@ public class ChatBoxRender {
 
     private static boolean isRenderChatBox() {
         return !Config.isScreen.get() && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
+    }
+
+    //关闭对话框
+    public static void onClose() {
+        isOpenChatBox = false;
+        chatBoxScreen.autoPlay = false;
+        chatBoxScreen.fastForward = false;
+        if (chatBoxScreen.video != null) chatBoxScreen.video.close();
     }
 }

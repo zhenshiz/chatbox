@@ -44,13 +44,12 @@ public class ChatBox {
 
     //注册指令
     private void onRegisterCommands(RegisterCommandsEvent event) {
-        final String PACKAGE_NAME = "com.zhenshiz.chatbox.command";
         final String REGISTER = "register";
         ModContainer modContainer = ModList.get().getModContainerById(MOD_ID).orElseThrow();
         Set<ModFileScanData.ClassData> classes = modContainer.getModInfo().getOwningFile().getFile().getScanResult().getClasses();
         classes.forEach(classData -> {
             Type clazz = classData.clazz();
-            if (clazz.getClassName().startsWith(PACKAGE_NAME)) {
+            if (clazz.getClassName().startsWith(ICommand.class.getPackageName())) {
                 try {
                     ClassLoader classLoader = ChatBox.class.getClassLoader();
                     Class<?> commandClass = classLoader.loadClass(clazz.getClassName());
