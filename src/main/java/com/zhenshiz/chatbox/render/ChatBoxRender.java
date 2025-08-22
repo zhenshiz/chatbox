@@ -55,7 +55,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
     @Override
     public void onEndTick(Minecraft minecraft) {
         if (isRenderChatBox()) {
-            chatBoxScreen.dialogBox.tick();
+            chatBoxScreen.tick();
         }
     }
 
@@ -65,6 +65,10 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
             //ctrl快进
             if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
                 chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+            }
+            if (action == 1 && key == GLFW.GLFW_KEY_F6) {
+                //自动播放
+                chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
             }
         }
     }
@@ -104,5 +108,12 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
 
     private static boolean isRenderChatBox() {
         return !ChatBoxClient.conf.isScreen && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
+    }
+
+    public static void onClose() {
+        isOpenChatBox = false;
+        chatBoxScreen.autoPlay = false;
+        chatBoxScreen.fastForward = false; // 这行没必要
+        if (chatBoxScreen.video != null) chatBoxScreen.video.close();
     }
 }

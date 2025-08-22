@@ -5,7 +5,7 @@ import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.textures.GpuTextureView;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
@@ -15,7 +15,6 @@ import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.PlayerSkin;
-import net.minecraft.client.resources.SkinManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
@@ -28,15 +27,14 @@ import org.joml.Matrix3x2fStack;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.concurrent.ExecutionException;
 
 public class RenderUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
-    private static Supplier<PlayerSkin> supplier = null;
 
     public static int screenWidth() {
         return minecraft.getWindow().getGuiScaledWidth();
@@ -400,12 +398,11 @@ public class RenderUtil {
     }
 
     public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity) {
-        handleGameProfileAsync(input, gameProfile -> supplier = RenderUtil.texturesSupplier(gameProfile));
         x = (int) (x / scale);
         y = (int) (y / scale);
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(scale, scale);
-        PlayerFaceRenderer.draw(guiGraphics, supplier == null ? DefaultPlayerSkin.getDefaultSkin() : supplier.get(), x, y, size, getColor(opacity));
+        PlayerFaceRenderer.draw(guiGraphics, getSkin(input), x, y, size, getColor(opacity));
         guiGraphics.pose().popMatrix();
     }
 
@@ -494,12 +491,17 @@ public class RenderUtil {
 
     //private
 
-    private static void handleGameProfileAsync(String input, Consumer<GameProfile> postAction) {
+    private static final Map<String, PlayerSkin> skins = new HashMap<>();
+
+    private static void handleGameProfileAsync(String input) {
         ResolvableProfile component = createProfileComponent(input);
         component.resolve()
                 .thenApplyAsync(result -> {
                     GameProfile profile = result.gameProfile();
-                    postAction.accept(profile);
+                    try {
+                        minecraft.getSkinManager().getOrLoad(profile).get()
+                                .ifPresent(playerSkin -> skins.put(input, playerSkin));
+                    } catch (InterruptedException | ExecutionException ignored) {}
                     return profile;
                 })
                 .exceptionally(ex -> null);
@@ -514,15 +516,10 @@ public class RenderUtil {
         }
     }
 
-    private static Supplier<PlayerSkin> texturesSupplier(GameProfile profile) {
-        Minecraft minecraft = Minecraft.getInstance();
-        SkinManager skinManager = minecraft.getSkinManager();
-        CompletableFuture<Optional<PlayerSkin>> completableFuture = skinManager.getOrLoad(profile);
-        boolean bl = !minecraft.isLocalPlayer(profile.getId());
-        PlayerSkin playerSkin = DefaultPlayerSkin.get(profile);
-        return () -> {
-            Optional<PlayerSkin> PlayerSkin2 = completableFuture.getNow(Optional.of(playerSkin));
-            return PlayerSkin2.filter(skin -> !bl || skin.secure()).orElse(playerSkin);
-        };
+    private static PlayerSkin getSkin(String input) {
+        if (skins.containsKey(input)) return skins.get(input);
+        handleGameProfileAsync(input);
+        if (skins.containsKey(input)) return skins.get(input);
+        return DefaultPlayerSkin.get(minecraft.getUser().getProfileId());
     }
 }

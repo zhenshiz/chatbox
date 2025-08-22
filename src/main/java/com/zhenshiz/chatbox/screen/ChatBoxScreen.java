@@ -8,6 +8,7 @@ import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -214,7 +215,8 @@ public class ChatBoxScreen extends Screen {
             dialogBox.tick();
             if (fastForward) dialogBox.click(shouldGotoNext());
 
-            if (autoPlay && minecraft != null) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (autoPlay) {
                 var soundEngine = (SoundInstanceAccessor) ((SoundEngineAccessor) minecraft.getSoundManager()).getSoundEngine();
                 // MC不在暂停游戏时tick声音，那我自己tick一下
                 if (minecraft.isPaused()) soundEngine.invokeTickNonPaused();

@@ -1,17 +1,5 @@
 {
   "$introduce": "这是一段介绍本模组的文本",
-  "criteria": {
-    "diamond": {
-      "conditions": {
-        "items": [
-          {
-            "items": "minecraft:diamond"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    }
-  },
   "theme": "test:default",
   "dialogues": {
     "start": [
@@ -45,14 +33,6 @@
         "portrait": [
           "authors"
         ],
-        "video": {
-          "path": "D:/photos/OP00.mp4",
-          "renderOrder": 30,
-          "width": 50,
-          "height": 50,
-          "alignX": "center",
-          "alignY": "center"
-        },
         "options": [
           {
             "text": "chatbox.test.option.1",
