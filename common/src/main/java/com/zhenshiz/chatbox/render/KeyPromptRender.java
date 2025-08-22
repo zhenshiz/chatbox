@@ -13,8 +13,16 @@ import net.minecraft.world.phys.Vec2;
 
 public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public Boolean visible;
+    public Float mouseTextureWidth;
+    public Float mouseTextureHeight;
     public ResourceLocation rightClickTexture;
     public ResourceLocation scrollTexture;
+
+    public KeyPromptRender setMouseTextureSize(Float width, Float height) {
+        if (width != null) this.mouseTextureWidth = width;
+        if (height != null) this.mouseTextureHeight = height;
+        return this;
+    }
 
     public KeyPromptRender setVisible(Boolean visible) {
         if (visible != null) this.visible = visible;
@@ -48,16 +56,16 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
                 float y = vec2.y;
 
                 //right scroll
-                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, new ResourceLocation("chatbox:textures/key/right_mouse.png")), x, y + 2, 0, 12, 16, 1);
-                drawText(guiGraphics, x + 14, y + (float) font.lineHeight / 2, keyRightClick);
+                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, new ResourceLocation("chatbox:textures/key/right_mouse.png")), x, y + 2, 0, this.mouseTextureWidth, this.mouseTextureHeight, 1);
+                drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
 
-                x += 18 + font.width(keyRightClick);
+                x += this.mouseTextureWidth + font.width(keyRightClick) + 4;
 
                 //mouse scroll
-                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, new ResourceLocation("chatbox:textures/key/scroll_mouse.png")), x, y + 2, 0, 12, 16, 1);
-                drawText(guiGraphics, x + 14, y + (float) font.lineHeight / 2, keyScroll);
+                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, new ResourceLocation("chatbox:textures/key/scroll_mouse.png")), x, y + 2, 0, this.mouseTextureWidth, this.mouseTextureHeight, 1);
+                drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
 
-                x += 18 + font.width(keyScroll);
+                x += this.mouseTextureWidth + font.width(keyScroll) + 4;
 
                 //esc
                 drawKeyBoardKey(guiGraphics, (int) x, (int) y + font.lineHeight / 2, "Esc", false);

@@ -22,6 +22,7 @@ import org.lwjgl.glfw.GLFW;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class RenderUtil {
@@ -515,11 +516,7 @@ public class RenderUtil {
         try {
             return new GameProfile(UUID.fromString(input), null);
         } catch (IllegalArgumentException e) {
-            try {
-                return new GameProfile(null, input);
-            } catch (Exception exc) {
-                return new GameProfile(minecraft.getUser().getProfileId(), null);
-            }
+            return new GameProfile(null, input);
         }
     }
 
@@ -535,6 +532,6 @@ public class RenderUtil {
             if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) skins.put(input, manager.registerTexture(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
         });
         if (skins.containsKey(input)) return skins.get(input);
-        return DefaultPlayerSkin.getDefaultSkin(UUID.fromString(minecraft.getUser().getUuid()));
+        return DefaultPlayerSkin.getDefaultSkin(Objects.requireNonNull(minecraft.getUser().getProfileId()));
     }
 }
