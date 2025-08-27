@@ -1,7 +1,7 @@
 {
   "id": "zhenshiz-chatbox",
   "platforms": {
-    "modrinth": "chatbox"
+    "curseforge": "chatbox-for-mc"
   },
   "modid": "chatbox",
   "owners": [
