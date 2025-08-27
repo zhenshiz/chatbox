@@ -1,0 +1,19 @@
+## 指令
+
+ChatBox 添加自定义的指令，允许开发者使用指令来与 mod 交互。
+
+- `/chatbox skip <数据包路径: ResourceLocation> <组名: String> <序号: int>` 跳转到指定的对话
+  - 数据包路径：对话文本文件的位置
+  - 组名：对话文本文件内一段对话的标识符
+  - 序号（可选，默认为0）：一段对话中对话的序号
+
+- `/chatbox theme <数据包路径: ResourceLocation>` 切换对话框主题
+  - 数据包路径：对话框主题的位置
+
+- `/chatbox open  打开最近一次对话`
+
+- `/chatbox maxTriggerCount <数据包路径: ResourceLocation> <最大访问次数: int>` 设置一段对话的最大访问次数
+  - 数据包路径：对话框主题的位置
+  - 最大访问次数：-1 表示无限访问次数，0 表示无法访问，非 0 则为设置最大访问次数
+
+- `/chatbox maxTriggerCount reset` 重置最大访问次数

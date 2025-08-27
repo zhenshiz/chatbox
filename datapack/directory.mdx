@@ -1,0 +1,5 @@
+# 数据包路径
+
+ChatBox 将自动加载对话框中对应路径下的Json文件，其中对话框主题的文件路径在 `data/<命名空间>/chatbox/theme/<文件名>.json`，而对话框文本的文件路径在 `data/<命名空间>/chatbox/dialogues/<文件名>.json`。
+
+这些文件都可以通过 `/reload` 指令来重载，只不过重载并不代表目前的文件直接被使用了，你还是需要重新通过指令 `/chatbox theme` 和 `/chatbox skip` 去更新你当前的对话框主题里的参数和对话框的文本。
