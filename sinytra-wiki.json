@@ -3,8 +3,5 @@
   "platforms": {
     "curseforge": "chatbox-for-mc"
   },
-  "modid": "chatbox",
-  "owners": [
-    "EvanHsieh0415"
-  ]
+  "modid": "chatbox"
 }
