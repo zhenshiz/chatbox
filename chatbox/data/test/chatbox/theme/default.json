@@ -118,5 +118,6 @@
     {
       "type": "autoPlay"
     }
-  ]
+  ],
+  "keyPrompt": {}
 }
