@@ -3,5 +3,8 @@
   "platforms": {
     "modrinth": "chatbox"
   },
-  "modid": "chatbox"
+  "modid": "chatbox",
+  "owners": [
+    "EvanHsieh0415"
+  ]
 }
