@@ -15,6 +15,7 @@ import org.watermedia.api.image.ImageAPI;
 import org.watermedia.api.image.ImageRenderer;
 import org.watermedia.api.player.videolan.VideoPlayer;
 import org.watermedia.core.tools.JarTool;
+import org.watermedia.videolan4j.player.base.State;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -36,6 +37,8 @@ public class Video extends AbstractComponent<Video> {
     private boolean started;
     private float volume;
     private final boolean loop;
+    // 是否成功播放，只要视频进入PLAYING状态，就为true，如果出现异常导致视频播放失败，就会在关闭视频时重新开始
+    private boolean success;
 
     // CONTROL
     private final boolean canControl;
@@ -46,6 +49,7 @@ public class Video extends AbstractComponent<Video> {
     private final VideoPlayer player;
 
     // VIDEO INFO
+    private final URI uri;
     int videoTexture = -1;
 
     ImageRenderer IMG_PAUSED = ImageAPI.renderer(JarTool.readImage("/pictures/paused.png"), true);
@@ -58,6 +62,7 @@ public class Video extends AbstractComponent<Video> {
         this.canControl = canControl;
         this.canSkip = canSkip;
         this.loop = loop;
+        this.uri = uri;
 
         this.player = new VideoPlayer(minecraft);
         ChatBox.LOGGER.info("Playing video ({}blocked) ({} with volume: {}", canControl ? "not " : "", uri, (int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
@@ -65,31 +70,39 @@ public class Video extends AbstractComponent<Video> {
         player.setVolume((int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
         started = true;
         player.start(uri);
+        success = false;
     }
 
     public boolean isPlaying() {return started;}
 
+    public State getState() {
+        var raw = player.raw();
+        if (raw == null) return null;
+        return raw.mediaPlayer().status().state();
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        if (!isPlaying()) return;
+
+        if (!success && getState() == State.PLAYING) success = true;
+        tick++;
+        if (player.isEnded() || player.isStopped()) {
+            if (loop) {
+                player.start(uri);
+                return;
+            }
+            stop();
+            return;
+        }
+
         Vec2 pos = getCurrentPosition();
         actualX = getResponsiveWidth(pos.x);
         actualY = getResponsiveHeight(pos.y);
         actualWidth = getResponsiveWidth(width);
         actualHeight = getResponsiveHeight(height);
 
-        // 提前100毫秒循环不了
-        if (loop && player.getTime() >= (player.getDuration() - 500)) {
-            player.seekTo(0);
-        }
-
-        if (player.isEnded() || player.isStopped()) {
-            close();
-            return;
-        }
-        tick++;
-
-        if (isPlaying()) videoTexture = player.preRender();
-        else return;
+        videoTexture = player.preRender();
 
         // RENDER VIDEO
         if (player.isPlaying() || player.isPaused()) {
@@ -252,6 +265,14 @@ public class Video extends AbstractComponent<Video> {
             if (!player.isPaused()) player.pause();
             else player.play();
         }
+    }
+
+    private void stop() {
+        if (!success) { // 如果视频播放失败，就重新开始
+            player.start(uri);
+            return;
+        }
+        close();
     }
 
     public void close() {
