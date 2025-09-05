@@ -376,6 +376,8 @@ public class RenderUtil {
         y = (y / scale);
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
+        // 应用旋转
+        //guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0 ,0, 1, 45), x + width / 2, y + height / 2, 0);
         renderImage(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
         guiGraphics.pose().popPose();
     }
