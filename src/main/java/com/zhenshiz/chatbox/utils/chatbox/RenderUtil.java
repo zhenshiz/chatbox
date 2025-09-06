@@ -390,7 +390,7 @@ public class RenderUtil {
     // image
     public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float uw, float uh, float width, float height, float opacity) {
         GpuTextureView view = minecraft.getTextureManager().getTexture(resourceLocation).getTextureView();
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(view), x, y, width, height, uw, uh, getColor(opacity)));
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(view), x, y, width, height, uw, uh, getColor(opacity), 0));
     }
 
     public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float opacity) {
@@ -402,6 +402,7 @@ public class RenderUtil {
         y = (int) (y / scale);
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(scale, scale);
+        //guiGraphics.pose().rotateAbout((float) Math.toRadians(45), x + (float) size * scale / 2, y + (float) size * scale / 2);
         PlayerFaceRenderer.draw(guiGraphics, getSkin(input), x, y, size, getColor(opacity));
         guiGraphics.pose().popMatrix();
     }

@@ -43,9 +43,9 @@ public record FloatBlitRenderState(
             float x, float y,
             float width, float height,
             float u, float v,
-            int color
+            int color, float angle
     ) {
-        this(pipeline, textureSetup, guiGraphics.pose(), x, y, x + width, y + height, 0, u, 0, v, color, guiGraphics.scissorStack.peek());
+        this(pipeline, textureSetup, new Matrix3x2f(guiGraphics.pose()).rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2), x, y, x + width, y + height, 0, u, 0, v, color, guiGraphics.scissorStack.peek());
     }
 
     @Override
