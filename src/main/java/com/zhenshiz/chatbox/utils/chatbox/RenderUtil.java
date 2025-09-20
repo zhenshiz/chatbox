@@ -357,7 +357,7 @@ public class RenderUtil {
     }
 
     // image
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float uw, float uh, float width, float height) {
+    public static void renderImageInner(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float uw, float uh, float width, float height) {
         BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
         bufferBuilder.addVertex(matrix4f, x, y, z).setUv(0, 0);
@@ -371,14 +371,14 @@ public class RenderUtil {
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale) {
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle) {
         x = (x / scale);
         y = (y / scale);
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
         // 应用旋转
-        //guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0 ,0, 1, 45), x + width / 2, y + height / 2, 0);
-        renderImage(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
+        guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + width / 2, y + height / 2, 0);
+        renderImageInner(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
         guiGraphics.pose().popPose();
     }
 

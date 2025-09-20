@@ -120,7 +120,7 @@ public class ChatBoxScreen extends Screen {
                 return;
             }*/
             if (backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1);
+                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0f);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();

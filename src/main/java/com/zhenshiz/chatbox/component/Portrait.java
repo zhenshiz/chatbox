@@ -1,11 +1,13 @@
 package com.zhenshiz.chatbox.component;
 
+import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -136,18 +138,20 @@ public class Portrait extends AbstractComponent<Portrait> {
         this.targetCustomAnimation.opacity = this.opacity;
     }
 
-    public void setTarget(float x, float y, float scale, float opacity) {
+    public void setTarget(float x, float y, float scale, float opacity, float angle) {
         this.targetCustomAnimation.x = x;
         this.targetCustomAnimation.y = y;
         this.targetCustomAnimation.scale = scale;
         this.targetCustomAnimation.opacity = opacity;
+        this.targetCustomAnimation.angle = angle;
     }
 
-    public void setStart(float x, float y, float scale, float opacity) {
+    public void setStart(float x, float y, float scale, float opacity, float angle) {
         this.startCustomAnimation.x = x;
         this.startCustomAnimation.y = y;
         this.startCustomAnimation.scale = scale;
         this.startCustomAnimation.opacity = opacity;
+        this.startCustomAnimation.angle = angle;
     }
 
     @Override
@@ -204,7 +208,7 @@ public class Portrait extends AbstractComponent<Portrait> {
         if (this.customAnimationIndex == this.customAnimation.size()) {
             if (this.loop) {
                 setCustomAnimationIndex(0);
-                setTarget(this.startCustomAnimation.x, this.startCustomAnimation.y, this.startCustomAnimation.scale, this.startCustomAnimation.opacity);
+                setTarget(this.startCustomAnimation.x, this.startCustomAnimation.y, this.startCustomAnimation.scale, this.startCustomAnimation.opacity, this.startCustomAnimation.angle);
             } else {
                 setIsAnimation(false);
                 return;
@@ -215,8 +219,9 @@ public class Portrait extends AbstractComponent<Portrait> {
         setPosition(EasingUtil.easingFunction(this.targetCustomAnimation.x, customAnimation.x, this.currentAnimationTick, customAnimation.time, customAnimation.easing), EasingUtil.easingFunction(this.targetCustomAnimation.y, customAnimation.y, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
         setScale(EasingUtil.easingFunction(this.targetCustomAnimation.scale, customAnimation.scale, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
         setOpacity(EasingUtil.easingFunction(this.targetCustomAnimation.opacity, customAnimation.opacity, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
+        setAngle(EasingUtil.easingFunction(this.targetCustomAnimation.angle, customAnimation.angle, this.currentAnimationTick, customAnimation.time, customAnimation.easing));
         if (this.currentAnimationTick == customAnimation.time) {
-            setTarget(this.x, this.y, this.scale, this.opacity);
+            setTarget(this.x, this.y, this.scale, this.opacity, this.angle);
             setCustomAnimationIndex(this.customAnimationIndex + 1);
             resetCurrentAnimationTick();
         }
