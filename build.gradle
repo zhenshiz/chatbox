@@ -28,6 +28,10 @@ repositories {
             includeGroup "com.github.rtyley"
         }
     }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
 }
 
 base {
@@ -111,7 +115,7 @@ dependencies {
     implementation "dev.latvian.mods:rhino:${rhino_version}"
     implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
 
-    implementation files("libs/watermedia-2.1.27.jar")
+    compileOnly "maven.modrinth:watermedia:2.1.25"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

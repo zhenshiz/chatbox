@@ -128,7 +128,7 @@ public class ChatBoxUtil {
     public static void toggleTheme(ResourceLocation themeResourceLocation) {
         chatBoxTheme = themeMap.get(themeResourceLocation);
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
-                .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionButtons))
+                .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionalButton))
                 .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
     }
 

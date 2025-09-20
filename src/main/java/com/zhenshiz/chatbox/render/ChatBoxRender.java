@@ -9,6 +9,7 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -23,7 +24,7 @@ import java.util.List;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
-@EventBusSubscriber(modid = ChatBox.MOD_ID)
+@EventBusSubscriber(modid = ChatBox.MOD_ID, value = Dist.CLIENT)
 public class ChatBoxRender {
     //是否打开了对话框
     public static Boolean isOpenChatBox = false;

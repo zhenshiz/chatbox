@@ -20,7 +20,7 @@ public class ChatBoxTheme {
     public Map<String, Portrait> portrait;
     public Option option;
     public DialogBox dialogBox;
-    public List<FunctionButton> functionButtons;
+    public List<FunctionButton> functionalButton;
     public KeyPrompt keyPrompt;
 
     public ChatBoxTheme setDefaultValue() {
@@ -47,10 +47,10 @@ public class ChatBoxTheme {
         this.dialogBox.setDefaultValue();
         this.dialogBox.renderOrder = BeanUtil.getValueOrDefault(this.dialogBox.renderOrder, 0);
 
-        for (FunctionButton button : this.functionButtons) {
+        for (FunctionButton button : this.functionalButton) {
             button.setDefaultValue();
             // 设置默认按钮位置
-            int i = functionButtons.indexOf(button);
+            int i = functionalButton.indexOf(button);
             button.x = (float) ((Objects.equals(button.alignX, AbstractComponent.AlignX.LEFT.name()) ? 5 : -5) * i);
         }
 
