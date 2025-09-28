@@ -89,6 +89,7 @@ public class ChatBoxRender {
                     if (!CollUtil.isEmpty(chatBoxScreen.chatOptions) && chatBoxScreen.dialogBox.isAllOver) {
                         ChatOption chatOption = chatBoxScreen.chatOptions.get(selectIndex);
                         chatOption.click();
+                        selectIndex = 0;
                     }
 
                     chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
@@ -99,7 +100,7 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderKeyInput(InputEvent.MouseScrollingEvent event) {
-        if (isRenderChatBox()) {
+        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
             double scrollDeltaY = event.getScrollDeltaY();
             if (!CollUtil.isEmpty(chatBoxScreen.chatOptions)) {
                 if (scrollDeltaY > 0) {

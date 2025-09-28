@@ -1,12 +1,13 @@
 package com.zhenshiz.chatbox.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
-import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -54,7 +55,42 @@ public class ChatBoxCommand implements ICommand {
                                 .executes(ChatBoxCommand::resetMaxTriggerCount)
                         )
                 )
+                .then(Commands.literal("command")
+                        .then(Commands.literal("nextDialogue")
+                                .executes(ChatBoxCommand::nextDialogue)
+                        )
+                        .then(Commands.literal("autoPlay")
+                                .then(Commands.argument("AutoPlay", BoolArgumentType.bool())
+                                        .executes(ChatBoxCommand::autoPlay)
+                                )
+                        )
+                )
         );
+    }
+
+    private static int autoPlay(CommandContext<CommandSourceStack> context) {
+        boolean autoPlay = BoolArgumentType.getBool(context, "AutoPlay");
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            player.connection.send(new ClientChatBoxPayload.AutoPlayPayload(autoPlay));
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
+    }
+
+    private static int nextDialogue(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            player.connection.send(new ClientChatBoxPayload.NextDialoguePayload());
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
     }
 
     private static int toggleTheme(CommandContext<CommandSourceStack> context) {

@@ -3,8 +3,8 @@ package com.zhenshiz.chatbox.utils.chatbox;
 import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
-import com.zhenshiz.chatbox.payload.c2s.ServerChatBoxPayload;
-import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
+import com.zhenshiz.chatbox.network.c2s.ServerChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
 import dev.latvian.mods.kubejs.typings.Info;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -144,5 +144,15 @@ public class ChatBoxCommandUtil {
     public static void clientResetMaxTriggerCount() {
         if (minecraft.player == null) return;
         minecraft.player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, new ChatBoxTriggerCount.MaxTriggerCount());
+    }
+
+    @Info("跳转下一条对话")
+    public static void clientNextDialogue() {
+        ChatBoxUtil.chatBoxScreen.dialogBox.click(ChatBoxUtil.chatBoxScreen.shouldGotoNext());
+    }
+
+    @Info("开关自动对话")
+    public static void clientAutoPlay(boolean autoPlay) {
+        ChatBoxUtil.chatBoxScreen.autoPlay = autoPlay;
     }
 }
