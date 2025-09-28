@@ -2,7 +2,7 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.payload.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.network.c2s.SendCommandPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;

@@ -11,7 +11,7 @@ import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
-import com.zhenshiz.chatbox.payload.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.network.c2s.SendCommandPayload;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;

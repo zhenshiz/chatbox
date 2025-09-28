@@ -3,7 +3,7 @@ package com.zhenshiz.chatbox.data;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;

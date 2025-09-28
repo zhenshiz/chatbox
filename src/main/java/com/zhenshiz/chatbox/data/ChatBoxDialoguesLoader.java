@@ -9,7 +9,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
-import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;

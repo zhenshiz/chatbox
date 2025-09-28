@@ -3,7 +3,7 @@ package com.zhenshiz.chatbox.event;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
-import com.zhenshiz.chatbox.payload.s2c.ClientChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;

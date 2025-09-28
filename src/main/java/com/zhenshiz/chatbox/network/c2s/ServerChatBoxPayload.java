@@ -1,11 +1,14 @@
-package com.zhenshiz.chatbox.payload.c2s;
+package com.zhenshiz.chatbox.network.c2s;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
 public class ServerChatBoxPayload {
@@ -19,6 +22,11 @@ public class ServerChatBoxPayload {
                 SetMaxTriggerCountPayload::maxTriggerCount,
                 SetMaxTriggerCountPayload::new
         );
+
+        public static void execute(SetMaxTriggerCountPayload payload, IPayloadContext context) {
+            ServerPlayer player = (ServerPlayer) context.player();
+            ChatBoxCommandUtil.serverSetMaxTriggerCount(player, payload.resourceLocation(), payload.maxTriggerCount());
+        }
 
         @Override
         public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
@@ -35,6 +43,11 @@ public class ServerChatBoxPayload {
         }
 
         private void write(FriendlyByteBuf buf) {
+        }
+
+        public static void execute(ResetMaxTriggerCount payload, IPayloadContext context) {
+            ServerPlayer player = (ServerPlayer) context.player();
+            ChatBoxCommandUtil.serverResetMaxTriggerCount(player);
         }
 
         @Override
