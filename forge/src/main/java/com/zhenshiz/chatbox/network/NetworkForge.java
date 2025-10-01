@@ -9,16 +9,21 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class NetworkForge {
     private static final Supplier<String> VERSION = () -> ChatBox.MOD_ID;
     private static final Predicate<String> ACCEPT = version -> version.equals(VERSION.get());
+    private static final Map<Class<? extends CustomPacket>, SimpleChannel> CHANNELS = new HashMap<>();
 
     private static SimpleChannel registerChannel(Class<? extends CustomPacket> packet) {
         try {
-            return NetworkRegistry.newSimpleChannel((ResourceLocation) packet.getField("ID").get(null), VERSION, ACCEPT, ACCEPT);
+            SimpleChannel channel = NetworkRegistry.newSimpleChannel((ResourceLocation) packet.getField("ID").get(null), VERSION, ACCEPT, ACCEPT);
+            CHANNELS.put(packet, channel);
+            return channel;
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
@@ -30,6 +35,8 @@ public class NetworkForge {
             TOGGLE_THEME = registerChannel(ChatBoxPayload.ToggleTheme.class),
             ALL_CHATBOX_THEME_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxThemeToClient.class),
             ALL_CHATBOX_DIALOGUES_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxDialoguesToClient.class),
+            NEXT_DIALOGUE = registerChannel(ChatBoxPayload.NextDialogue.class),
+            AUTO_PLAY = registerChannel(ChatBoxPayload.AutoPlay.class),
 
     SEND_COMMAND = registerChannel(SendCommandPayload.class);
 
@@ -63,6 +70,16 @@ public class NetworkForge {
             ctx.get().setPacketHandled(true);
         });
 
+        NEXT_DIALOGUE.registerMessage(nextId(), ChatBoxPayload.NextDialogue.class, ChatBoxPayload.NextDialogue::encode, ChatBoxPayload.NextDialogue::decode, (packet, ctx) -> {
+            ctx.get().enqueueWork(() -> ChatBoxPayload.NextDialogue.handleOnClient(packet));
+            ctx.get().setPacketHandled(true);
+        });
+
+        AUTO_PLAY.registerMessage(nextId(), ChatBoxPayload.AutoPlay.class, ChatBoxPayload.AutoPlay::encode, ChatBoxPayload.AutoPlay::decode, (packet, ctx) -> {
+            ctx.get().enqueueWork(() -> ChatBoxPayload.AutoPlay.handleOnClient(packet));
+            ctx.get().setPacketHandled(true);
+        });
+
         SEND_COMMAND.registerMessage(nextId(), SendCommandPayload.class, SendCommandPayload::encode, SendCommandPayload::decode, (packet, ctx) -> {
             ctx.get().enqueueWork(() -> {
                 ServerPlayer sender = ctx.get().getSender();
@@ -76,13 +93,6 @@ public class NetworkForge {
     }
 
     public static SimpleChannel getChannel(CustomPacket packet) {
-        if (packet instanceof ChatBoxPayload.OpenScreen) return OPEN_SCREEN;
-        if (packet instanceof ChatBoxPayload.OpenChatBox) return OPEN_CHATBOX;
-        if (packet instanceof ChatBoxPayload.ToggleTheme) return TOGGLE_THEME;
-        if (packet instanceof ChatBoxPayload.AllChatBoxThemeToClient) return ALL_CHATBOX_THEME_TO_CLIENT;
-        if (packet instanceof ChatBoxPayload.AllChatBoxDialoguesToClient) return ALL_CHATBOX_DIALOGUES_TO_CLIENT;
-
-        if (packet instanceof SendCommandPayload) return SEND_COMMAND;
-        throw new IllegalStateException("Unexpected packet: " + packet.id());
+        return CHANNELS.get(packet.getClass());
     }
 }

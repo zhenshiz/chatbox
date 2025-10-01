@@ -37,7 +37,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void clientSkipDialogues(ResourceLocation dialogues, String group) {
-        ChatBoxUtil.skipDialogues(dialogues, group, 0);
+        clientSkipDialogues(dialogues, group, 0);
     }
 
     public static void clientOpenChatBox() {
@@ -50,6 +50,14 @@ public class ChatBoxCommandUtil {
                 ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
             }
         }
+    }
+
+    public static void clientNextDialogue() {
+        ChatBoxUtil.chatBoxScreen.dialogBox.click(ChatBoxUtil.chatBoxScreen.shouldGotoNext());
+    }
+
+    public static void clientAutoPlay(boolean autoPlay) {
+        ChatBoxUtil.chatBoxScreen.autoPlay = autoPlay;
     }
 
 }

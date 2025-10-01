@@ -13,6 +13,7 @@ import java.util.Map;
 import static com.zhenshiz.chatbox.ChatBox.PLATFORM;
 import static com.zhenshiz.chatbox.ChatBox.ResourceLocationMod;
 
+@SuppressWarnings("unused")
 public class ChatBoxPayload {
 
     public record OpenScreen(ResourceLocation dialogues, String group, int index) implements CustomPacket {
@@ -32,7 +33,7 @@ public class ChatBoxPayload {
         }
 
         public static void handleOnClient(OpenScreen packet) {
-            PLATFORM.runOnClient(() -> ChatBoxUtil.skipDialogues(packet.dialogues, packet.group, packet.index));
+            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientSkipDialogues(packet.dialogues, packet.group, packet.index));
         }
     }
 
@@ -109,6 +110,36 @@ public class ChatBoxPayload {
 
         public static void handleOnClient(AllChatBoxDialoguesToClient packet) {
             PLATFORM.runOnClient(() -> ChatBoxUtil.setDialogues(mergeString(packet.dialoguesMap)));
+        }
+    }
+
+    public record NextDialogue() implements CustomPacket {
+        public ResourceLocation id() {return ID;}
+        public static final ResourceLocation ID = ResourceLocationMod("client_next_dialogue");
+
+        public void write(FriendlyByteBuf buf) {}
+
+        public static void encode(NextDialogue packet, FriendlyByteBuf buf) {}
+
+        public static NextDialogue decode(FriendlyByteBuf buf) {return new NextDialogue();}
+
+        public static void handleOnClient(NextDialogue packet) {
+            PLATFORM.runOnClient(ChatBoxCommandUtil::clientNextDialogue);
+        }
+    }
+
+    public record AutoPlay(boolean autoPlay) implements CustomPacket {
+        public ResourceLocation id() {return ID;}
+        public static final ResourceLocation ID = ResourceLocationMod("client_auto_play");
+
+        public void write(FriendlyByteBuf buf) {encode(this, buf);}
+
+        public static void encode(AutoPlay packet, FriendlyByteBuf buf) {buf.writeBoolean(packet.autoPlay);}
+
+        public static AutoPlay decode(FriendlyByteBuf buf) {return new AutoPlay(buf.readBoolean());}
+
+        public static void handleOnClient(AutoPlay packet) {
+            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientAutoPlay(packet.autoPlay));
         }
     }
 

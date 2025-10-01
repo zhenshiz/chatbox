@@ -26,6 +26,10 @@ public class ChatBoxClientFabric implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxThemeToClient.handleOnClient(ChatBoxPayload.AllChatBoxThemeToClient.decode(buf)));
 
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(ChatBoxPayload.AllChatBoxDialoguesToClient.decode(buf)));
+
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.NextDialogue.ID, (client, h, buf, r) -> ChatBoxPayload.NextDialogue.handleOnClient(ChatBoxPayload.NextDialogue.decode(buf)));
+
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AutoPlay.ID, (client, h, buf, r) -> ChatBoxPayload.AutoPlay.handleOnClient(ChatBoxPayload.AutoPlay.decode(buf)));
     }
 
     private void registerRenderEvents() {

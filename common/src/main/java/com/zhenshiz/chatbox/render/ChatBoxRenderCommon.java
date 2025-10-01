@@ -54,7 +54,7 @@ public class ChatBoxRenderCommon {
 
     public static void onKey(int key, int scancode, int action, int modifiers) {
         // System.out.println("key: " + key + " scancode: " + scancode + " action: " + action + " mod: " + modifiers);
-        if (isRenderChatBox()) {
+        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
             //ctrl快进
             if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
                 chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
@@ -72,9 +72,10 @@ public class ChatBoxRenderCommon {
                 if (!CollUtil.isEmpty(chatBoxScreen.chatOptions) && chatBoxScreen.dialogBox.isAllOver) {
                     ChatOption chatOption = chatBoxScreen.chatOptions.get(selectIndex);
                     chatOption.click();
+                    selectIndex = 0;
                 }
 
-                chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
             }
         }
     }

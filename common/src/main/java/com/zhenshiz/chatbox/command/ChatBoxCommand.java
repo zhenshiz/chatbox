@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -57,7 +58,38 @@ public class ChatBoxCommand {
                                 .executes(ChatBoxCommand::resetMaxTriggerCount)
                         )
                 )
+                .then(Commands.literal("command")
+                        .then(Commands.literal("nextDialogue").executes(ChatBoxCommand::nextDialogue))
+                        .then(Commands.literal("autoPlay")
+                                .then(Commands.argument("AutoPlay", BoolArgumentType.bool()).executes(ChatBoxCommand::autoPlay))
+                        )
+                )
         );
+    }
+
+    private static int autoPlay(CommandContext<CommandSourceStack> context) {
+        boolean autoPlay = BoolArgumentType.getBool(context, "AutoPlay");
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.AutoPlay(autoPlay));
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
+    }
+
+    private static int nextDialogue(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.NextDialogue());
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
     }
 
     private static int toggleTheme(CommandContext<CommandSourceStack> context) {
