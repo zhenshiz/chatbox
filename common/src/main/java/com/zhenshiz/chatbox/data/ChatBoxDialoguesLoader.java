@@ -32,7 +32,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
     private static final Map<ResourceLocation, Map<String, Map<String, Criterion>>> dialoguesCriteriaMap = new HashMap<>();
     //记录对话最大触发次数的初始值，用于重设。
     public static final Map<ResourceLocation, Integer> defaultMaxTriggerCount = new HashMap<>();
-    private final LootDataManager lootDataManager = new LootDataManager();
+    private static final LootDataManager lootDataManager = new LootDataManager();
 
     public ChatBoxDialoguesLoader() {
         super(GSON, "chatbox/dialogues");
@@ -42,7 +42,6 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
     protected void apply(@NotNull Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         dialoguesMap.clear();
         resourceLocationJsonElementMap.forEach((resourceLocation, jsonElement) -> dialoguesMap.put(resourceLocation, jsonElement.toString()));
-        setDialogues();
     }
 
     public static <T extends AbstractCriterionTriggerInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {
@@ -73,7 +72,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
         }
     }
 
-    private void setDialogues() {
+    public static void setDialogues() {
         ChatBoxDialoguesLoader.dialoguesMap.forEach((resourceLocation, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
             if (jsonElement == null) return;
