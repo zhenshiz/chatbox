@@ -1,6 +1,9 @@
-package com.zhenshiz.chatbox.payload.s2c;
+package com.zhenshiz.chatbox.network.s2c;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -31,22 +34,27 @@ public class ChatBoxPayload {
         public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return TYPE;
         }
+
+        public static void execute(OpenScreenPayload payload, ClientPlayNetworking.Context context) {
+            ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index());
+        }
     }
 
     public record OpenChatBox() implements CustomPacketPayload {
         public static final Type<OpenChatBox> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_dialog"));
         public static final StreamCodec<FriendlyByteBuf, OpenChatBox> CODEC = StreamCodec.ofMember(OpenChatBox::write, OpenChatBox::new);
 
-        public OpenChatBox(FriendlyByteBuf friendlyByteBuf) {
-            this();
-        }
+        public OpenChatBox(FriendlyByteBuf friendlyByteBuf) {this();}
 
-        private void write(FriendlyByteBuf buf) {
-        }
+        private void write(FriendlyByteBuf buf) {}
 
         @Override
         public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return TYPE;
+        }
+
+        public static void execute(OpenChatBox payload, ClientPlayNetworking.Context context) {
+            ChatBoxCommandUtil.clientOpenChatBox();
         }
     }
 
@@ -61,6 +69,10 @@ public class ChatBoxPayload {
         @Override
         public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return TYPE;
+        }
+
+        public static void execute(ToggleTheme payload, ClientPlayNetworking.Context context) {
+            ChatBoxCommandUtil.clientToggleTheme(payload.theme());
         }
     }
 
@@ -80,6 +92,16 @@ public class ChatBoxPayload {
         public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return TYPE;
         }
+
+        public static void execute(AllChatBoxThemeToClient payload, ClientPlayNetworking.Context context) {
+            ChatBoxUtil.setTheme(mergeString(payload.themeMap()));
+            if (ChatBoxCommandUtil.themeResourceLocation != null) {
+                ResourceLocation theme = ResourceLocation.tryParse(ChatBoxCommandUtil.themeResourceLocation);
+                if (theme != null) {
+                    ChatBoxUtil.toggleTheme(theme);
+                }
+            }
+        }
     }
 
     public record AllChatBoxDialoguesToClient(Map<ResourceLocation, List<String>> dialoguesMap) implements CustomPacketPayload {
@@ -98,5 +120,59 @@ public class ChatBoxPayload {
         public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return TYPE;
         }
+
+        public static void execute(AllChatBoxDialoguesToClient payload, ClientPlayNetworking.Context context) {
+            ChatBoxUtil.setDialogues(mergeString(payload.dialoguesMap()));
+        }
+    }
+
+    public record NextDialoguePayload() implements CustomPacketPayload {
+        public static final Type<NextDialoguePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_next_dialogue"));
+        public static final StreamCodec<FriendlyByteBuf, NextDialoguePayload> CODEC = StreamCodec.ofMember(NextDialoguePayload::write, NextDialoguePayload::new);
+
+        public NextDialoguePayload(FriendlyByteBuf friendlyByteBuf) {this();}
+
+        private void write(FriendlyByteBuf buf) {}
+
+        public static void execute(NextDialoguePayload payload, ClientPlayNetworking.Context context) {
+            ChatBoxCommandUtil.clientNextDialogue();
+        }
+
+        @Override
+        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    public record AutoPlayPayload(boolean autoPlay) implements CustomPacketPayload {
+        public static final Type<AutoPlayPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_auto_play"));
+        public static final StreamCodec<FriendlyByteBuf, AutoPlayPayload> CODEC = StreamCodec.composite(
+                ByteBufCodecs.BOOL,
+                AutoPlayPayload::autoPlay,
+                AutoPlayPayload::new
+        );
+
+        public static void execute(AutoPlayPayload payload, ClientPlayNetworking.Context context) {
+            ChatBoxCommandUtil.clientAutoPlay(payload.autoPlay());
+        }
+
+        @Override
+        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static Map<ResourceLocation, String> mergeString(Map<ResourceLocation, List<String>> map) {
+        Map<ResourceLocation, String> result = new HashMap<>();
+        for (var entry : map.entrySet()) {
+            ResourceLocation rl = entry.getKey();
+            List<String> parts = entry.getValue();
+            StringBuilder builder = new StringBuilder();
+            for (String part : parts) {
+                builder.append(part);
+            }
+            result.put(rl, builder.toString());
+        }
+        return result;
     }
 }

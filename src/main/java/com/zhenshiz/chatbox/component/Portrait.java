@@ -1,13 +1,11 @@
 package com.zhenshiz.chatbox.component;
 
-import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -189,7 +187,13 @@ public class Portrait extends AbstractComponent<Portrait> {
                 }
                 case PLAYER_HEAD -> {
                     if (this.isAnimation) execCustomAnimation();
-                    RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), getValueOrDefault(this.scale, 1f)));
+                    RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> {
+                        RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), getValueOrDefault(this.scale, 1f));
+/*                        int x1 = (int) getResponsiveWidth(x);
+                        int y1 = (int) getResponsiveHeight(y);
+                        int s = 30;// scale != null ? (int) (float) scale : 1;
+                        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, x1, y1, (int) (x1 + getResponsiveWidth(this.width)), (int) (y1 + getResponsiveWidth(this.height)), ChatBoxClient.conf.scale, ChatBoxClient.conf.yOffset, mouseX, mouseY, minecraft.player);*/
+                    });
                 }
                 case ITEM -> {
                     if (this.isAnimation) execCustomAnimation();

@@ -30,7 +30,7 @@ public class ChatBoxTriggerCount extends SavedData {
     public int getPlayerMaxTriggerCount(ServerPlayer player, ResourceLocation rl) {
         setDirty();
         Map<ResourceLocation, Integer> counts = maxTriggerCounts.computeIfAbsent(player.getUUID(), k -> defaultMaxTriggerCount);
-        return counts.getOrDefault(rl, 0);
+        return counts.getOrDefault(rl, defaultMaxTriggerCount.getOrDefault(rl, 0));
     }
 
     public void setPlayerMaxTriggerCount(ServerPlayer player, ResourceLocation rl, int count) {

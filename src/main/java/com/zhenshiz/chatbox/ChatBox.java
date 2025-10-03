@@ -38,13 +38,6 @@ public class ChatBox implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(ChatBoxDialoguesLoader::loadCriteria);
     }
 
-/*    @SubscribeEvent
-    public static void onWorldLoad(LevelEvent.Load event) {
-        LevelAccessor levelAccessor = event.getLevel();
-        //只需要保存在主世界的data目录下即可
-        if (levelAccessor instanceof ServerLevel world && world.dimension() == Level.OVERWORLD) triggerCounts = world.getDataStorage().computeIfAbsent(ChatBoxTriggerCount.factory(world), "chatbox_trigger_count");
-    }*/
-
     public static ResourceLocation ResourceLocationMod(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }

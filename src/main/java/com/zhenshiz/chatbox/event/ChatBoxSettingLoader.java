@@ -2,7 +2,7 @@ package com.zhenshiz.chatbox.event;
 
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -18,14 +18,14 @@ public class ChatBoxSettingLoader {
 
     public static void chatBoxLoader() {
         ResourceManagerHelper resourceManagerHelper = ResourceManagerHelper.get(PackType.SERVER_DATA);
-        resourceManagerHelper.registerReloadListener(ChatBoxThemeLoader.INSTANCE);
-        resourceManagerHelper.registerReloadListener(ChatBoxDialoguesLoader.INSTANCE);
+        resourceManagerHelper.registerReloadListener(new ChatBoxThemeLoader());
+        resourceManagerHelper.registerReloadListener(new ChatBoxDialoguesLoader());
     }
 
     public static void initializeChatBoxScreen(ServerPlayer player) {
         //玩家进入以及重载数据包后，发包到客户端
-        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxThemeToClient(cutString(ChatBoxThemeLoader.INSTANCE.themeMap)));
-        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxDialoguesToClient(cutString(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap)));
+        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxThemeToClient(cutString(ChatBoxThemeLoader.themeMap)));
+        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxDialoguesToClient(cutString(ChatBoxDialoguesLoader.dialoguesMap)));
     }
 
     //由于字符串长度的限制为32767，所以需要把字符串分割成多个字符串，然后再发送给客户端

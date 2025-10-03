@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.zhenshiz.chatbox.component.DialogBox;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +19,7 @@ public class ChatBoxCommandUtil {
         if (player != null) ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
     }
 
-    public static void skipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
         serverSkipDialogues(player, dialogues, group, 0);
     }
 
@@ -37,7 +37,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void clientSkipDialogues(ResourceLocation dialogues, String group) {
-        ChatBoxUtil.skipDialogues(dialogues, group, 0);
+        clientSkipDialogues(dialogues, group, 0);
     }
 
     public static void clientOpenChatBox() {
@@ -50,6 +50,14 @@ public class ChatBoxCommandUtil {
                 ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
             }
         }
+    }
+
+    public static void clientNextDialogue() {
+        ChatBoxUtil.chatBoxScreen.dialogBox.click(ChatBoxUtil.chatBoxScreen.shouldGotoNext());
+    }
+
+    public static void clientAutoPlay(boolean autoPlay) {
+        ChatBoxUtil.chatBoxScreen.autoPlay = autoPlay;
     }
 
 }

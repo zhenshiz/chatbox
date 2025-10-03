@@ -17,8 +17,7 @@ import java.util.Map;
 public class ChatBoxThemeLoader extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
     private static final Gson GSON =
             (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-    public static final ChatBoxThemeLoader INSTANCE = new ChatBoxThemeLoader();
-    public final Map<ResourceLocation, String> themeMap = new HashMap<>();
+    public static final Map<ResourceLocation, String> themeMap = new HashMap<>();
 
     public ChatBoxThemeLoader() {
         super(GSON, "chatbox/theme");

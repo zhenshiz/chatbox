@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -8,7 +9,7 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -26,12 +27,12 @@ public class ChatBoxCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext buildContext, Commands.CommandSelection commandSelection) {
         dispatcher.register(Commands.literal("chatbox").requires(commandSourceStack -> commandSourceStack.hasPermission(2))
                 .then(Commands.literal("theme")
-                        .then(Commands.argument("Theme", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxThemeLoader.INSTANCE.themeMap.keySet(), builder))
+                        .then(Commands.argument("Theme", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxThemeLoader.themeMap.keySet(), builder))
                                 .executes(ChatBoxCommand::toggleTheme)
                         )
                 )
                 .then(Commands.literal("skip")
-                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap.keySet(), builder))
+                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("Group", StringArgumentType.string())
                                         .suggests(((context, builder) -> {
                                             ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
@@ -49,7 +50,7 @@ public class ChatBoxCommand {
                         .executes(ChatBoxCommand::openChatBox)
                 )
                 .then(Commands.literal("maxTriggerCount")
-                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap.keySet(), builder))
+                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("MaxTriggerCount", IntegerArgumentType.integer())
                                         .executes(ChatBoxCommand::setMaxTriggerCount)
                                 )
@@ -58,7 +59,38 @@ public class ChatBoxCommand {
                                 .executes(ChatBoxCommand::resetMaxTriggerCount)
                         )
                 )
+                .then(Commands.literal("command")
+                        .then(Commands.literal("nextDialogue").executes(ChatBoxCommand::nextDialogue))
+                        .then(Commands.literal("autoPlay")
+                                .then(Commands.argument("AutoPlay", BoolArgumentType.bool()).executes(ChatBoxCommand::autoPlay))
+                        )
+                )
         );
+    }
+
+    private static int autoPlay(CommandContext<CommandSourceStack> context) {
+        boolean autoPlay = BoolArgumentType.getBool(context, "AutoPlay");
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            ServerPlayNetworking.send(player, new ChatBoxPayload.AutoPlayPayload(autoPlay));
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
+    }
+
+    private static int nextDialogue(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            ServerPlayNetworking.send(player, new ChatBoxPayload.NextDialoguePayload());
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
     }
 
     private static int toggleTheme(CommandContext<CommandSourceStack> context) {
