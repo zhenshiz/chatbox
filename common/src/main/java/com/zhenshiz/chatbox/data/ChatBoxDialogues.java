@@ -85,15 +85,15 @@ public class ChatBoxDialogues {
 
                     if (portrait != null) {
                         if (!CollUtil.isEmpty(portrait.customAnimation)) {
-                            BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity), portrait.customAnimation.get(0));
+                            BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity, portrait.angle), portrait.customAnimation.get(0));
                             if (portrait.customAnimation.size() > 1) {
                                 for (int i = 1; i < portrait.customAnimation.size(); i++) {
                                     BeanUtil.copyPropertiesIfTargetNull(portrait.customAnimation.get(i - 1), portrait.customAnimation.get(i));
                                 }
                             }
-                            portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                            portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity, portrait.angle);
                             if (portrait.loop)
-                                portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity);
+                                portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity, portrait.angle);
                         } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
                             portrait.setIsAnimation(true).setTarget();
                         }
@@ -186,7 +186,7 @@ public class ChatBoxDialogues {
                     return null;
                 }
                 return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop)
-                        .setDefaultOption(x, y, width, height, AbstractComponent.AlignX.of(alignX), AbstractComponent.AlignY.of(alignY), opacity, renderOrder);
+                        .setDefaultOption(x, y, width, height, AbstractComponent.AlignX.of(alignX), AbstractComponent.AlignY.of(alignY), opacity, renderOrder, angle);
             }
         }
 

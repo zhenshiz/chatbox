@@ -119,14 +119,15 @@ public class ChatBoxScreen extends Screen {
             if (ChatBox.PLATFORM.postRenderEventPre(guiGraphics)) return;
 
             if (backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1);
+                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();
             if (!hideDialogBox) list.add(dialogBox);
             if (video != null) list.add(video);
             if (chatOptions != null && !hideDialogBox) list.addAll(chatOptions);
-            if (portraits != null) list.addAll(portraits);
+            if (portraits != null) list.addAll(hideDialogBox ?
+                    portraits.stream().filter(portrait -> portrait.renderOrder < dialogBox.renderOrder).toList() : portraits);
             if (functionalButtons != null && !hideDialogBox) list.addAll(functionalButtons);
 
             list.sort(Comparator.comparingInt(p -> p.renderOrder));
