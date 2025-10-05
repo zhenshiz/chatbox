@@ -5,6 +5,7 @@ import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
@@ -21,6 +22,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class RenderUtil {
@@ -371,38 +373,50 @@ public class RenderUtil {
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle) {
-        x = (x / scale);
-        y = (y / scale);
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().scale(scale, scale, scale);
         // 应用旋转
         guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + width / 2, y + height / 2, 0);
+        x = (x / scale);
+        y = (y / scale);
+        guiGraphics.pose().scale(scale, scale, scale);
         renderImageInner(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
+        for (var attachment : attachments) {
+            var a = attachment.mapParameter();
+            renderImageInner(guiGraphics, ResourceLocation.parse(a.value), x + a.x, y + a.y, z, 1, 1, a.width, a.height);
+        }
         guiGraphics.pose().popPose();
     }
 
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale) {
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle) {
+        renderImage(guiGraphics, resourceLocation, x, y, z, width, height, scale, angle, List.of());
+    }
+
+    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float angle) {
+        guiGraphics.pose().pushPose();
+        // 应用旋转
+        guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + (float) size / 2, y + (float) size / 2, 0);
         x = (int) (x / scale);
         y = (int) (y / scale);
-        guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
         PlayerFaceRenderer.draw(guiGraphics, getSkin(input), x, y, size);
         guiGraphics.pose().popPose();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, String text) {
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
+        guiGraphics.pose().pushPose();
+        // 应用旋转
+        guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + 16f / 2, y + 16f / 2, 0);
         x = (int) (x / scale);
         y = (int) (y / scale);
-        guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
         guiGraphics.renderItem(item, x, y);
         guiGraphics.renderItemDecorations(minecraft.font, item, x, y, text);
         guiGraphics.pose().popPose();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale) {
-        renderItem(guiGraphics, item, x, y, scale, "");
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
+        renderItem(guiGraphics, item, x, y, scale, angle, "");
     }
 
     // text

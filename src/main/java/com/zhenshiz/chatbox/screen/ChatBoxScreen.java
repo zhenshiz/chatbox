@@ -36,6 +36,8 @@ public class ChatBoxScreen extends Screen {
     public boolean fastForward = false;
     public boolean autoPlay = false;
     public int tickAutoPlay = 20;
+    //是否隐藏对话框，if true，则不渲染对话框、聊天选项、功能按钮，且屏蔽交互
+    public boolean hideDialogBox = false;
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -124,11 +126,12 @@ public class ChatBoxScreen extends Screen {
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();
-            list.add(dialogBox);
+            if (!hideDialogBox) list.add(dialogBox);
             if (video != null) list.add(video);
-            if (chatOptions != null) list.addAll(chatOptions);
-            if (portraits != null) list.addAll(portraits);
-            if (functionalButtons != null) list.addAll(functionalButtons);
+            if (chatOptions != null && !hideDialogBox) list.addAll(chatOptions);
+            if (portraits != null) list.addAll(hideDialogBox ?
+                    portraits.stream().filter(portrait -> portrait.renderOrder < dialogBox.renderOrder).toList() : portraits);
+            if (functionalButtons != null && !hideDialogBox) list.addAll(functionalButtons);
 
             list.sort(Comparator.comparingInt(p -> p.renderOrder));
 
@@ -152,6 +155,15 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (hideDialogBox) {
+            hideDialogBox = false;
+            return true;
+        }
+        if (pButton == 1) { //右键点击，隐藏对话框，同时取消快速播放
+            hideDialogBox = true;
+            fastForward = false;
+            return true;
+        }
         if (pButton == 0) {
             if (dialogBox != null) {
                 fastForward = false;
@@ -178,6 +190,10 @@ public class ChatBoxScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         fastForward = false;
+        if (hideDialogBox) {
+            hideDialogBox = false;
+            return true;
+        }
         //鼠标滚轮向下滚动，操作同左键点击
         if (scrollY < 0 && dialogBox != null) {
             dialogBox.click(shouldGotoNext());
@@ -204,12 +220,14 @@ public class ChatBoxScreen extends Screen {
     public void onClose() {
         autoPlay = false;
         fastForward = false;
+        hideDialogBox = false;
         if (video != null) video.close();
         super.onClose();
     }
 
     @Override
     public void tick() {
+        if (hideDialogBox) return; //如果隐藏对话框，则不tick
         if (!shouldGotoNext()) fastForward = false;
         if (dialogBox != null) {
             dialogBox.tick();

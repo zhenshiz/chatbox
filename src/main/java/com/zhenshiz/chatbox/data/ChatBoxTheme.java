@@ -7,6 +7,7 @@ import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,12 +74,15 @@ public class ChatBoxTheme {
         public Float scale;
         public List<CustomAnimation> customAnimation = new ArrayList<>();
         public Boolean loop;
+        public List<Attachment> attachment = new ArrayList<>();
 
         public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
             com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.customAnimation, this.scale, this.loop);
             switch (portrait.type) {
-                case TEXTURE ->
-                        portrait.createTexture(portrait, this.value, this.animation, this.easing, this.duration).build();
+                case TEXTURE -> {
+                    this.attachment.forEach(Attachment::setDefaultValue);
+                    portrait.createTexture(portrait, this.value, this.animation, this.easing, this.duration, this.attachment).build();
+                }
                 case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value).build();
                 case ITEM -> portrait.createItem(portrait, this.value, this.customItemData).build();
             }
@@ -104,6 +108,26 @@ public class ChatBoxTheme {
                 this.scale = scale;
                 this.opacity = opacity;
                 this.angle = angle;
+            }
+        }
+
+        @AllArgsConstructor @NoArgsConstructor
+        public static class Attachment {
+            public String value;
+            public Float x;
+            public Float y;
+            public Float width;
+            public Float height;
+
+            public void setDefaultValue() {
+                this.x = BeanUtil.getValueOrDefault(this.x, DEFAULT_FLOAT);
+                this.y = BeanUtil.getValueOrDefault(this.y, DEFAULT_FLOAT);
+                this.width = BeanUtil.getValueOrDefault(this.width, DEFAULT_FLOAT);
+                this.height = BeanUtil.getValueOrDefault(this.height, DEFAULT_FLOAT);
+            }
+
+            public Attachment mapParameter() {
+                return new Attachment(this.value, AbstractComponent.getResponsiveWidth(this.x), AbstractComponent.getResponsiveHeight(this.y), AbstractComponent.getResponsiveWidth(this.width), AbstractComponent.getResponsiveHeight(this.height));
             }
         }
     }
@@ -159,7 +183,6 @@ public class ChatBoxTheme {
             this.alignY = BeanUtil.getValueOrDefault(this.alignY, AbstractComponent.AlignY.BOTTOM.name());
             this.opacity = BeanUtil.getValueOrDefault(this.opacity, 100f);
             this.renderOrder = BeanUtil.getValueOrDefault(this.renderOrder, 30);
-            this.angle = BeanUtil.getValueOrDefault(this.angle, 0f);
         }
 
         public static List<FunctionalButton> setFunctionalButtonTheme(List<FunctionButton> functionButtons) {
@@ -210,7 +233,6 @@ public class ChatBoxTheme {
             this.alignX = BeanUtil.getValueOrDefault(this.alignX, AbstractComponent.AlignX.LEFT.name());
             this.alignY = BeanUtil.getValueOrDefault(this.alignY, AbstractComponent.AlignY.TOP.name());
             this.opacity = BeanUtil.getValueOrDefault(this.opacity, 100f);
-            this.angle = BeanUtil.getValueOrDefault(this.angle, DEFAULT_FLOAT);
         }
     }
 }
