@@ -2,21 +2,19 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
+
 public class DialogBox extends AbstractComponent<DialogBox> {
-    private static final Logger log = LogManager.getLogger(DialogBox.class);
     //默认材质
     public ResourceLocation texture;
     //对话框文本
@@ -132,9 +130,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             //全部加载时触发
             if (gotoNext && minecraft.player != null) {
                 //只有没有选项的时候才能通过点击空白处跳转到下一句话
-                setIndex(this.index + 1);
-                ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.group, this.index);
-                ChatBoxUtil.chatBoxScreen.tickAutoPlay = 20;
+                skipDialogues(dialoguesResourceLocation, group, index + 1);
+                chatBoxScreen.tickAutoPlay = 20;
             }
         }
     }
@@ -151,7 +148,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY,float pPartialTick) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         //chatBox image
         if (this.texture != null) renderImage(guiGraphics, this.texture);
 
@@ -173,6 +170,6 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     @Override
     public void render(GuiGraphics guiGraphics, float pPartialTick) {
-        render(guiGraphics,0,0,pPartialTick);
+        render(guiGraphics, 0, 0, pPartialTick);
     }
 }

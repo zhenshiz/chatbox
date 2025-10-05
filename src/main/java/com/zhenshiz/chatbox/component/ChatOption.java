@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.network.c2s.OpenTerraNpcShop;
 import com.zhenshiz.chatbox.network.c2s.SendCommandPayload;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,6 +14,8 @@ import net.minecraft.world.phys.Vec2;
 import org.confluence.terraentity.api.npc.trade.ITradeHolder;
 import org.confluence.terraentity.entity.npc.AbstractTerraNPC;
 import org.confluence.terraentity.mixed.IPlayer;
+
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class ChatOption extends AbstractComponent<ChatOption> {
     //默认材质
@@ -168,14 +169,14 @@ public class ChatOption extends AbstractComponent<ChatOption> {
             //跳转到指定的对话或者其它模块的对话
             if (StrUtil.isEmpty(this.next)) {
                 //跳转下一句话
-                ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.group, this.index + 1);
+                skipDialogues(dialoguesResourceLocation, group, index + 1);
             } else if (StrUtil.isInteger(this.next)) {
                 //如果为数字跳转到指定序号的对话
                 int index = Integer.parseInt(this.next);
-                ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.group, index);
+                skipDialogues(dialoguesResourceLocation, group, index);
             } else {
                 //如果是英文则跳转到指定模块的对话
-                ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.next);
+                skipDialogues(dialoguesResourceLocation, this.next);
             }
 
         }

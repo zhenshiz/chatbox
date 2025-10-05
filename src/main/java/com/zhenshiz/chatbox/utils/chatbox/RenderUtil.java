@@ -5,6 +5,7 @@ import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
@@ -21,6 +22,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class RenderUtil {
@@ -372,13 +374,21 @@ public class RenderUtil {
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale) {
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         x = x / scale;
         y = y / scale;
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
         renderImage(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
+        for (var attachment : attachments) {
+            var a = attachment.mapParameter();
+            renderImage(guiGraphics, ResourceLocation.parse(a.value), x + a.x, y + a.y, z, 1, 1, a.width, a.height);
+        }
         guiGraphics.pose().popPose();
+    }
+
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale) {
+        renderImage(guiGraphics, resourceLocation, x, y, z, width, height, scale, List.of());
     }
 
     public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale) {

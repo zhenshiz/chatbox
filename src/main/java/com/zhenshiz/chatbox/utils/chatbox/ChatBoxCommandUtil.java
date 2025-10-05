@@ -1,6 +1,5 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
-import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.network.c2s.ServerChatBoxPayload;
@@ -13,9 +12,10 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
+
 public class ChatBoxCommandUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
-    public static String themeResourceLocation = null;
 
     @Info("服务端切换对话框主题样式")
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
@@ -73,7 +73,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端切换对话框主题样式")
     public static void clientToggleTheme(ResourceLocation theme) {
-        ChatBoxUtil.toggleTheme(theme);
+        toggleTheme(theme);
         themeResourceLocation = theme.toString();
     }
 
@@ -82,7 +82,7 @@ public class ChatBoxCommandUtil {
         if (minecraft.player == null) return;
 
         //判断该对话是否有触发的次数限制
-        ChatBoxDialogues chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation);
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
         ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
         String resourceLocation = dialoguesResourceLocation.toString();
         Map<String, Integer> triggerCounts = maxTriggerCount.getTriggerCounts();
@@ -96,8 +96,9 @@ public class ChatBoxCommandUtil {
             minecraft.player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(dialoguesResourceLocation, count - 1));
         }
 
-        if (chatBoxDialogues.theme != null) clientToggleTheme(ResourceLocation.parse(chatBoxDialogues.theme));
-        ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
+        String theme = chatBoxDialogues.theme;
+        if (theme != null && !theme.equals(themeResourceLocation)) clientToggleTheme(ResourceLocation.parse(theme));
+        skipDialogues(dialoguesResourceLocation, group, index);
     }
 
     @Info("客户端跳转对话，默认第一句话")
@@ -107,14 +108,8 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端打开对话框，无视最大访问次数")
     public static void clientOpenChatBox() {
-        if (minecraft.player != null) {
-            DialogBox dialogBox = ChatBoxUtil.chatBoxScreen.dialogBox;
-            ResourceLocation dialoguesResourceLocation = dialogBox.dialoguesResourceLocation;
-            String group = dialogBox.group;
-            Integer index = dialogBox.index;
-            if (dialoguesResourceLocation != null && group != null && index != null) {
-                ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
-            }
+        if (minecraft.player != null && dialoguesResourceLocation != null && group != null && index != null) {
+            skipDialogues(dialoguesResourceLocation, group, index);
         }
     }
 
@@ -148,11 +143,11 @@ public class ChatBoxCommandUtil {
 
     @Info("跳转下一条对话")
     public static void clientNextDialogue() {
-        ChatBoxUtil.chatBoxScreen.dialogBox.click(ChatBoxUtil.chatBoxScreen.shouldGotoNext());
+        chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
     }
 
     @Info("开关自动对话")
     public static void clientAutoPlay(boolean autoPlay) {
-        ChatBoxUtil.chatBoxScreen.autoPlay = autoPlay;
+        chatBoxScreen.autoPlay = autoPlay;
     }
 }

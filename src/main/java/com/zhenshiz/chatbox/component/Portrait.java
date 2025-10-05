@@ -4,7 +4,6 @@ import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
-import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,6 +27,9 @@ public class Portrait extends AbstractComponent<Portrait> {
     private final ChatBoxTheme.Portrait.CustomAnimation targetCustomAnimation = new ChatBoxTheme.Portrait.CustomAnimation();
 
     private final ChatBoxTheme.Portrait.CustomAnimation startCustomAnimation = new ChatBoxTheme.Portrait.CustomAnimation();
+    public List<ChatBoxTheme.Portrait.Attachment> attachments;
+    // 立绘id，即主题文件中定义的立绘标识，用于移除立绘
+    public String id;
 
     //是否正在执行动画
     private boolean isAnimation = false;
@@ -44,11 +46,12 @@ public class Portrait extends AbstractComponent<Portrait> {
     }
 
     //texture
-    public Portrait createTexture(Portrait portrait, String value, String animationType, String easing, Integer duration) {
+    public Portrait createTexture(Portrait portrait, String value, String animationType, String easing, Integer duration, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         return portrait.setValue(value)
                 .setAnimationType(animationType)
                 .setEasing(easing)
-                .setDurationAnimationTick(duration);
+                .setDurationAnimationTick(duration)
+                .setAttachment(attachments);
     }
 
     //player_head
@@ -60,6 +63,11 @@ public class Portrait extends AbstractComponent<Portrait> {
     public Portrait createItem(Portrait portrait, String value, Integer customItemData) {
         return portrait.setValue(value)
                 .setCustomItemData(customItemData);
+    }
+
+    public Portrait setAttachment(List<ChatBoxTheme.Portrait.Attachment> attachments) {
+        this.attachments = attachments;
+        return this;
     }
 
     public Portrait setScale(Float scale) {
@@ -180,7 +188,7 @@ public class Portrait extends AbstractComponent<Portrait> {
                             case CUSTOM -> execCustomAnimation();
                         }
                     }
-                    renderImage(guiGraphics, ResourceLocation.parse(this.value), getValueOrDefault(this.scale, 1f));
+                    renderImage(guiGraphics, ResourceLocation.parse(this.value), getValueOrDefault(this.scale, 1f), this.attachments);
                 }
                 case PLAYER_HEAD -> {
                     if (this.isAnimation) execCustomAnimation();

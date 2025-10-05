@@ -95,8 +95,8 @@ public class ClientChatBoxPayload {
 
         public static void execute(AllChatBoxThemeToClient payload, IPayloadContext context) {
             ChatBoxUtil.setTheme(mergeString(payload.themeMap()));
-            if (ChatBoxCommandUtil.themeResourceLocation != null) {
-                ResourceLocation theme = ResourceLocation.tryParse(ChatBoxCommandUtil.themeResourceLocation);
+            if (ChatBoxUtil.themeResourceLocation != null) {
+                ResourceLocation theme = ResourceLocation.tryParse(ChatBoxUtil.themeResourceLocation);
                 if (theme != null) {
                     ChatBoxUtil.toggleTheme(theme);
                 }

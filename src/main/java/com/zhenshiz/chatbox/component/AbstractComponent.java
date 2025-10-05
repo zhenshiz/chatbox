@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.component;
 
+import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.Minecraft;
@@ -7,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 
+import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractComponent<T extends AbstractComponent<T>> {
@@ -27,12 +29,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     public Float opacity;
     //渲染顺序
     public Integer renderOrder;
-    //文本路径
-    public ResourceLocation dialoguesResourceLocation;
-    //文本分组
-    public String group;
-    //文本序号
-    public Integer index;
 
     public static float getResponsiveWidth(float value) {
         return minecraft.getWindow().getGuiScaledWidth() * value / 100;
@@ -76,9 +72,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     public T setAlign(AlignX alignX, AlignY alignY) {
-        if (alignX != null) this.alignX = alignX;
-        if (alignY != null) this.alignY = alignY;
-        return (T) this;
+        return setAlignX(alignX).setAlignY(alignY);
     }
 
     public T setAlignX(AlignX alignX) {
@@ -101,20 +95,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T setDialoguesInfo(ResourceLocation dialoguesResourceLocation, String group, Integer index) {
-        if (dialoguesResourceLocation != null && group != null && index != null) {
-            this.dialoguesResourceLocation = dialoguesResourceLocation;
-            this.group = group;
-            this.index = index;
-        }
-        return (T) this;
-    }
-
-    public T setIndex(int index) {
-        this.index = index;
-        return (T) this;
-    }
-
     public T build() {
         return (T) this;
     }
@@ -128,13 +108,13 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture) {
-        renderImage(guiGraphics, texture, 1f);
+        renderImage(guiGraphics, texture, 1f, List.of());
     }
 
-    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale) {
+    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> {
             Vec2 position = getCurrentPosition();
-            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale);
+            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, attachments);
         });
     }
 
@@ -151,9 +131,11 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return ChatBoxUtil.parseText(input, false);
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY,float pPartialTick){}
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+    }
 
-    public void render(GuiGraphics guiGraphics,float pPartialTick){}
+    public void render(GuiGraphics guiGraphics, float pPartialTick) {
+    }
 
     public enum AlignX {
         LEFT,
