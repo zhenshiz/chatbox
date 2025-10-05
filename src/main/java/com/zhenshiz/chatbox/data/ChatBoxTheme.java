@@ -79,14 +79,14 @@ public class ChatBoxTheme {
         public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
             com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.customAnimation, this.loop, this.scale);
             switch (portrait.type) {
-                case TEXTURE ->{
+                case TEXTURE -> {
                     this.attachment.forEach(Attachment::setDefaultValue);
                     portrait.createTexture(portrait, this.value, this.animation, this.easing, this.duration, this.attachment).build();
                 }
                 case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value).build();
                 case ITEM -> portrait.createItem(portrait, this.value, this.customItemData).build();
             }
-            return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder);
+            return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle);
         }
 
         public static class CustomAnimation {
@@ -96,16 +96,18 @@ public class ChatBoxTheme {
             public Float y;
             public Float scale;
             public Float opacity;
+            public Float angle;
             public EasingUtil.Easing easing;
 
             public CustomAnimation() {
             }
 
-            public CustomAnimation(Float x, Float y, Float scale, Float opacity) {
+            public CustomAnimation(Float x, Float y, Float scale, Float opacity, Float angle) {
                 this.x = x;
                 this.y = y;
                 this.scale = scale;
                 this.opacity = opacity;
+                this.angle = angle;
             }
         }
 
@@ -140,7 +142,7 @@ public class ChatBoxTheme {
         public String textAlign;
 
         public ChatOption setChatOptionTheme(ChatOption chatOption, int index) {
-            return chatOption.setDefaultOption(this.x, this.y + this.height * index, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder)
+            return chatOption.setDefaultOption(this.x, this.y + this.height * index, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
                     .setTextures(this.texture)
                     .setSelectTexture(this.selectTexture)
                     .setLockTexture(this.lockTexture)
@@ -159,7 +161,7 @@ public class ChatBoxTheme {
         public Float textY;
 
         public com.zhenshiz.chatbox.component.DialogBox setDialogBoxTheme(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
-            return dialogBox.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder)
+            return dialogBox.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
                     .setTexture(this.texture)
                     .setNamePosition(this.nameX, this.nameY)
                     .setTextPosition(this.textX, this.textY)
@@ -187,7 +189,7 @@ public class ChatBoxTheme {
         public static List<FunctionalButton> setFunctionalButtonTheme(List<FunctionButton> functionButtons) {
             return functionButtons.stream().map(b ->
                             new FunctionalButton(FunctionalButton.Type.of(b.type))
-                                    .setDefaultOption(b.x, b.y, b.width, b.height, AbstractComponent.AlignX.of(b.alignX), AbstractComponent.AlignY.of(b.alignY), b.opacity, b.renderOrder)
+                                    .setDefaultOption(b.x, b.y, b.width, b.height, AbstractComponent.AlignX.of(b.alignX), AbstractComponent.AlignY.of(b.alignY), b.opacity, b.renderOrder, b.angle)
                                     .setTexture(b.texture).setHoverTexture(b.hoverTexture))
                     .toList();
         }
@@ -222,6 +224,7 @@ public class ChatBoxTheme {
         public String alignY;
         public Float opacity;
         public Integer renderOrder;
+        public Float angle;
 
         public void setDefaultValue() {
             this.x = BeanUtil.getValueOrDefault(this.x, DEFAULT_FLOAT);

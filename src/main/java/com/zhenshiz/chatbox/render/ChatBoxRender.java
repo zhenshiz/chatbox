@@ -42,7 +42,7 @@ public class ChatBoxRender {
             }
 
             if (chatBoxScreen.backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1);
+                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1,0);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();

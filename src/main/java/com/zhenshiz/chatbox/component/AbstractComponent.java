@@ -29,6 +29,8 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     public Float opacity;
     //渲染顺序
     public Integer renderOrder;
+    //旋转角度
+    public Float angle = 0F;
 
     public static float getResponsiveWidth(float value) {
         return minecraft.getWindow().getGuiScaledWidth() * value / 100;
@@ -48,12 +50,13 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         setAlign(AlignX.LEFT, AlignY.TOP);
     }
 
-    public T setDefaultOption(float x, float y, float width, float height, AlignX alignX, AlignY alignY, Float opacity, Integer renderOrder) {
+    public T setDefaultOption(float x, float y, float width, float height, AlignX alignX, AlignY alignY, Float opacity, Integer renderOrder, Float angle) {
         setPosition(x, y);
         setSize(width, height);
         setAlign(alignX, alignY);
         setOpacity(opacity);
         setRenderOrder(renderOrder);
+        setAngle(angle);
         return (T) this;
     }
 
@@ -95,6 +98,11 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
+    public T setAngle(Float angle) {
+        if (angle != null) this.angle = angle;
+        return (T) this;
+    }
+
     public T build() {
         return (T) this;
     }
@@ -114,7 +122,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> {
             Vec2 position = getCurrentPosition();
-            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, attachments);
+            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, angle, attachments);
         });
     }
 
