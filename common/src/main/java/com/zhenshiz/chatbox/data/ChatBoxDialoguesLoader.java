@@ -1,7 +1,10 @@
 package com.zhenshiz.chatbox.data;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.minecraft.advancements.Criterion;
@@ -41,7 +44,11 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(@NotNull Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         dialoguesMap.clear();
+        dialoguesGroupMap.clear();
+        dialoguesCriteriaMap.clear();
+        defaultMaxTriggerCount.clear();
         resourceLocationJsonElementMap.forEach((resourceLocation, jsonElement) -> dialoguesMap.put(resourceLocation, jsonElement.toString()));
+        setDialogues();
     }
 
     public static <T extends AbstractCriterionTriggerInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {
@@ -72,8 +79,8 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
         }
     }
 
-    public static void setDialogues() {
-        ChatBoxDialoguesLoader.dialoguesMap.forEach((resourceLocation, str) -> {
+    private static void setDialogues() {
+        dialoguesMap.forEach((resourceLocation, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
             if (jsonElement == null) return;
             JsonElement dialoguesElement = jsonElement.getAsJsonObject().get("dialogues");

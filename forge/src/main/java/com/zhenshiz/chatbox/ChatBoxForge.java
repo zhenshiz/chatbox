@@ -2,7 +2,6 @@ package com.zhenshiz.chatbox;
 
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
-import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.network.NetworkForge;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -39,7 +38,6 @@ public class ChatBoxForge {
         LevelAccessor levelAccessor = event.getLevel();
         //只需要保存在主世界的data目录下即可
         if (levelAccessor instanceof ServerLevel world && world.dimension() == Level.OVERWORLD) {
-            ChatBoxDialoguesLoader.setDialogues();
             ChatBox.setTriggerCounts(world.getDataStorage().computeIfAbsent(nbt -> ChatBoxTriggerCount.fromNbt(world, nbt), () -> new ChatBoxTriggerCount(world), "chatbox_trigger_count"));
         }
     }

@@ -10,6 +10,7 @@ import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -97,7 +98,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.ToggleTheme(theme));
+            ChatBoxCommandUtil.serverToggleTheme(player, theme);
             context.getSource().sendSuccess(() -> Component.translatable("commands.toggle.theme"), true);
             return 1;
         } else {
@@ -117,7 +118,7 @@ public class ChatBoxCommand {
             int count = counts.getPlayerMaxTriggerCount(player, dialogues);
             if (count != 0) {
                 counts.setPlayerMaxTriggerCount(player, dialogues, count - 1);
-                ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenScreen(dialogues, group, index));
+                ChatBoxCommandUtil.serverSkipDialogues(player, dialogues, group, index);
                 context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             }
             return 1;
@@ -130,7 +131,7 @@ public class ChatBoxCommand {
     private static int openChatBox(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
-            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenChatBox());
+            ChatBoxCommandUtil.serverOpenChatBox(player);
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);

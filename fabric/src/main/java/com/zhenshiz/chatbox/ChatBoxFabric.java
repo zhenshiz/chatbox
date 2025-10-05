@@ -1,7 +1,6 @@
 package com.zhenshiz.chatbox;
 
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
-import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
 import com.zhenshiz.chatbox.network.NetworkFabric;
@@ -19,10 +18,7 @@ public class ChatBoxFabric implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);
         ServerWorldEvents.LOAD.register((server, world) -> {
             //只需要保存在主世界的data目录下即可
-            if (world.dimension() == Level.OVERWORLD) {
-                ChatBoxDialoguesLoader.setDialogues();
-                ChatBox.setTriggerCounts(world.getDataStorage().computeIfAbsent(nbt -> ChatBoxTriggerCount.fromNbt(world, nbt), () -> new ChatBoxTriggerCount(world), "chatbox_trigger_count"));
-            }
+            if (world.dimension() == Level.OVERWORLD) ChatBox.setTriggerCounts(world.getDataStorage().computeIfAbsent(nbt -> ChatBoxTriggerCount.fromNbt(world, nbt), () -> new ChatBoxTriggerCount(world), "chatbox_trigger_count"));
         });
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s, manager, bl) -> s.getPlayerList().getPlayers().forEach(ChatBoxSettingLoader::initializeChatBoxScreen));
     }

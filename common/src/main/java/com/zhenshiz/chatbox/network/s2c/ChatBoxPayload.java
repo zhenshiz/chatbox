@@ -84,8 +84,8 @@ public class ChatBoxPayload {
         public static void handleOnClient(AllChatBoxThemeToClient packet) {
             PLATFORM.runOnClient(() -> {
                 ChatBoxUtil.setTheme(mergeString(packet.themeMap));
-                if (ChatBoxCommandUtil.themeResourceLocation != null) {
-                    ResourceLocation theme = ResourceLocation.tryParse(ChatBoxCommandUtil.themeResourceLocation);
+                if (ChatBoxUtil.themeResourceLocation != null) {
+                    ResourceLocation theme = ResourceLocation.tryParse(ChatBoxUtil.themeResourceLocation);
                     if (theme != null) {
                         ChatBoxUtil.toggleTheme(theme);
                     }

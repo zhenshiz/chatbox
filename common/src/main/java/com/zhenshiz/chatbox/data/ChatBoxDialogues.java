@@ -10,7 +10,6 @@ import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.Score;
 import net.minecraft.world.scores.Scoreboard;
@@ -32,13 +31,8 @@ public class ChatBoxDialogues {
     public Boolean isHistoricalSkip;
     public String theme;
 
-    public void setDefaultValue(ResourceLocation resourceLocation) {
-        for (Map.Entry<String, List<Dialogues>> entry : dialogues.entrySet()) {
-            int index = 0;
-            entry.getValue().forEach(dialogues -> {
-                dialogues.setDefaultValue(resourceLocation, entry.getKey(), index);
-            });
-        }
+    public void setDefaultValue() {
+        dialogues.values().forEach(list -> list.forEach(Dialogues::setDefaultValue));
 
         this.isTranslatable = BeanUtil.getValueOrDefault(this.isTranslatable, false);
         this.isEsc = BeanUtil.getValueOrDefault(this.isEsc, true);
@@ -56,19 +50,25 @@ public class ChatBoxDialogues {
         public String command;
         public String backgroundImage;
         public Video video;
+        public Boolean clearOldPortrait;
+        public List<String> removePortrait;
 
-        public static List<Portrait> setPortraitDialogues(List<Object> portraits, ChatBoxTheme theme) {
-            Map<String, ChatBoxTheme.Portrait> map = theme.portrait;
+        public List<Portrait> setPortraitDialogues(List<Portrait> portraitList) {
+            Map<String, ChatBoxTheme.Portrait> map = ChatBoxUtil.chatBoxTheme.portrait;
+            if (clearOldPortrait) portraitList.clear();
+            else if (!CollUtil.isEmpty(removePortrait)) {
+                portraitList.removeIf(portrait -> removePortrait.contains(portrait.id));
+            }
 
-            List<Portrait> portraitList = new ArrayList<>();
             if (map != null && !map.isEmpty()) {
-                portraits.forEach(p -> {
+                parsePortrait().forEach(p -> {
                     Portrait portrait = null;
-                    if (p instanceof String) {
+                    if (p instanceof String s) {
                         try {
-                            portrait = map.get(p)
+                            portrait = map.get(s)
                                   .setPortraitTheme()
                                   .build();
+                            portrait.id = s;
                         } catch (Exception e) {
                             ChatBox.LOGGER.error("portrait {} not found", p);
                         }
@@ -77,6 +77,7 @@ public class ChatBoxDialogues {
                             portrait = replacePortrait.replace(map.get(replacePortrait.id))
                                   .setPortraitTheme()
                                   .build();
+                            portrait.id = replacePortrait.id;
                         } catch (Exception e) {
                             ChatBox.LOGGER.error("portrait {} not found", replacePortrait.id);
                         }
@@ -103,9 +104,10 @@ public class ChatBoxDialogues {
             return portraitList;
         }
 
-        public static List<Object> parsePortrait(List<JsonElement> jsonElements) {
+        private List<Object> parsePortrait() {
             List<Object> portraitList = new ArrayList<>();
-            for (JsonElement element : jsonElements) {
+            if (CollUtil.isEmpty(portrait)) return portraitList;
+            for (JsonElement element : portrait) {
                 if (element.isJsonPrimitive()) {
                     portraitList.add(element.getAsString());
                 } else if (element.isJsonObject()) {
@@ -116,22 +118,16 @@ public class ChatBoxDialogues {
             return portraitList;
         }
 
-        public void setDefaultValue(ResourceLocation resourceLocation, String group, int index) {
+        public void setDefaultValue() {
             this.sound = BeanUtil.getValueOrDefault(this.sound, "");
             this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
             this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
-
-            this.dialogBox.dialoguesResourceLocation = resourceLocation;
-            this.dialogBox.group = group;
-            this.dialogBox.index = index;
+            this.clearOldPortrait = BeanUtil.getValueOrDefault(this.clearOldPortrait, true);
 
             if (!CollUtil.isEmpty(this.options)) {
                 for (Option option : this.options) {
                     option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
                     option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
-                    option.dialoguesResourceLocation = resourceLocation;
-                    option.group = group;
-                    option.index = index;
                 }
             }
         }
@@ -140,15 +136,9 @@ public class ChatBoxDialogues {
             public String name;
             public String text;
 
-            public ResourceLocation dialoguesResourceLocation;
-            public String group;
-            public Integer index;
-
-            public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, int index, boolean isTranslatable) {
-                this.index = index;
+            public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, boolean isTranslatable) {
                 return dialogBox.setName(this.name, isTranslatable)
                         .setText(this.text, isTranslatable)
-                        .setDialoguesInfo(this.dialoguesResourceLocation, this.group, index)
                         .resetTickCount();
             }
         }
@@ -210,52 +200,6 @@ public class ChatBoxDialogues {
             public Click click = new Click();
             public String tooltip;
 
-            public ResourceLocation dialoguesResourceLocation;
-            public String group;
-            public Integer index;
-
-            public static List<ChatOption> setChatOptionDialogues(ChatBoxTheme theme, ResourceLocation dialoguesResourceLocation, String group, int index, boolean isTranslatable) {
-                List<Dialogues> chatBoxDialogues = ChatBoxUtil.dialoguesMap.get(dialoguesResourceLocation).dialogues.get(group);
-                ClientLevel level = Minecraft.getInstance().level;
-                Scoreboard scoreboard;
-                if (level != null) {
-                    List<ChatOption> chatOptions = new ArrayList<>();
-                    if (index >= 0 && index < chatBoxDialogues.size()) {
-                        Dialogues dialog = chatBoxDialogues.get(index);
-                        int i = -1;
-                        ChatBoxTheme.Option option = theme.option;
-                        for (Option value : dialog.options) {
-                            scoreboard = level.getScoreboard();
-                            Objective objective = scoreboard.getObjective(value.hidden.objective);
-                            Score scoreAccess = null;
-                            if (objective != null) {
-                                scoreAccess = scoreboard.getOrCreatePlayerScore(value.hidden.value, objective);
-                            }
-                            //如果这个选项标记隐藏，那么如果对应的计分板不在或者计分板的值不为1则隐藏这个选项
-                            if (value.isHidden && (scoreAccess == null || scoreAccess.getScore() != 1)) {
-                                continue;
-                            }
-                            i++;
-                            objective = scoreboard.getObjective(value.lock.objective);
-                            if (objective != null) {
-                                scoreAccess = scoreboard.getOrCreatePlayerScore(value.lock.value, objective);
-                            }
-                            ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, isTranslatable)
-                                    .setOptionChat(value.text, isTranslatable)
-                                    //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
-                                    .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.getScore() != 1))
-                                    .setNext(value.next)
-                                    .setClickEvent(value.click.type, value.click.value)
-                                    .setDialoguesInfo(dialoguesResourceLocation, group, index);
-
-                            chatOptions.add(option.setChatOptionTheme(chatOption, i));
-                        }
-                    }
-                    return chatOptions;
-                }
-                return new ArrayList<>();
-            }
-
             public static class Click {
                 public String type;
                 public String value;
@@ -265,6 +209,40 @@ public class ChatBoxDialogues {
                 public String objective;
                 public String value;
             }
+        }
+
+        public List<ChatOption> setChatOptionDialogues(boolean isTranslatable) {
+            List<ChatOption> chatOptions = new ArrayList<>();
+            ClientLevel level = Minecraft.getInstance().level;
+            if (level != null && !CollUtil.isEmpty(this.options)) {
+                int i = -1;
+                for (Option value : this.options) {
+                    Scoreboard scoreboard = level.getScoreboard();
+                    Objective objective = scoreboard.getObjective(value.hidden.objective);
+                    Score scoreAccess = null;
+                    if (objective != null) {
+                        scoreAccess = scoreboard.getOrCreatePlayerScore(value.hidden.value, objective);
+                    }
+                    //如果这个选项标记隐藏，那么如果对应的计分板不在或者计分板的值不为1则隐藏这个选项
+                    if (value.isHidden && (scoreAccess == null || scoreAccess.getScore() != 1)) {
+                        continue;
+                    }
+                    i++;
+                    objective = scoreboard.getObjective(value.lock.objective);
+                    if (objective != null) {
+                        scoreAccess = scoreboard.getOrCreatePlayerScore(value.lock.value, objective);
+                    }
+                    ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, isTranslatable)
+                            .setOptionChat(value.text, isTranslatable)
+                            //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
+                            .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.getScore() != 1))
+                            .setNext(value.next)
+                            .setClickEvent(value.click.type, value.click.value);
+
+                    chatOptions.add(ChatBoxUtil.chatBoxTheme.option.setChatOptionTheme(chatOption, i));
+                }
+            }
+            return chatOptions;
         }
     }
 }

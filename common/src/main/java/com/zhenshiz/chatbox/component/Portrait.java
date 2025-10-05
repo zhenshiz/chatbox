@@ -28,6 +28,9 @@ public class Portrait extends AbstractComponent<Portrait> {
     private final ChatBoxTheme.Portrait.CustomAnimation targetCustomAnimation = new ChatBoxTheme.Portrait.CustomAnimation();
 
     private final ChatBoxTheme.Portrait.CustomAnimation startCustomAnimation = new ChatBoxTheme.Portrait.CustomAnimation();
+    public List<ChatBoxTheme.Portrait.Attachment> attachments;
+    // 立绘id，即主题文件中定义的立绘标识，用于移除立绘
+    public String id;
 
     //是否正在执行动画
     private boolean isAnimation = false;
@@ -44,11 +47,12 @@ public class Portrait extends AbstractComponent<Portrait> {
     }
 
     //texture
-    public Portrait createTexture(Portrait portrait, String value, String animationType, String easing, Integer duration) {
+    public Portrait createTexture(Portrait portrait, String value, String animationType, String easing, Integer duration, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         return portrait.setValue(value)
                 .setAnimationType(animationType)
                 .setEasing(easing)
-                .setDurationAnimationTick(duration);
+                .setDurationAnimationTick(duration)
+                .setAttachment(attachments);
     }
 
     //player_head
@@ -120,6 +124,11 @@ public class Portrait extends AbstractComponent<Portrait> {
         return this;
     }
 
+    public Portrait setAttachment(List<ChatBoxTheme.Portrait.Attachment> attachments) {
+        this.attachments = attachments;
+        return this;
+    }
+
     public Portrait setEasing(EasingUtil.Easing easing) {
         if (easing != null) this.easing = easing;
         return this;
@@ -180,7 +189,7 @@ public class Portrait extends AbstractComponent<Portrait> {
                             case CUSTOM -> execCustomAnimation();
                         }
                     }
-                    renderImage(guiGraphics, new ResourceLocation(this.value), getValueOrDefault(this.scale, 1f));
+                    renderImage(guiGraphics, new ResourceLocation(this.value), getValueOrDefault(this.scale, 1f), this.attachments);
                 }
                 case PLAYER_HEAD -> {
                     if (this.isAnimation) execCustomAnimation();
