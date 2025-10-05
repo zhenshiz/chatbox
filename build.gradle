@@ -32,6 +32,13 @@ repositories {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
     }
+    maven {
+        name = 'GeckoLib'
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup("software.bernie.geckolib")
+        }
+    }
 }
 
 base {
@@ -109,13 +116,14 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-
 dependencies {
     // KubeJS
     implementation "dev.latvian.mods:rhino:${rhino_version}"
     implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
 
-    compileOnly "maven.modrinth:watermedia:2.1.25"
+    compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    compileOnly "maven.modrinth:terra-entity:${terra_entity_version}"
+    compileOnly "maven.modrinth:watermedia:${watermedia_version}"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

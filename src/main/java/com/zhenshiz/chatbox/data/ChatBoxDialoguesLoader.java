@@ -51,6 +51,9 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(@NotNull Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         dialoguesMap.clear();
+        dialoguesGroupMap.clear();
+        criteriaElements.clear();
+        dialoguesCriteriaMap.clear();
         resourceLocationJsonElementMap.forEach(((resourceLocation, jsonElement) -> dialoguesMap.put(resourceLocation, jsonElement.toString())));
 
         //给所有玩家发包

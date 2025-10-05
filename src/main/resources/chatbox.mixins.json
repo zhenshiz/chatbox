@@ -11,7 +11,8 @@
     "MinecraftMixin",
     "MouseHandlerMixin",
     "SoundEngineAccessor",
-    "SoundInstanceAccessor"
+    "SoundInstanceAccessor",
+    "TETradeScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

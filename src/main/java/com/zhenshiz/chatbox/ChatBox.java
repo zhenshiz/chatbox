@@ -76,4 +76,6 @@ public class ChatBox {
     }
 
     public static boolean isWaterMediaLoaded() {return isModLoaded("watermedia");}
+
+    public static boolean isTerraEntityLoaded() {return isModLoaded("terra_entity");}
 }

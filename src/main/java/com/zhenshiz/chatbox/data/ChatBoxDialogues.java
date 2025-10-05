@@ -249,7 +249,7 @@ public class ChatBoxDialogues {
                                     //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
                                     .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.get() != 1))
                                     .setNext(value.next)
-                                    .setClickEvent(value.click.type, value.click.value)
+                                    .setClickEvent(ChatOption.ClickType.of(value.click.type), value.click.value)
                                     .setDialoguesInfo(dialoguesResourceLocation, group, index);
 
                             chatOptions.add(option.setChatOptionTheme(chatOption, i));

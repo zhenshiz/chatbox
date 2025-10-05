@@ -14,12 +14,18 @@ public class Config {
     //对话框主题分支
     public static final ModConfigSpec.BooleanValue isScreen;
 
+    //是否阻拦TerraNpc的对话系统
+    public static ModConfigSpec.BooleanValue isStopTerraDialog = null;
+
     static {
         ModConfigSpec.Builder CONFIG_BUILDER = new ModConfigSpec.Builder();
         CONFIG_BUILDER.push("config");
         historicalScrollSpeed = CONFIG_BUILDER.defineInRange("historical_scroll_speed", 10, 1, Integer.MAX_VALUE);
         soundInterruptionEnabled = CONFIG_BUILDER.define("sound_interruption_enabled", true);
-        isScreen = CONFIG_BUILDER.define("is_screen",true);
+        isScreen = CONFIG_BUILDER.define("is_screen", true);
+        if (ChatBox.isTerraEntityLoaded()) {
+            isStopTerraDialog = CONFIG_BUILDER.define("is_stop_terra_dialog", false);
+        }
         CONFIG_BUILDER.pop();
         CONFIG_SPEC = CONFIG_BUILDER.build();
     }

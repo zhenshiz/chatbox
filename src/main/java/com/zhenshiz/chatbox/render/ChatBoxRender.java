@@ -69,7 +69,7 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderKeyInput(InputEvent.Key event) {
-        if (isRenderChatBox()) {
+        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
             int key = event.getKey();
             if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
                 //ctrl快进
@@ -92,7 +92,8 @@ public class ChatBoxRender {
                         selectIndex = 0;
                     }
 
-                    chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                    if (chatBoxScreen.keyPromptRender.visible)
+                        chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
                 }
             }
         }
@@ -100,7 +101,7 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderKeyInput(InputEvent.MouseScrollingEvent event) {
-        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
+        if (isRenderChatBox() && !chatBoxScreen.chatOptions.isEmpty()) {
             double scrollDeltaY = event.getScrollDeltaY();
             if (!CollUtil.isEmpty(chatBoxScreen.chatOptions)) {
                 if (scrollDeltaY > 0) {
