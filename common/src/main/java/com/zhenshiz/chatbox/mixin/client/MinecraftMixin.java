@@ -1,8 +1,10 @@
 package com.zhenshiz.chatbox.mixin.client;
 
+import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,6 +18,16 @@ public class MinecraftMixin {
         if (ChatBoxRenderCommon.isOpenChatBox && ChatBoxUtil.chatBoxScreen.isEsc) {
             ChatBoxRenderCommon.onClose();
             ci.cancel();
+        }
+    }
+
+    @Inject(method = "setScreen", at = @At(value = "HEAD"), cancellable = true)
+    private void setScreen(Screen screen, CallbackInfo ci) {
+        if (screen == null) return;
+        // 懒得添加依赖，用这种方式阻止吧
+        if (screen.getClass().getName().equals("org.confluence.terraentity.client.gui.container.DialogScreen")
+                || screen.getClass().getName().equals("org.confluence.terraentity.client.gui.container.AnglerDialogScreen")) {
+            if (ChatBoxClient.conf.isStopTerraDialog) ci.cancel();
         }
     }
 }

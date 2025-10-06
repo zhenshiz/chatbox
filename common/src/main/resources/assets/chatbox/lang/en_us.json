@@ -15,6 +15,7 @@
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "Whether to interrupt currently playing sound when no new sound is available",
   "text.autoconfig.chatbox_config.option.isScreen":"Whether it is a screen theme dialog",
   "text.autoconfig.chatbox_config.option.isScreen.@Tooltip":"In screen theme, players can only click options; in non-screen theme, players can move while the dialog is displayed",
+  "text.autoconfig.chatbox_config.option.isStopTerraDialog":"Whether to block TerraNpc's dialogue system",
 
   "chatbox.key.right_click": "Confirm",
   "chatbox.key.scroll": "Toggle options",

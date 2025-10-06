@@ -16,4 +16,6 @@ public class Config implements ConfigData {
     @ConfigEntry.Gui.Tooltip()
     public boolean isScreen = true;
 
+    public boolean isStopTerraDialog = false;
+
 }

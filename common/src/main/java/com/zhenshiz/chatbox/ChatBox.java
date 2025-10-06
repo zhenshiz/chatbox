@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox;
 
 import com.mojang.logging.LogUtils;
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.platform.IPlatformHelper;
 import lombok.Getter;
@@ -15,6 +16,11 @@ public class ChatBox {
     public static final Logger LOGGER = LogUtils.getLogger();
     @Getter @Setter
     private static ChatBoxTriggerCount triggerCounts;
+
+    public static void init() {
+        LOGGER.info("Ciallo～(∠·ω< )⌒★");
+        ChatOptionClickEvent.registerClickEvent(new ChatOptionClickEvent.Command());
+    }
 
     public static final IPlatformHelper PLATFORM = load(IPlatformHelper.class);
 

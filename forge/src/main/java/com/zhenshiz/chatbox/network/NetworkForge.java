@@ -1,10 +1,9 @@
 package com.zhenshiz.chatbox.network;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.network.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -38,7 +37,7 @@ public class NetworkForge {
             NEXT_DIALOGUE = registerChannel(ChatBoxPayload.NextDialogue.class),
             AUTO_PLAY = registerChannel(ChatBoxPayload.AutoPlay.class),
 
-    SEND_COMMAND = registerChannel(SendCommandPayload.class);
+    SEND_CLICK_EVENT = registerChannel(SendClickEvent.class);
 
     private static int id = 0;
     private static int nextId() {return ++id;}
@@ -80,13 +79,10 @@ public class NetworkForge {
             ctx.get().setPacketHandled(true);
         });
 
-        SEND_COMMAND.registerMessage(nextId(), SendCommandPayload.class, SendCommandPayload::encode, SendCommandPayload::decode, (packet, ctx) -> {
+        SEND_CLICK_EVENT.registerMessage(nextId(), SendClickEvent.class, SendClickEvent::encode, SendClickEvent::decode, (packet, ctx) -> {
             ctx.get().enqueueWork(() -> {
                 ServerPlayer sender = ctx.get().getSender();
-                if (sender != null) {
-                    MinecraftServer server = sender.getServer();
-                    SendCommandPayload.handleOnServer(server, sender, packet);
-                }
+                if (sender != null) SendClickEvent.handleOnServer(sender, packet);
             });
             ctx.get().setPacketHandled(true);
         });

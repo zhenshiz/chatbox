@@ -44,6 +44,8 @@ dependencies {
 
     modImplementation "maven.modrinth:rhino:2001.2.3-build.10+forge"
     modImplementation "maven.modrinth:kubejs:2001.6.5-build.16+forge"
+    compileOnly "maven.modrinth:terra-entity:bF4OwSdx"
+    compileOnly "maven.modrinth:geckolib:aVW7Z5da"
 }
 
 processResources {

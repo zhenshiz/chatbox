@@ -1,7 +1,9 @@
 package com.zhenshiz.chatbox;
 
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
+import com.zhenshiz.chatbox.compat.terraentity.TerraEntityShop;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.network.NetworkForge;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -20,6 +22,8 @@ import net.minecraftforge.fml.common.Mod;
 @Mod(ChatBox.MOD_ID)
 public class ChatBoxForge {
     public ChatBoxForge() {
+        ChatBox.init();
+        if (ChatBox.PLATFORM.isModLoaded("terra_entity")) TerraEntityShop.register();
         MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
         MinecraftForge.EVENT_BUS.addListener(this::onWorldLoad);
         NetworkForge.registerHandlers();

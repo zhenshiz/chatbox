@@ -2,7 +2,7 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.network.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
@@ -102,15 +102,11 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     public ChatOption setClickEvent(String type, String value) {
-        if (type != null && value != null) {
+        if (type != null) {
             this.onClickEvent = () -> {
                 if (minecraft.player != null) {
-                    if (type.equals("command")) {
-                        var commands = value.split(";");
-                        for (var command : commands) {
-                            command = command.trim();
-                            if (!command.isBlank()) ChatBox.PLATFORM.sendToServer(new SendCommandPayload(command));
-                        }
+                    if (ChatOptionClickEvent.CLICK_EVENTS.containsKey(type.toUpperCase())) {
+                        ChatOptionClickEvent.CLICK_EVENTS.get(type.toUpperCase()).execute(value == null ? "" : value);
                     }
                 }
             };

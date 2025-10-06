@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 public class ChatBoxFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        ChatBox.init();
         ChatBoxSettingLoader.chatBoxLoader();
         NetworkFabric.registerServerHandlers();
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);

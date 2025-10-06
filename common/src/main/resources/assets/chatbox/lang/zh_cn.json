@@ -15,6 +15,7 @@
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "下句话如果没有新音效，是否中断前面正在播放的音效",
   "text.autoconfig.chatbox_config.option.isScreen":"是否为屏幕主题对话框",
   "text.autoconfig.chatbox_config.option.isScreen.@Tooltip":"屏幕主题可以让鼠标点击选项，非屏幕主题玩家可以在显示对话框的时候移动",
+  "text.autoconfig.chatbox_config.option.isStopTerraDialog":"是否阻拦TerraNpc的对话系统",
 
   "chatbox.key.right_click": "确定",
   "chatbox.key.scroll": "切换选项",
