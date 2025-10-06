@@ -42,7 +42,7 @@ public interface ChatOptionClickEvent {
             }
 
             public boolean shouldExecuteOnServer() {
-                return shouldExecuteOnServer.get();
+                return shouldExecuteOnServer;
             }
 
             public void executeOnServer(ServerPlayer player, String value) {
