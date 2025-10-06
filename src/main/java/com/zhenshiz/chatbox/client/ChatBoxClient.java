@@ -32,6 +32,10 @@ public class ChatBoxClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.TYPE, ChatBoxPayload.AllChatBoxThemeToClient::execute);
 
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ChatBoxPayload.AllChatBoxDialoguesToClient::execute);
+
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.NextDialoguePayload.TYPE, ChatBoxPayload.NextDialoguePayload::execute);
+
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AutoPlayPayload.TYPE, ChatBoxPayload.AutoPlayPayload::execute);
     }
 
     private void registerRenderEvents() {
