@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.network.c2s.ServerChatBoxPayload;
@@ -11,6 +12,8 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
@@ -149,5 +152,10 @@ public class ChatBoxCommandUtil {
     @Info("开关自动对话")
     public static void clientAutoPlay(boolean autoPlay) {
         chatBoxScreen.autoPlay = autoPlay;
+    }
+
+    @Info("注册一个选项点击事件")
+    public static void registerClickEvent(String type, Consumer<String> executeOnClient, Boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
+        ChatOptionClickEvent.registerClickEvent(type, executeOnClient, shouldExecuteOnServer, executeOnServer);
     }
 }

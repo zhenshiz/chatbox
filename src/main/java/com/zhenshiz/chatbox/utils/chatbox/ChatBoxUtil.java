@@ -12,7 +12,7 @@ import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
-import com.zhenshiz.chatbox.network.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
@@ -118,13 +118,8 @@ public class ChatBoxUtil {
                         .setText(dialogBox.text, isTranslatable)
                 );
                 //进入对话执行自定义指令
-                if (dialog.command != null) {
-                    String[] commands = dialog.command.split(";");
-                    for (String command : commands) {
-                        command = command.trim();
-                        if (!command.isBlank()) minecraft.player.connection.send(new SendCommandPayload(command));
-                    }
-                }
+                if (dialog.command != null)
+                    minecraft.player.connection.send(new SendClickEvent("COMMAND", dialog.command));
                 //播放音乐
                 ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialog.sound);
                 //下一首音乐存在的情况

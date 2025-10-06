@@ -2,8 +2,7 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.network.c2s.OpenTerraNpcShop;
-import com.zhenshiz.chatbox.network.c2s.SendCommandPayload;
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
@@ -11,9 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
-import org.confluence.terraentity.api.npc.trade.ITradeHolder;
-import org.confluence.terraentity.entity.npc.AbstractTerraNPC;
-import org.confluence.terraentity.mixed.IPlayer;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
@@ -106,29 +102,12 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
-    public ChatOption setClickEvent(ClickType type, String value) {
+    public ChatOption setClickEvent(String type, String value) {
         if (type != null) {
             this.onClickEvent = () -> {
                 if (minecraft.player != null) {
-                    switch (type) {
-                        case COMMAND -> {
-                            if (value != null) {
-                                String[] commands = value.split(";");
-                                for (String command : commands) {
-                                    command = command.trim();
-                                    if (!command.isBlank())
-                                        minecraft.player.connection.send(new SendCommandPayload(command));
-                                }
-                            }
-                        }
-                        case TERRA_ENTITY_SHOP -> {
-                            if (ChatBox.isTerraEntityLoaded()) {
-                                ITradeHolder iTradeHolder = ((IPlayer) minecraft.player).terra_entity$getTradeHolder();
-                                if (iTradeHolder instanceof AbstractTerraNPC npc) {
-                                    minecraft.player.connection.send(new OpenTerraNpcShop());
-                                }
-                            }
-                        }
+                    if (ChatOptionClickEvent.CLICK_EVENTS.containsKey(type.toUpperCase())) {
+                        ChatOptionClickEvent.CLICK_EVENTS.get(type.toUpperCase()).execute(value == null ? "" : value);
                     }
                 }
             };
@@ -258,18 +237,6 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
         public static TextAlign of(String text) {
             if (text == null) return TextAlign.LEFT;
-            return valueOf(text.toUpperCase());
-        }
-    }
-
-    public enum ClickType {
-        //执行指令
-        COMMAND,
-        //打开泰拉生物的NPC商店
-        TERRA_ENTITY_SHOP;
-
-        public static ClickType of(String text) {
-            if (text == null) return ClickType.COMMAND;
             return valueOf(text.toUpperCase());
         }
     }

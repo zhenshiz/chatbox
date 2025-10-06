@@ -2,6 +2,9 @@ package com.zhenshiz.chatbox;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.api.Command;
+import com.zhenshiz.chatbox.api.OpenTerraShopEvent;
 import com.zhenshiz.chatbox.command.ICommand;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -35,11 +38,17 @@ public class ChatBox {
     public ChatBox(IEventBus modEventBus, ModContainer modContainer, Dist dist) {
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
         ChatBoxTriggerCount.ATTACHMENT_TYPES.register(modEventBus);
+        this.registerClickEvents();
 
         if (dist == Dist.CLIENT) {
             modContainer.registerConfig(ModConfig.Type.COMMON, Config.CONFIG_SPEC, StrUtil.format("{}_config.toml", MOD_ID));
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         }
+    }
+
+    private void registerClickEvents() {
+        ChatOptionClickEvent.registerClickEvent(new Command());
+        if (ChatBox.isTerraEntityLoaded()) ChatOptionClickEvent.registerClickEvent(new OpenTerraShopEvent());
     }
 
     //注册指令
@@ -75,7 +84,11 @@ public class ChatBox {
         return ModList.get().isLoaded(modId);
     }
 
-    public static boolean isWaterMediaLoaded() {return isModLoaded("watermedia");}
+    public static boolean isWaterMediaLoaded() {
+        return isModLoaded("watermedia");
+    }
 
-    public static boolean isTerraEntityLoaded() {return isModLoaded("terra_entity");}
+    public static boolean isTerraEntityLoaded() {
+        return isModLoaded("terra_entity");
+    }
 }
