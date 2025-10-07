@@ -18,8 +18,6 @@ import java.util.function.Consumer;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class ChatBoxCommandUtil {
-    private static final Minecraft minecraft = Minecraft.getInstance();
-
     @Info("服务端切换对话框主题样式")
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
         if (player != null) player.connection.send(new ClientChatBoxPayload.ToggleTheme(theme));
@@ -82,6 +80,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端跳转对话，自带同步数据附件")
     public static void clientSkipDialogues(ResourceLocation dialoguesResourceLocation, String group, Integer index) {
+        Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
 
         //判断该对话是否有触发的次数限制
@@ -111,7 +110,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端打开对话框，无视最大访问次数")
     public static void clientOpenChatBox() {
-        if (minecraft.player != null && dialoguesResourceLocation != null && group != null && index != null) {
+        if (Minecraft.getInstance().player != null && dialoguesResourceLocation != null && group != null && index != null) {
             skipDialogues(dialoguesResourceLocation, group, index);
         }
     }
@@ -124,6 +123,7 @@ public class ChatBoxCommandUtil {
             player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(ResourceLocation,int));
             """)
     public static void clientSetMaxTriggerCount(ResourceLocation dialogResourceLocation, int count) {
+        Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
         ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
         String resourceLocation = dialogResourceLocation.toString();
@@ -140,6 +140,7 @@ public class ChatBoxCommandUtil {
             player.connection.send(new ServerChatBoxPayload.ResetMaxTriggerCount());
             """)
     public static void clientResetMaxTriggerCount() {
+        Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
         minecraft.player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, new ChatBoxTriggerCount.MaxTriggerCount());
     }

@@ -61,7 +61,7 @@ public class ChatBoxUtil {
         List<Portrait> portraits = chatBoxScreen.portraits;
         List<ChatBoxDialogues.Dialogues> dialogues = dialoguesMap.get(newRl).dialogues.get(newGroup);
         // 如果恰好是下一句对话，直接设置
-        if (dialoguesResourceLocation == null || group == null || index == null ||
+        if (dialoguesResourceLocation != null && group != null && index != null &&
                 newRl == dialoguesResourceLocation && Objects.equals(newGroup, group) && newIndex == index + 1) {
             return dialogues.get(newIndex).setPortraitDialogues(portraits);
         }

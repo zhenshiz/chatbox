@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * 选项点击事件，用于在对话中的选项被点击时触发自定义操作
@@ -20,7 +19,7 @@ public interface ChatOptionClickEvent {
      * 注册一个选项点击事件，必须要在mod主类中被调用才能生效
      */
     static void registerClickEvent(ChatOptionClickEvent event) {
-        CLICK_EVENTS.put(event.getType(), event);
+        CLICK_EVENTS.put(event.getType().toUpperCase(), event);
     }
 
     /**
@@ -80,7 +79,7 @@ public interface ChatOptionClickEvent {
         executeOnClient(value);
         var player = Minecraft.getInstance().player;
         if (shouldExecuteOnServer() && player != null) {
-            player.connection.send(new SendClickEvent(getType(), value));
+            player.connection.send(new SendClickEvent(getType().toUpperCase(), value));
         }
     }
 }
