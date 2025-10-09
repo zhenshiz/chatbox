@@ -1,15 +1,17 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class ChatBoxCommandUtil {
-    private static final Minecraft minecraft = Minecraft.getInstance();
 
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
         if (player != null) ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.ToggleTheme(theme));
@@ -41,7 +43,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void clientOpenChatBox() {
-        if (minecraft.player != null && dialoguesResourceLocation != null && group != null && index != null) {
+        if (dialoguesResourceLocation != null && group != null && index != null) {
             skipDialogues(dialoguesResourceLocation, group, index);
         }
     }
@@ -52,6 +54,10 @@ public class ChatBoxCommandUtil {
 
     public static void clientAutoPlay(boolean autoPlay) {
         chatBoxScreen.autoPlay = autoPlay;
+    }
+
+    public static void registerClickEvent(String type, Consumer<String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
+        ChatOptionClickEvent.registerClickEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
     }
 
 }

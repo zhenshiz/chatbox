@@ -1,6 +1,5 @@
 package com.zhenshiz.chatbox;
 
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.compat.terraentity.TerraEntityShop;

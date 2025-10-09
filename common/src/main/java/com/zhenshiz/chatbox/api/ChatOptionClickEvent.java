@@ -22,15 +22,15 @@ public interface ChatOptionClickEvent {
 
     /**注册一个选项点击事件，必须要在mod主类中被调用才能生效*/
     static void registerClickEvent(ChatOptionClickEvent event) {
-        CLICK_EVENTS.put(event.getType(), event);
+        CLICK_EVENTS.put(event.getType().toUpperCase(), event);
     }
 
     /**
      * 注册一个选项点击事件，必须要在mod主类中被调用才能生效
-     * @param type 点击事件类型id，英文字母必须全部大写
-     * @param executeOnClient 选项点击事件触发时，在客户端执行的操作
+     * @param type                  点击事件类型id，英文字母无视大小写
+     * @param executeOnClient       选项点击事件触发时，在客户端执行的操作
      * @param shouldExecuteOnServer 选项点击事件触发时，是否需要在服务端执行操作
-     * @param executeOnServer 选项点击事件触发时，在服务端执行的操作
+     * @param executeOnServer       选项点击事件触发时，在服务端执行的操作
      */
     static void registerClickEvent(String type, Consumer<String> executeOnClient, Supplier<Boolean> shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
         registerClickEvent(new ChatOptionClickEvent() {
@@ -41,7 +41,7 @@ public interface ChatOptionClickEvent {
         });
     }
 
-    /**@return 点击事件类型id，英文字母必须全部大写*/
+    /**@return 点击事件类型id，英文字母无视大小写*/
     String getType();
 
     /**选项点击事件触发时，在客户端执行的操作*/
@@ -60,7 +60,7 @@ public interface ChatOptionClickEvent {
     default void execute(String value) {
         executeOnClient(value);
         if (shouldExecuteOnServer()) {
-            ChatBox.PLATFORM.sendToServer(new SendClickEvent(getType(), value));
+            ChatBox.PLATFORM.sendToServer(new SendClickEvent(getType().toUpperCase(), value));
         }
     }
 

@@ -118,5 +118,37 @@
     {
       "type": "autoPlay"
     }
-  ]
+  ],
+  "customAnimation": {
+    "FADE_IN": [
+      {
+        "time": 1,
+        "opacity": 0
+      },
+      {
+        "time": 30,
+        "opacity": 100,
+        "easing": "EASE_OUT_SINE"
+      }
+    ],
+    "SLIDE_IN_FROM_BOTTOM": [
+      {
+        "time": 30,
+        "yOffset": -5,
+        "easing": "EASE_OUT_SINE"
+      }
+    ],
+    "BOUNCE": [
+      {
+        "time": 15,
+        "yOffset": -5,
+        "easing": "EASE_OUT_SINE"
+      },
+      {
+        "time": 15,
+        "yOffset": 5,
+        "easing": "EASE_OUT_SINE"
+      }
+    ]
+  }
 }

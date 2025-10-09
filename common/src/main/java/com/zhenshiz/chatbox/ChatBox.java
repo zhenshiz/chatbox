@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 
 import java.util.ServiceLoader;
 
+@SuppressWarnings({"SameParameterValue", "BooleanMethodIsAlwaysInverted"})
 public class ChatBox {
     public static final String MOD_ID = "chatbox";
     public static final Logger LOGGER = LogUtils.getLogger();
