@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public class ChatBox implements ModInitializer {
     public static final String MOD_ID = "chatbox";
     public static final Logger LOGGER = LogUtils.getLogger();

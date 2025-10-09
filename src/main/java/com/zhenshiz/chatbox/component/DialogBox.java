@@ -48,7 +48,6 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         setAllOver(false);
         resetTickCount();
         this.textBuffer = new String[]{""};
-        defaultOption();
     }
 
     public DialogBox setTexture(ResourceLocation texture) {
