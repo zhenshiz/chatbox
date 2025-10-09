@@ -178,7 +178,7 @@ public class Portrait extends AbstractComponent<Portrait> {
                 if (this.loop) {
                     setCustomAnimationIndex(0);
                     setTarget(this.startCustomAnimation.x, this.startCustomAnimation.y, this.startCustomAnimation.scale, this.startCustomAnimation.opacity, this.startCustomAnimation.angle);
-                    // 由于我修改了执行动画的逻辑，现在不需要给动画设置初始值了，但是在循环播放时需要重设立绘的初始位置
+                    // 由于我修改了执行动画的逻辑，现在不需要给动画设置初始值了，但是在循环播放时需要重设立绘的初始参数
                     setPosition(this.startCustomAnimation.x, this.startCustomAnimation.y);
                     setScale(this.startCustomAnimation.scale);
                     setOpacity(this.startCustomAnimation.opacity);

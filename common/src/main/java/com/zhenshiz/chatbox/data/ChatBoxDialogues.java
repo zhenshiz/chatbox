@@ -50,7 +50,7 @@ public class ChatBoxDialogues {
                 portraitList.removeIf(portrait -> removePortrait.contains(portrait.id));
             }
 
-            if (!CollUtil.isEmpty(portrait)) {
+            if (map != null && !map.isEmpty()) {
                 parsePortrait().forEach(p -> {
                     Portrait portrait = null;
                     if (p instanceof String s) {
