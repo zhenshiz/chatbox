@@ -9,6 +9,7 @@
   "chatbox.configuration.config": "ChatBox Mod Config Screen",
   "chatbox.configuration.historical_scroll_speed": "The speed of the historical record interface scroll wheel",
   "chatbox.configuration.sound_interruption_enabled": "Whether to interrupt currently playing sound when no new sound is available",
+  "chatbox.configuration.charPerSecond": "Characters displayed per second",
   "chatbox.configuration.is_stop_terra_dialog": "Whether to block TerraNpc's dialogue system",
 
   "chatbox.key.right_click": "Confirm",

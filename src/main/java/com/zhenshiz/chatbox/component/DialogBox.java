@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.locale.Language;
@@ -37,6 +38,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public boolean isAllOver;
     public int tickCount;
     private String[] textBuffer;
+    private int charIndex;
 
     public DialogBox() {
         setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
@@ -64,6 +66,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public DialogBox setText(String text, boolean isTranslatable) {
         if (text != null) {
             this.text = isTranslatable ? Language.getInstance().getOrDefault(text) : text;
+            if (ChatBox.isTextAnimatorLoaded()) this.text = this.text.replaceAll("<typewriter>", "");
             textToTextBuffer();
         }
         return this;
@@ -98,6 +101,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox resetTickCount() {
         this.tickCount = 0;
+        this.charIndex = 0;
         return this;
     }
 
@@ -133,7 +137,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public void click(boolean gotoNext) {
         if (!this.isAllOver) {
             //未全部加载时，点击显示所有文本
-            this.tickCount = this.textBuffer.length - 1;
+            this.charIndex = this.textBuffer.length - 1;
             setAllOver(true);
         } else {
             //全部加载时触发
@@ -148,11 +152,15 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public void tick() {
         if (!this.isAllOver) {
             //未全部加载，开始加载
-            if (this.tickCount == this.textBuffer.length - 1) {
+            if (this.charIndex == this.textBuffer.length - 1) {
                 setAllOver(true);
                 return;
             }
             this.tickCount++;
+            float charPerTick = Config.charPerSecond.get() / 20f;
+            if (tickCount * charPerTick >= charIndex + 1) {
+                charIndex = Math.min((int) (tickCount * charPerTick), this.textBuffer.length - 1);
+            }
         }
     }
 
@@ -172,9 +180,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(StrUtil.format("[{}]", name.getString()))), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
         if (StrUtil.isNotEmpty(this.text)) {
-            String str = parseText(this.textBuffer[this.tickCount]);
-            if (ChatBox.isTextAnimatorLoaded()) str = str.replaceAll("<typewriter>", "");
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(str), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.charIndex])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
         poseStack.popPose();
     }
