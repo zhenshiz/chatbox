@@ -64,8 +64,26 @@ public class ChatBoxCommand implements ICommand {
                                         .executes(ChatBoxCommand::autoPlay)
                                 )
                         )
+                        .then(Commands.literal("isScreen")
+                                .then(Commands.argument("IsScreen", BoolArgumentType.bool())
+                                        .executes(ChatBoxCommand::toggleIsScreen)
+                                )
+                        )
                 )
         );
+    }
+
+    private static int toggleIsScreen(CommandContext<CommandSourceStack> context) {
+        boolean isScreen = BoolArgumentType.getBool(context, "IsScreen");
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            player.connection.send(new ClientChatBoxPayload.ToggleIsScreenPayload(isScreen));
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
     }
 
     private static int autoPlay(CommandContext<CommandSourceStack> context) {

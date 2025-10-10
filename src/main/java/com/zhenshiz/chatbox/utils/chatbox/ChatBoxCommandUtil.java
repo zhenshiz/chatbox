@@ -159,4 +159,9 @@ public class ChatBoxCommandUtil {
     public static void registerClickEvent(String type, Consumer<String> executeOnClient, Boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
         ChatOptionClickEvent.registerClickEvent(type, executeOnClient, shouldExecuteOnServer, executeOnServer);
     }
+
+    @Info("切换对话框是否为屏幕")
+    public static void clientToggleIsScreen(boolean isScreen) {
+        ChatBoxUtil.isScreen = isScreen;
+    }
 }

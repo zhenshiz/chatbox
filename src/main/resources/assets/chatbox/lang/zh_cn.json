@@ -9,7 +9,6 @@
   "chatbox.configuration.config": "ChatBox模组配置",
   "chatbox.configuration.historical_scroll_speed": "历史记录界面滚轮速度",
   "chatbox.configuration.sound_interruption_enabled": "下句话如果没有新音效，是否中断前面正在播放的音效",
-  "chatbox.configuration.is_screen":"是否为屏幕主题对话框（屏幕主题可以让鼠标点击选项，非屏幕主题玩家可以在显示对话框的时候移动）",
   "chatbox.configuration.is_stop_terra_dialog": "是否阻拦TerraNpc的对话系统",
 
   "chatbox.key.right_click": "确定",

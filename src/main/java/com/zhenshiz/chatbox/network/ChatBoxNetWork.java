@@ -25,6 +25,7 @@ public class ChatBoxNetWork {
         registrar.playToClient(ClientChatBoxPayload.ResetMaxTriggerCount.TYPE, ClientChatBoxPayload.ResetMaxTriggerCount.CODEC, ClientChatBoxPayload.ResetMaxTriggerCount::execute);
         registrar.playToClient(ClientChatBoxPayload.AutoPlayPayload.TYPE, ClientChatBoxPayload.AutoPlayPayload.CODEC, ClientChatBoxPayload.AutoPlayPayload::execute);
         registrar.playToClient(ClientChatBoxPayload.NextDialoguePayload.TYPE, ClientChatBoxPayload.NextDialoguePayload.CODEC, ClientChatBoxPayload.NextDialoguePayload::execute);
+        registrar.playToClient(ClientChatBoxPayload.ToggleIsScreenPayload.TYPE, ClientChatBoxPayload.ToggleIsScreenPayload.CODEC, ClientChatBoxPayload.ToggleIsScreenPayload::execute);
 
         //c2s
         registrar.playToServer(ServerChatBoxPayload.SetMaxTriggerCountPayload.TYPE, ServerChatBoxPayload.SetMaxTriggerCountPayload.CODEC, ServerChatBoxPayload.SetMaxTriggerCountPayload::execute);

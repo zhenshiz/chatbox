@@ -11,9 +11,6 @@ public class Config {
     //下句话如果没有新音效，是否中断前面正在播放的音效
     public static final ModConfigSpec.BooleanValue soundInterruptionEnabled;
 
-    //对话框主题分支
-    public static final ModConfigSpec.BooleanValue isScreen;
-
     //是否阻拦TerraNpc的对话系统
     public static ModConfigSpec.BooleanValue isStopTerraDialog = null;
 
@@ -22,7 +19,6 @@ public class Config {
         CONFIG_BUILDER.push("config");
         historicalScrollSpeed = CONFIG_BUILDER.defineInRange("historical_scroll_speed", 10, 1, Integer.MAX_VALUE);
         soundInterruptionEnabled = CONFIG_BUILDER.define("sound_interruption_enabled", true);
-        isScreen = CONFIG_BUILDER.define("is_screen", true);
         if (ChatBox.isTerraEntityLoaded()) {
             isStopTerraDialog = CONFIG_BUILDER.define("is_stop_terra_dialog", false);
         }

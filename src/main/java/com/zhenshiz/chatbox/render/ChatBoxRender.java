@@ -5,6 +5,7 @@ import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
@@ -123,7 +124,7 @@ public class ChatBoxRender {
     }
 
     private static boolean isRenderChatBox() {
-        return !Config.isScreen.get() && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
+        return !ChatBoxUtil.isScreen && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
     }
 
     //关闭对话框

@@ -7,6 +7,7 @@ import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -246,5 +247,23 @@ public class ClientChatBoxPayload {
             result.put(rl, builder.toString());
         }
         return result;
+    }
+
+    public record ToggleIsScreenPayload(boolean isScreen) implements CustomPacketPayload {
+        public static final Type<ToggleIsScreenPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_toggle_is_screen"));
+        public static final StreamCodec<FriendlyByteBuf, ToggleIsScreenPayload> CODEC = StreamCodec.composite(
+                ByteBufCodecs.BOOL,
+                ToggleIsScreenPayload::isScreen,
+                ToggleIsScreenPayload::new
+        );
+
+        public static void execute(ToggleIsScreenPayload payload, IPayloadContext context) {
+            ChatBoxCommandUtil.clientToggleIsScreen(payload.isScreen);
+        }
+
+        @Override
+        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
     }
 }
