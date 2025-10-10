@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
 
+@SuppressWarnings({"SameParameterValue", "BooleanMethodIsAlwaysInverted"})
 @Mod(ChatBox.MOD_ID)
 public class ChatBox {
     public static final String MOD_ID = "chatbox";
@@ -90,5 +91,9 @@ public class ChatBox {
 
     public static boolean isTerraEntityLoaded() {
         return isModLoaded("terra_entity");
+    }
+
+    public static boolean isTextAnimatorLoaded() {
+        return isModLoaded("textanimator");
     }
 }

@@ -35,6 +35,7 @@
   "chatbox.test.text.10": "本模组也可以配置自定义背景图片在最底层。",
   "chatbox.test.text.11": "除此之外，NeoForge版本的对话框还提供了KubeJS的联动，你可以调用本模组开放的接口来实现类似于本模组提供的指令的功能，以及用模组提供的事件来为你的对话框提供更加自由的配置。",
   "chatbox.test.text.12": "更加详细的使用教程以及对话框数据包的JSON文件生成可以查看本模组的Wiki网页。",
+  "chatbox.test.text.13": "<wiggle>TextAnimator</wiggle> 也是 <wave><rainb>兼容的</rainb></wave>.",
   "chatbox.test.option.1": "选项一",
   "chatbox.test.option.2": "选项二",
   "chatbox.test.option.3": "选项三",

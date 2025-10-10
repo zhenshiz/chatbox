@@ -51,7 +51,6 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setOptionTooltip("", false);
         setTextAlign(TextAlign.LEFT);
         setNext("");
-        defaultOption();
         setIsSelect(false);
     }
 

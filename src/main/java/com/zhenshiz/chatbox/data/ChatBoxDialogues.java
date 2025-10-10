@@ -24,41 +24,30 @@ import java.util.List;
 import java.util.Map;
 
 public class ChatBoxDialogues {
-    private final static Boolean DEFAULT_BOOL = false;
-
     public Map<String, List<Dialogues>> dialogues = new HashMap<>();
-    public Boolean isTranslatable;
-    public Boolean isEsc;
-    public Boolean isPause;
-    public Boolean isHistoricalSkip;
+    public Boolean isTranslatable = false;
+    public Boolean isEsc = true;
+    public Boolean isPause = true;
+    public Boolean isHistoricalSkip = true;
     public Integer maxTriggerCount;
     public String theme;
 
-    public void setDefaultValue() {
-        dialogues.values().forEach(list -> list.forEach(Dialogues::setDefaultValue));
-
-        this.isTranslatable = BeanUtil.getValueOrDefault(this.isTranslatable, false);
-        this.isEsc = BeanUtil.getValueOrDefault(this.isEsc, true);
-        this.isPause = BeanUtil.getValueOrDefault(this.isPause, true);
-        this.isHistoricalSkip = BeanUtil.getValueOrDefault(this.isHistoricalSkip, true);
-        this.maxTriggerCount = BeanUtil.getValueOrDefault(this.maxTriggerCount, -1);
-    }
-
     public static class Dialogues {
-        public DialogBox dialogBox;
+        public DialogBox dialogBox = new DialogBox();
         public List<JsonElement> portrait;
         public List<Option> options;
-        public String sound;
-        public Float volume;
-        public Float pitch;
+        public String sound = "";
+        public Float volume = 1f;
+        public Float pitch = 1f;
         public String command;
         public String backgroundImage;
         public Video video;
-        public Boolean clearOldPortrait;
+        public Boolean clearOldPortrait = true;
         public List<String> removePortrait;
 
         public List<Portrait> setPortraitDialogues(List<Portrait> portraitList) {
             Map<String, ChatBoxTheme.Portrait> map = ChatBoxUtil.chatBoxTheme.portrait;
+            var animations = ChatBoxUtil.animationMap;
             if (clearOldPortrait) portraitList.clear();
             else if (!CollUtil.isEmpty(removePortrait)) {
                 portraitList.removeIf(portrait -> removePortrait.contains(portrait.id));
@@ -87,18 +76,17 @@ public class ChatBoxDialogues {
                     }
 
                     if (portrait != null) {
-                        if (!CollUtil.isEmpty(portrait.customAnimation)) {
-                            BeanUtil.copyPropertiesIfTargetNull(new ChatBoxTheme.Portrait.CustomAnimation(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity, portrait.angle), portrait.customAnimation.getFirst());
-                            if (portrait.customAnimation.size() > 1) {
-                                for (int i = 1; i < portrait.customAnimation.size(); i++) {
-                                    BeanUtil.copyPropertiesIfTargetNull(portrait.customAnimation.get(i - 1), portrait.customAnimation.get(i));
-                                }
-                            }
-                            portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity, portrait.angle);
+                        List<ChatBoxTheme.Portrait.CustomAnimation> animation = new ArrayList<>();
+                        // 先看立绘是否有动画类型字段
+                        if (portrait.animationType != null && animations.containsKey(portrait.animationType))
+                            animation = animations.get(portrait.animationType);
+                        // 如果还定义了自定义动画，就用自定义动画覆盖（两种动画是不可以同时生效的）
+                        if (!CollUtil.isEmpty(portrait.customAnimation)) animation = portrait.customAnimation;
+                        if (!CollUtil.isEmpty(animation)) {
+                            portrait.setCustomAnimation(animation);
+                            portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, portrait.scale, portrait.opacity, portrait.angle);
                             if (portrait.loop)
-                                portrait.setStart(portrait.x, portrait.y, BeanUtil.getValueOrDefault(portrait.scale, 1f), portrait.opacity, portrait.angle);
-                        } else if (portrait.type.equals(Portrait.Type.TEXTURE) && !portrait.animationType.equals(Portrait.AnimationType.CUSTOM)) {
-                            portrait.setIsAnimation(true).setTarget();
+                                portrait.setStart(portrait.x, portrait.y, portrait.scale, portrait.opacity, portrait.angle);
                         }
                         portraitList.add(portrait);
                     }
@@ -121,24 +109,9 @@ public class ChatBoxDialogues {
             return portraitList;
         }
 
-        public void setDefaultValue() {
-            this.sound = BeanUtil.getValueOrDefault(this.sound, "");
-            this.volume = BeanUtil.getValueOrDefault(this.volume, 1f);
-            this.pitch = BeanUtil.getValueOrDefault(this.pitch, 1f);
-
-            this.clearOldPortrait = BeanUtil.getValueOrDefault(this.clearOldPortrait, true);
-
-            if (!CollUtil.isEmpty(this.options)) {
-                for (Option option : this.options) {
-                    option.isLock = BeanUtil.getValueOrDefault(option.isLock, DEFAULT_BOOL);
-                    option.isHidden = BeanUtil.getValueOrDefault(option.isHidden, DEFAULT_BOOL);
-                }
-            }
-        }
-
         public static class DialogBox {
-            public String name;
-            public String text;
+            public String name = "";
+            public String text = "";
 
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, boolean isTranslatable) {
                 return dialogBox.setName(this.name, isTranslatable)
@@ -148,6 +121,20 @@ public class ChatBoxDialogues {
         }
 
         public static class ReplacePortrait extends ChatBoxTheme.Portrait {
+            { // 给Component直接设置初始值唯一的缺点
+                x = null;
+                y = null;
+                width = null;
+                height = null;
+                alignX = null;
+                alignY = null;
+                opacity = null;
+                renderOrder = null;
+                angle = null;
+                scale = null;
+                loop = null;
+            }
+
             public String id;
 
             public ChatBoxTheme.Portrait replace(ChatBoxTheme.Portrait portrait) {
@@ -159,29 +146,21 @@ public class ChatBoxDialogues {
         }
 
         public static class Video extends ChatBoxTheme.Component {
-            public String path;
-            public Boolean canControl;
-            public Boolean canSkip;
-            public Boolean loop;
-
-            public void setDefaultValue() {
-                this.x = BeanUtil.getValueOrDefault(this.x, 0f);
-                this.y = BeanUtil.getValueOrDefault(this.y, 0f);
-                this.width = BeanUtil.getValueOrDefault(this.width, 100f);
-                this.height = BeanUtil.getValueOrDefault(this.height, 100f);
-                this.alignX = BeanUtil.getValueOrDefault(this.alignX, AbstractComponent.AlignX.LEFT.name());
-                this.alignY = BeanUtil.getValueOrDefault(this.alignY, AbstractComponent.AlignY.TOP.name());
-                this.opacity = BeanUtil.getValueOrDefault(this.opacity, 100f);
-                this.renderOrder = BeanUtil.getValueOrDefault(this.renderOrder, -1);
-
-                this.canControl = BeanUtil.getValueOrDefault(this.canControl, true);
-                this.canSkip = BeanUtil.getValueOrDefault(this.canSkip, true);
-                this.loop = BeanUtil.getValueOrDefault(this.loop, false);
+            {
+                this.x = 0f;
+                this.y = 0f;
+                this.width = 100f;
+                this.height = 100f;
+                this.renderOrder = -1;
             }
+
+            public String path;
+            public Boolean canControl = true;
+            public Boolean canSkip = true;
+            public Boolean loop = false;
 
             public com.zhenshiz.chatbox.component.Video setVideo() {
                 if (!ChatBox.isWaterMediaLoaded()) return null;
-                setDefaultValue();
                 Path gameDir = FMLPaths.GAMEDIR.get().normalize().toAbsolutePath();
                 File file = new File(gameDir.toString(), path);
                 if (!file.exists()) file = new File(path);
@@ -196,10 +175,10 @@ public class ChatBoxDialogues {
 
         public static class Option {
             public String text;
-            public Boolean isLock;
+            public Boolean isLock = false;
             public Condition lock = new Condition();
             public Condition hidden = new Condition();
-            public Boolean isHidden;
+            public Boolean isHidden = false;
             public String next;
             public Click click = new Click();
             public String tooltip;

@@ -11,6 +11,7 @@ import net.minecraft.world.phys.Vec2;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("unchecked")
 public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     protected static final Minecraft minecraft = Minecraft.getInstance();
     //水平对齐: LEFT CENTER RIGHT
@@ -30,7 +31,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     //渲染顺序
     public Integer renderOrder;
     //旋转角度
-    public Float angle = 0F;
+    public Float angle;
 
     public static float getResponsiveWidth(float value) {
         return minecraft.getWindow().getGuiScaledWidth() * value / 100;
@@ -38,16 +39,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
 
     public static float getResponsiveHeight(float value) {
         return minecraft.getWindow().getGuiScaledHeight() * value / 100;
-    }
-
-    protected static <T> T getValueOrDefault(T param, T defaultValue) {
-        return Optional.ofNullable(param).orElse(defaultValue);
-    }
-
-    protected void defaultOption() {
-        setPosition(0, 0);
-        setSize(10, 10);
-        setAlign(AlignX.LEFT, AlignY.TOP);
     }
 
     public T setDefaultOption(float x, float y, float width, float height, AlignX alignX, AlignY alignY, Float opacity, Integer renderOrder, Float angle) {

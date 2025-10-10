@@ -121,6 +121,8 @@ dependencies {
     implementation "dev.latvian.mods:rhino:${rhino_version}"
     implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
 
+    implementation files("libs/textanimator-3.1.0.jar")
+
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     compileOnly "maven.modrinth:terra-entity:${terra_entity_version}"
     compileOnly "maven.modrinth:watermedia:${watermedia_version}"

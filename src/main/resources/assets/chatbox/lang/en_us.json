@@ -35,6 +35,7 @@
   "chatbox.test.text.10": "Custom background images can be configured for the bottom layer.",
   "chatbox.test.text.11": "Additionally, the NeoForge version provides KubeJS integration. You can use the module's exposed interfaces to implement functions similar to the provided commands, and use the module's events for more flexible dialog configuration.",
   "chatbox.test.text.12": "For more detailed tutorials and JSON file generation for dialog data packs, please visit the module's Wiki page.",
+  "chatbox.test.text.13": "<wiggle>TextAnimator</wiggle> is a mod by <wave><rainb>Snownee</rainb></wave>.",
   "chatbox.test.option.1": "Locked Option",
   "chatbox.test.option.2": "Unlocked Option, triggers command when selected",
   "chatbox.test.option.3": "Option 3",
