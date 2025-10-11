@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.network.s2c;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.network.CustomPacket;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -9,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.zhenshiz.chatbox.ChatBox.PLATFORM;
 import static com.zhenshiz.chatbox.ChatBox.ResourceLocationMod;
@@ -34,36 +36,6 @@ public class ChatBoxPayload {
 
         public static void handleOnClient(OpenScreen packet) {
             PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientSkipDialogues(packet.dialogues, packet.group, packet.index));
-        }
-    }
-
-    public record OpenChatBox() implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("open_dialog");
-
-        public void write(FriendlyByteBuf buf) {}
-
-        public static void encode(OpenChatBox packet, FriendlyByteBuf buf) {}
-
-        public static OpenChatBox decode(FriendlyByteBuf buf) {return new OpenChatBox();}
-
-        public static void handleOnClient(OpenChatBox packet) {
-            PLATFORM.runOnClient(ChatBoxCommandUtil::clientOpenChatBox);
-        }
-    }
-
-    public record ToggleTheme(ResourceLocation theme) implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("toggle_theme");
-
-        public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-        public static void encode(ToggleTheme packet, FriendlyByteBuf buf) {buf.writeResourceLocation(packet.theme);}
-
-        public static ToggleTheme decode(FriendlyByteBuf buf) {return new ToggleTheme(buf.readResourceLocation());}
-
-        public static void handleOnClient(ToggleTheme packet) {
-            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientToggleTheme(packet.theme));
         }
     }
 
@@ -113,33 +85,33 @@ public class ChatBoxPayload {
         }
     }
 
-    public record NextDialogue() implements CustomPacket {
+    public record SimplePayload(String name, String value) implements CustomPacket {
         public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("client_next_dialogue");
-
-        public void write(FriendlyByteBuf buf) {}
-
-        public static void encode(NextDialogue packet, FriendlyByteBuf buf) {}
-
-        public static NextDialogue decode(FriendlyByteBuf buf) {return new NextDialogue();}
-
-        public static void handleOnClient(NextDialogue packet) {
-            PLATFORM.runOnClient(ChatBoxCommandUtil::clientNextDialogue);
-        }
-    }
-
-    public record AutoPlay(boolean autoPlay) implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("client_auto_play");
+        public static final ResourceLocation ID = ChatBox.ResourceLocationMod("simple_payload");
 
         public void write(FriendlyByteBuf buf) {encode(this, buf);}
 
-        public static void encode(AutoPlay packet, FriendlyByteBuf buf) {buf.writeBoolean(packet.autoPlay);}
+        public static void encode(SimplePayload packet, FriendlyByteBuf buf) {
+            buf.writeUtf(packet.name); buf.writeUtf(packet.value);
+        }
 
-        public static AutoPlay decode(FriendlyByteBuf buf) {return new AutoPlay(buf.readBoolean());}
+        public static SimplePayload decode(FriendlyByteBuf buf) {
+            return new SimplePayload(buf.readUtf(), buf.readUtf());
+        }
 
-        public static void handleOnClient(AutoPlay packet) {
-            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientAutoPlay(packet.autoPlay));
+        private static final Map<String, Consumer<String>> handlers = new HashMap<>();
+        static {
+            handlers.put("open_dialog", s -> ChatBoxCommandUtil.clientOpenChatBox());
+            handlers.put("set_theme", ChatBoxCommandUtil::clientToggleTheme);
+            handlers.put("next_dialogue", s -> ChatBoxCommandUtil.clientNextDialogue());
+            handlers.put("auto_play", s -> ChatBoxCommandUtil.clientAutoPlay(Boolean.parseBoolean(s)));
+            handlers.put("set_is_screen", s -> ChatBoxCommandUtil.clientSetIsScreen(Boolean.parseBoolean(s)));
+        }
+
+        public static void handleOnClient(SimplePayload packet) {
+            PLATFORM.runOnClient(() -> {
+                if (handlers.containsKey(packet.name)) handlers.get(packet.name).accept(packet.value);
+            });
         }
     }
 

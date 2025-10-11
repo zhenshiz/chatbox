@@ -158,7 +158,7 @@ public class Portrait extends AbstractComponent<Portrait> {
     private void execCustomAnimation() {
         ChatBoxTheme.Portrait.CustomAnimation animation = this.customAnimation.get(this.customAnimationIndex);
         if (this.type.equals(Type.TEXTURE) && animation.texture != null) setValue(animation.texture);
-        // 先计算绝对坐标移动产生的偏移量，再加上相对坐标移动产生的偏移量，因此两种移动方式互可以同时生效
+        // 先计算绝对坐标移动产生的偏移量，再加上相对坐标移动产生的偏移量，因此两种移动方式可以同时生效
         float curX = this.targetCustomAnimation.x;
         float curY = this.targetCustomAnimation.y;
         if (animation.x != null) curX = easingFunction(this.targetCustomAnimation.x, animation.x, this.currentAnimationTick, animation.time, animation.easing);

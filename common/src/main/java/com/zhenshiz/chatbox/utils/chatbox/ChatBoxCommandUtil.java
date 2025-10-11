@@ -14,7 +14,7 @@ import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 public class ChatBoxCommandUtil {
 
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
-        if (player != null) ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.ToggleTheme(theme));
+        if (player != null) ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.SimplePayload("set_theme", theme.toString()));
     }
 
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index) {
@@ -26,12 +26,12 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverOpenChatBox(ServerPlayer player) {
-        if (player != null) ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenChatBox());
+        if (player != null) ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.SimplePayload("open_dialog", ""));
     }
 
-    public static void clientToggleTheme(ResourceLocation theme) {
-        toggleTheme(theme);
-        themeResourceLocation = theme.toString();
+    public static void clientToggleTheme(String theme) {
+        toggleTheme(new ResourceLocation(theme));
+        themeResourceLocation = theme;
     }
 
     public static void clientSkipDialogues(ResourceLocation dialogues, String group, Integer index) {
@@ -58,6 +58,10 @@ public class ChatBoxCommandUtil {
 
     public static void registerClickEvent(String type, Consumer<String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
         ChatOptionClickEvent.registerClickEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
+    }
+
+    public static void clientSetIsScreen(boolean isScreen) {
+        ChatBoxUtil.isScreen = isScreen;
     }
 
 }

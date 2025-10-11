@@ -13,8 +13,8 @@ public class Config implements ConfigData {
     @ConfigEntry.Gui.Tooltip()
     public boolean soundInterruptionEnabled = true;
 
-    @ConfigEntry.Gui.Tooltip()
-    public boolean isScreen = true;
+    @ConfigEntry.BoundedDiscrete(min = 1, max = 721)
+    public int charPerSecond = 20;
 
     public boolean isStopTerraDialog = false;
 

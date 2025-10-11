@@ -64,8 +64,24 @@ public class ChatBoxCommand {
                         .then(Commands.literal("autoPlay")
                                 .then(Commands.argument("AutoPlay", BoolArgumentType.bool()).executes(ChatBoxCommand::autoPlay))
                         )
+                        .then(Commands.literal("isScreen")
+                                .then(Commands.argument("IsScreen", BoolArgumentType.bool()).executes(ChatBoxCommand::setIsScreen))
+                        )
                 )
         );
+    }
+
+    private static int setIsScreen(CommandContext<CommandSourceStack> context) {
+        boolean isScreen = BoolArgumentType.getBool(context, "IsScreen");
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.SimplePayload("set_is_screen", String.valueOf(isScreen)));
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
     }
 
     private static int autoPlay(CommandContext<CommandSourceStack> context) {
@@ -73,7 +89,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.AutoPlay(autoPlay));
+            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.SimplePayload("auto_play", String.valueOf(autoPlay)));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -85,7 +101,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.NextDialogue());
+            ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.SimplePayload("next_dialogue", ""));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);

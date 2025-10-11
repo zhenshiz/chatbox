@@ -2,8 +2,10 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
@@ -18,7 +20,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     //默认材质
     public ResourceLocation texture;
     //对话框文本
-    public Component text;
+    public String text;
     //文本x位置
     public float textX;
     //文本y位置
@@ -36,6 +38,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public boolean isAllOver;
     public int tickCount;
     private String[] textBuffer;
+    private int charIndex;
 
     public DialogBox() {
         setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
@@ -62,7 +65,10 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox setText(String text, boolean isTranslatable) {
         if (text != null) {
-            this.text = isTranslatable ? Component.translatable(text) : Component.nullToEmpty(text);
+            // 获取翻译键的文本
+            text = isTranslatable ? Language.getInstance().getOrDefault(text) : text;
+            if (ChatBox.PLATFORM.isModLoaded("textanimator")) text = text.replaceAll("<typewriter>", "");
+            this.text = text;
             textToTextBuffer();
         }
         return this;
@@ -97,18 +103,26 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox resetTickCount() {
         this.tickCount = 0;
+        this.charIndex = 0;
         return this;
     }
 
     private void textToTextBuffer() {
-        String input = this.text.getString();
-        List<String> result = new ArrayList<>();
+        String input = this.text;
+        List<String> result = new ArrayList<>(input.length());
         int index = 0;
         StringBuilder stringBuilder = new StringBuilder();
 
         while (index < input.length()) {
             char c = input.charAt(index);
             stringBuilder.append(c);
+            if (ChatBox.PLATFORM.isModLoaded("textanimator") && c == '<') {
+                int closing = input.indexOf('>', index + 1);
+                if (closing != -1) {
+                    stringBuilder.append(input, index + 1, closing + 1);
+                    index = closing;
+                }
+            }
             if (c == '\\' || c == '§') {
                 stringBuilder.append(input.charAt(index + 1));
                 index++;
@@ -123,7 +137,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public void click(boolean gotoNext) {
         if (!this.isAllOver) {
             //未全部加载时，点击显示所有文本
-            this.tickCount = this.textBuffer.length - 1;
+            this.charIndex = this.textBuffer.length - 1;
             setAllOver(true);
         } else {
             //全部点击时触发
@@ -138,11 +152,15 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public void tick() {
         if (!this.isAllOver) {
             //未全部加载，开始加载
-            if (this.tickCount == this.textBuffer.length - 1) {
+            if (this.charIndex == this.textBuffer.length - 1) {
                 setAllOver(true);
                 return;
             }
             this.tickCount++;
+            float charPerTick = ChatBoxClient.conf.charPerSecond / 20f;
+            if (tickCount * charPerTick >= charIndex + 1) {
+                charIndex = Math.min((int) (tickCount * charPerTick), this.textBuffer.length - 1);
+            }
         }
     }
 
@@ -161,8 +179,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         if (StrUtil.isNotEmpty(this.name.getString())) {
             guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(StrUtil.format("[{}]", name.getString()))), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
-        if (StrUtil.isNotEmpty(this.text.getString())) {
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.tickCount])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+        if (StrUtil.isNotEmpty(this.text)) {
+            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.charIndex])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
         poseStack.popPose();
     }

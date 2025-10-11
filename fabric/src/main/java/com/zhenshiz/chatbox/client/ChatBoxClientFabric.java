@@ -19,17 +19,11 @@ public class ChatBoxClientFabric implements ClientModInitializer {
     public static void registerClientHandlers() {
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreen.ID, (client, h, buf, r) -> ChatBoxPayload.OpenScreen.handleOnClient(ChatBoxPayload.OpenScreen.decode(buf)));
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenChatBox.ID, (client, h, buf, r) -> ChatBoxPayload.OpenChatBox.handleOnClient(ChatBoxPayload.OpenChatBox.decode(buf)));
-
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ToggleTheme.ID, (client, h, buf, r) -> ChatBoxPayload.ToggleTheme.handleOnClient(ChatBoxPayload.ToggleTheme.decode(buf)));
-
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxThemeToClient.handleOnClient(ChatBoxPayload.AllChatBoxThemeToClient.decode(buf)));
 
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(ChatBoxPayload.AllChatBoxDialoguesToClient.decode(buf)));
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.NextDialogue.ID, (client, h, buf, r) -> ChatBoxPayload.NextDialogue.handleOnClient(ChatBoxPayload.NextDialogue.decode(buf)));
-
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AutoPlay.ID, (client, h, buf, r) -> ChatBoxPayload.AutoPlay.handleOnClient(ChatBoxPayload.AutoPlay.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SimplePayload.ID, (client, h, buf, r) -> ChatBoxPayload.SimplePayload.handleOnClient(ChatBoxPayload.SimplePayload.decode(buf)));
     }
 
     private void registerRenderEvents() {

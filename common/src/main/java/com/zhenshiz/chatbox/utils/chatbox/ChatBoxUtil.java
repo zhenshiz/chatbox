@@ -48,6 +48,8 @@ public class ChatBoxUtil {
     public static String group;
     //文本序号
     public static Integer index;
+    //对话框主题分支
+    public static boolean isScreen = true;
 
     public static void setDialoguesInfo(ResourceLocation resourceLocation, String group, Integer index) {
         if (resourceLocation != null && group != null && index != null) {
@@ -138,7 +140,7 @@ public class ChatBoxUtil {
             //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);
             ChatBox.PLATFORM.postSkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index);
 
-            if (ChatBoxClient.conf.isScreen) {
+            if (isScreen) {
                 minecraft.setScreen(chatBoxScreen);
             } else {
                 ChatBoxRenderCommon.isOpenChatBox = true;
@@ -146,7 +148,7 @@ public class ChatBoxUtil {
             // 确认对话框加载完成后再设置客户端对话框信息
             setDialoguesInfo(dialoguesResourceLocation, group, index);
         } else {
-            if (ChatBoxClient.conf.isScreen) {
+            if (isScreen) {
                 if (minecraft.screen != null) {
                     minecraft.screen.onClose();
                 }

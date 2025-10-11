@@ -30,12 +30,9 @@ public class NetworkForge {
 
     public static final SimpleChannel
             OPEN_SCREEN = registerChannel(ChatBoxPayload.OpenScreen.class),
-            OPEN_CHATBOX = registerChannel(ChatBoxPayload.OpenChatBox.class),
-            TOGGLE_THEME = registerChannel(ChatBoxPayload.ToggleTheme.class),
             ALL_CHATBOX_THEME_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxThemeToClient.class),
             ALL_CHATBOX_DIALOGUES_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxDialoguesToClient.class),
-            NEXT_DIALOGUE = registerChannel(ChatBoxPayload.NextDialogue.class),
-            AUTO_PLAY = registerChannel(ChatBoxPayload.AutoPlay.class),
+            SIMPLE_PAYLOAD = registerChannel(ChatBoxPayload.SimplePayload.class),
 
     SEND_CLICK_EVENT = registerChannel(SendClickEvent.class);
 
@@ -49,16 +46,6 @@ public class NetworkForge {
             ctx.get().setPacketHandled(true);
         });
 
-        OPEN_CHATBOX.registerMessage(nextId(), ChatBoxPayload.OpenChatBox.class, ChatBoxPayload.OpenChatBox::encode, ChatBoxPayload.OpenChatBox::decode, (packet, ctx) -> {
-            ctx.get().enqueueWork(() -> ChatBoxPayload.OpenChatBox.handleOnClient(packet));
-            ctx.get().setPacketHandled(true);
-        });
-
-        TOGGLE_THEME.registerMessage(nextId(), ChatBoxPayload.ToggleTheme.class, ChatBoxPayload.ToggleTheme::encode, ChatBoxPayload.ToggleTheme::decode, (packet, ctx) -> {
-            ctx.get().enqueueWork(() -> ChatBoxPayload.ToggleTheme.handleOnClient(packet));
-            ctx.get().setPacketHandled(true);
-        });
-
         ALL_CHATBOX_THEME_TO_CLIENT.registerMessage(nextId(), ChatBoxPayload.AllChatBoxThemeToClient.class, ChatBoxPayload.AllChatBoxThemeToClient::encode, ChatBoxPayload.AllChatBoxThemeToClient::decode, (packet, ctx) -> {
             ctx.get().enqueueWork(() -> ChatBoxPayload.AllChatBoxThemeToClient.handleOnClient(packet));
             ctx.get().setPacketHandled(true);
@@ -69,13 +56,8 @@ public class NetworkForge {
             ctx.get().setPacketHandled(true);
         });
 
-        NEXT_DIALOGUE.registerMessage(nextId(), ChatBoxPayload.NextDialogue.class, ChatBoxPayload.NextDialogue::encode, ChatBoxPayload.NextDialogue::decode, (packet, ctx) -> {
-            ctx.get().enqueueWork(() -> ChatBoxPayload.NextDialogue.handleOnClient(packet));
-            ctx.get().setPacketHandled(true);
-        });
-
-        AUTO_PLAY.registerMessage(nextId(), ChatBoxPayload.AutoPlay.class, ChatBoxPayload.AutoPlay::encode, ChatBoxPayload.AutoPlay::decode, (packet, ctx) -> {
-            ctx.get().enqueueWork(() -> ChatBoxPayload.AutoPlay.handleOnClient(packet));
+        SIMPLE_PAYLOAD.registerMessage(nextId(), ChatBoxPayload.SimplePayload.class, ChatBoxPayload.SimplePayload::encode, ChatBoxPayload.SimplePayload::decode, (packet, ctx) -> {
+            ctx.get().enqueueWork(() -> ChatBoxPayload.SimplePayload.handleOnClient(packet));
             ctx.get().setPacketHandled(true);
         });
 
