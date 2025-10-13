@@ -37,7 +37,7 @@ public class EasingUtil {
             case EASE_IN_BOUNCE -> easeInBounce(progress);
             case EASE_OUT_BOUNCE -> easeOutBounce(progress);
             case EASE_IN_OUT_BOUNCE -> easeInOutBounce(progress);
-            case null -> easeInSine(progress);
+            case null -> progress;
         };
         return (float) (min + (max - min) * easedProgress);
     }

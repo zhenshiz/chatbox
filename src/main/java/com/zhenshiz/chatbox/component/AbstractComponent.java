@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.component;
 
+import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.Minecraft;
@@ -7,7 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 
-import java.util.Optional;
+import java.util.List;
 
 public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     protected static final Minecraft minecraft = Minecraft.getInstance();
@@ -27,13 +28,8 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     public Float opacity;
     //渲染顺序
     public Integer renderOrder;
-
-    //文本路径
-    public ResourceLocation dialoguesResourceLocation;
-    //文本分组
-    public String group;
-    //文本序号
-    public Integer index;
+    //旋转角度
+    public Float angle = 0F;
 
     public static float getResponsiveWidth(float value) {
         return minecraft.getWindow().getGuiScaledWidth() * value / 100;
@@ -43,22 +39,13 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return minecraft.getWindow().getGuiScaledHeight() * value / 100;
     }
 
-    protected static <T> T getValueOrDefault(T param, T defaultValue) {
-        return Optional.ofNullable(param).orElse(defaultValue);
-    }
-
-    protected void defaultOption() {
-        setPosition(0, 0);
-        setSize(10, 10);
-        setAlign(AlignX.LEFT, AlignY.TOP);
-    }
-
-    public T setDefaultOption(float x, float y, float width, float height, AlignX alignX, AlignY alignY, Float opacity, Integer renderOrder) {
+    public T setDefaultOption(float x, float y, float width, float height, AlignX alignX, AlignY alignY, Float opacity, Integer renderOrder, Float angle) {
         setPosition(x, y);
         setSize(width, height);
         setAlign(alignX, alignY);
         setOpacity(opacity);
         setRenderOrder(renderOrder);
+        setAngle(angle);
         return (T) this;
     }
 
@@ -77,9 +64,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     public T setAlign(AlignX alignX, AlignY alignY) {
-        if (alignX != null) this.alignX = alignX;
-        if (alignY != null) this.alignY = alignY;
-        return (T) this;
+        return setAlignX(alignX).setAlignY(alignY);
     }
 
     public T setAlignX(AlignX alignX) {
@@ -102,17 +87,8 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T setDialoguesInfo(ResourceLocation dialoguesResourceLocation, String group, Integer index) {
-        if (dialoguesResourceLocation != null && group != null && index != null) {
-            this.dialoguesResourceLocation = dialoguesResourceLocation;
-            this.group = group;
-            this.index = index;
-        }
-        return (T) this;
-    }
-
-    public T setIndex(int index) {
-        this.index = index;
+    public T setAngle(Float angle) {
+        if (angle != null) this.angle = angle;
         return (T) this;
     }
 
@@ -129,12 +105,12 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture) {
-        renderImage(guiGraphics, texture, 1f);
+        renderImage(guiGraphics, texture, 1f, List.of());
     }
 
-    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale) {
+    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         Vec2 position = getCurrentPosition();
-        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, opacity);
+        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, opacity, angle, attachments);
     }
 
     public boolean isSelect(float width, float height, float x, float y, double mouseX, double mouseY) {

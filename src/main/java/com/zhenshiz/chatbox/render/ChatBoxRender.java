@@ -1,10 +1,10 @@
 package com.zhenshiz.chatbox.render;
 
-import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -34,7 +34,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
             if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
 
             if (chatBoxScreen.backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 100);
+                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 100, 0f);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();
@@ -61,7 +61,8 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
 
     @Override
     public void onKey(int key, int scancode, int action, int modifiers) {
-        if (isRenderChatBox()) {
+        // System.out.println("key: " + key + " scancode: " + scancode + " action: " + action + " mod: " + modifiers);
+        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
             //ctrl快进
             if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
                 chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
@@ -80,9 +81,10 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
                 if (!CollUtil.isEmpty(chatBoxScreen.chatOptions) && chatBoxScreen.dialogBox.isAllOver) {
                     ChatOption chatOption = chatBoxScreen.chatOptions.get(selectIndex);
                     chatOption.click();
+                    selectIndex = 0;
                 }
 
-                chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
             }
         }
     }
@@ -107,7 +109,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
     }
 
     private static boolean isRenderChatBox() {
-        return !ChatBoxClient.conf.isScreen && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
+        return !ChatBoxUtil.isScreen && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
     }
 
     public static void onClose() {

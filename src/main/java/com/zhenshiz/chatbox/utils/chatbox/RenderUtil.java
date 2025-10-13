@@ -6,6 +6,7 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
@@ -21,17 +22,16 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3x2f;
 import org.joml.Matrix3x2fStack;
 import org.lwjgl.glfw.GLFW;
 
-import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiConsumer;
 
 public class RenderUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
@@ -44,6 +44,16 @@ public class RenderUtil {
         return minecraft.getWindow().getGuiScaledHeight();
     }
 
+    private static void submitSimpleGuiElement(GuiGraphics guiGraphics, BiConsumer<VertexConsumer, Float> builder, @Nullable ScreenRectangle bounds) {
+        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
+            public void buildVertices(VertexConsumer consumer, float z) {builder.accept(consumer, z);}
+            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
+            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
+            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
+            public @Nullable ScreenRectangle bounds() {return bounds;}
+        });
+    }
+
     //fill
 
     //矩形
@@ -53,25 +63,17 @@ public class RenderUtil {
 
     //圆弧
     public static void fillArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
-                consumer.addVertexWith2DPose(pose, (float) cX, (float) cY, z).setColor(color);
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
+            consumer.addVertexWith2DPose(pose, (float) cX, (float) cY, z).setColor(color);
 
-                for (int i = start - 90; i <= end - 90; i++) {
-                    double angle = Math.toRadians(i);
-                    float x = (float) (Math.cos(angle) * radius) + cX;
-                    float y = (float) (Math.sin(angle) * radius) + cY;
-                    consumer.addVertexWith2DPose(pose, x, y, z).setColor(color);
-                }
+            for (int i = start - 90; i <= end - 90; i++) {
+                double angle = Math.toRadians(i);
+                float x = (float) (Math.cos(angle) * radius) + cX;
+                float y = (float) (Math.sin(angle) * radius) + cY;
+                consumer.addVertexWith2DPose(pose, x, y, z).setColor(color);
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {
-                return new ScreenRectangle(cX - radius, cY - radius, 2 * radius, 2 * radius);
-            }
-        });
+        }, new ScreenRectangle(cX - radius, cY - radius, 2 * radius, 2 * radius));
     }
 
     //圆
@@ -81,28 +83,20 @@ public class RenderUtil {
 
     //环形扇区
     public static void fillAnnulusArc(GuiGraphics guiGraphics, int cx, int cy, int radius, int start, int end, int thickness, int color) {
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
-                for (int i = start - 90; i <= end - 90; i++) {
-                    float angle = (float) Math.toRadians(i);
-                    float cos = (float) Math.cos(angle);
-                    float sin = (float) Math.sin(angle);
-                    float x1 = cx + cos * radius;
-                    float y1 = cy + sin * radius;
-                    float x2 = cx + cos * (radius + thickness);
-                    float y2 = cy + sin * (radius + thickness);
-                    consumer.addVertexWith2DPose(pose, x1, y1, z).setColor(color);
-                    consumer.addVertexWith2DPose(pose, x2, y2, z).setColor(color);
-                }
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
+            for (int i = start - 90; i <= end - 90; i++) {
+                float angle = (float) Math.toRadians(i);
+                float cos = (float) Math.cos(angle);
+                float sin = (float) Math.sin(angle);
+                float x1 = cx + cos * radius;
+                float y1 = cy + sin * radius;
+                float x2 = cx + cos * (radius + thickness);
+                float y2 = cy + sin * (radius + thickness);
+                consumer.addVertexWith2DPose(pose, x1, y1, z).setColor(color);
+                consumer.addVertexWith2DPose(pose, x2, y2, z).setColor(color);
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {
-                return new ScreenRectangle(cx - radius, cy - radius, 2 * radius, 2 * radius);
-            }
-        });
+        }, new ScreenRectangle(cx - radius, cy - radius, 2 * radius, 2 * radius));
     }
 
     //环形圆
@@ -114,150 +108,126 @@ public class RenderUtil {
     public static void fillRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
 
-                consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F, 0).setColor(color);
 
-                int[][] corners = {
-                        {x + w - finalR, y + finalR},
-                        {x + w - finalR, y + h - finalR},
-                        {x + finalR, y + h - finalR},
-                        {x + finalR, y + finalR}
-                };
+            int[][] corners = {
+                    {x + w - finalR, y + finalR},
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR},
+                    {x + finalR, y + finalR}
+            };
 
-                for (int corner = 0; corner < 4; corner++) {
-                    int cornerStart = (corner - 1) * 90;
-                    int cornerEnd = cornerStart + 90;
-                    for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                        float angle = (float) Math.toRadians(i);
-                        float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
-                        float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
-                        consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
-                    }
+            for (int corner = 0; corner < 4; corner++) {
+                int cornerStart = (corner - 1) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
                 }
-
-                consumer.addVertexWith2DPose(pose, corners[0][0], y, 0).setColor(color);
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {return new ScreenRectangle(x, y, w, h);}
-        });
+
+            consumer.addVertexWith2DPose(pose, corners[0][0], y, 0).setColor(color);
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //圆角阴影边框
     public static void fillRoundShadow(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int thickness, int innerColor, int outerColor) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
 
-                int[][] corners = {
-                        {x + w - finalR, y + finalR},
-                        {x + w - finalR, y + h - finalR},
-                        {x + finalR, y + h - finalR},
-                        {x + finalR, y + finalR}
-                };
+            int[][] corners = {
+                    {x + w - finalR, y + finalR},
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR},
+                    {x + finalR, y + finalR}
+            };
 
-                for (int corner = 0; corner < 4; corner++) {
-                    int cornerStart = (corner - 1) * 90;
-                    int cornerEnd = cornerStart + 90;
-                    for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                        float angle = (float) Math.toRadians(i);
-                        float rx1 = corners[corner][0] + (float) (Math.cos(angle) * finalR);
-                        float ry1 = corners[corner][1] + (float) (Math.sin(angle) * finalR);
-                        float rx2 = corners[corner][0] + (float) (Math.cos(angle) * (finalR + thickness));
-                        float ry2 = corners[corner][1] + (float) (Math.sin(angle) * (finalR + thickness));
-                        consumer.addVertexWith2DPose(pose, rx1, ry1, 0).setColor(innerColor);
-                        consumer.addVertexWith2DPose(pose, rx2, ry2, 0).setColor(outerColor);
-                    }
+            for (int corner = 0; corner < 4; corner++) {
+                int cornerStart = (corner - 1) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx1 = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry1 = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    float rx2 = corners[corner][0] + (float) (Math.cos(angle) * (finalR + thickness));
+                    float ry2 = corners[corner][1] + (float) (Math.sin(angle) * (finalR + thickness));
+                    consumer.addVertexWith2DPose(pose, rx1, ry1, 0).setColor(innerColor);
+                    consumer.addVertexWith2DPose(pose, rx2, ry2, 0).setColor(outerColor);
                 }
-
-                consumer.addVertexWith2DPose(pose, corners[0][0], y, 0).setColor(innerColor);
-                consumer.addVertexWith2DPose(pose, corners[0][0], y - thickness, 0).setColor(outerColor);
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {return new ScreenRectangle(x, y, w, h);}
-        });
+
+            consumer.addVertexWith2DPose(pose, corners[0][0], y, 0).setColor(innerColor);
+            consumer.addVertexWith2DPose(pose, corners[0][0], y - thickness, 0).setColor(outerColor);
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //上圆角矩形
     public static void fillRoundTabTop(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
 
-                consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F, 0).setColor(color);
 
-                int[][] corners = {
-                        {x + finalR, y + finalR},
-                        {x + w - finalR, y + finalR}
-                };
+            int[][] corners = {
+                    {x + finalR, y + finalR},
+                    {x + w - finalR, y + finalR}
+            };
 
-                for (int corner = 0; corner < 2; corner++) {
-                    int cornerStart = (corner - 2) * 90;
-                    int cornerEnd = cornerStart + 90;
-                    for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                        float angle = (float) Math.toRadians(i);
-                        float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
-                        float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
-                        consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
-                    }
+            for (int corner = 0; corner < 2; corner++) {
+                int cornerStart = (corner - 2) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
                 }
-
-                consumer.addVertexWith2DPose(pose, x + w, y + h, 0).setColor(color);
-                consumer.addVertexWith2DPose(pose, x, y + h, 0).setColor(color);
-                consumer.addVertexWith2DPose(pose, x, corners[0][1], 0).setColor(color); // connect last to first vertex
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {return new ScreenRectangle(x, y, w, h);}
-        });
+
+            consumer.addVertexWith2DPose(pose, x + w, y + h, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, x, y + h, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, x, corners[0][1], 0).setColor(color); // connect last to first vertex
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //下圆角矩形
     public static void fillRoundTabBottom(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
 
-                consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F, 0).setColor(color);
 
-                int[][] corners = {
-                        {x + w - finalR, y + h - finalR},
-                        {x + finalR, y + h - finalR}
-                };
+            int[][] corners = {
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR}
+            };
 
-                for (int corner = 0; corner < 2; corner++) {
-                    int cornerStart = corner * 90;
-                    int cornerEnd = cornerStart + 90;
-                    for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                        float angle = (float) Math.toRadians(i);
-                        float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
-                        float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
-                        consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
-                    }
+            for (int corner = 0; corner < 2; corner++) {
+                int cornerStart = corner * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
                 }
-
-                consumer.addVertexWith2DPose(pose, x, y, 0).setColor(color);
-                consumer.addVertexWith2DPose(pose, x + w, y, 0).setColor(color);
-                consumer.addVertexWith2DPose(pose, x + w, corners[0][1], 0).setColor(color); // connect last to first vertex
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {return new ScreenRectangle(x, y, w, h);}
-        });
+
+            consumer.addVertexWith2DPose(pose, x, y, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, x + w, y, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, x + w, corners[0][1], 0).setColor(color); // connect last to first vertex
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //水平方向的胶囊状线条
@@ -300,41 +270,25 @@ public class RenderUtil {
 
     //一条线
     public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
-                consumer.addVertexWith2DPose(pose, (float) x1, (float) y1, 0).setColor(color);
-                consumer.addVertexWith2DPose(pose, (float) x2, (float) y2, 0).setColor(color);
-            }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {
-                return new ScreenRectangle(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
-            }
-        });
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
+            consumer.addVertexWith2DPose(pose, (float) x1, (float) y1, 0).setColor(color);
+            consumer.addVertexWith2DPose(pose, (float) x2, (float) y2, 0).setColor(color);
+        }, new ScreenRectangle(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2)));
     }
 
 
     //扇形
     public static void drawArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
-                for (int i = start - 90; i <= end - 90; i++) {
-                    double angle = Math.toRadians(i);
-                    float x = (float) (Math.cos(angle) * radius) + cX;
-                    float y = (float) (Math.sin(angle) * radius) + cY;
-                    consumer.addVertexWith2DPose(pose, x, y, 0).setColor(color);
-                }
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
+            for (int i = start - 90; i <= end - 90; i++) {
+                double angle = Math.toRadians(i);
+                float x = (float) (Math.cos(angle) * radius) + cX;
+                float y = (float) (Math.sin(angle) * radius) + cY;
+                consumer.addVertexWith2DPose(pose, x, y, 0).setColor(color);
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {
-                return new ScreenRectangle(cX - radius, cY - radius, 2 * radius, 2 * radius);
-            }
-        });
+        }, new ScreenRectangle(cX - radius, cY - radius, 2 * radius, 2 * radius));
     }
 
     //圆
@@ -346,35 +300,29 @@ public class RenderUtil {
     public static void drawRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
-            public void buildVertices(VertexConsumer consumer, float z) {
-                Matrix3x2fStack pose = guiGraphics.pose();
+        submitSimpleGuiElement(guiGraphics, (consumer, z) -> {
+            Matrix3x2fStack pose = guiGraphics.pose();
 
-                int[][] corners = {
-                        {x + w - finalR, y + finalR},
-                        {x + w - finalR, y + h - finalR},
-                        {x + finalR, y + h - finalR},
-                        {x + finalR, y + finalR}
-                };
+            int[][] corners = {
+                    {x + w - finalR, y + finalR},
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR},
+                    {x + finalR, y + finalR}
+            };
 
-                for (int corner = 0; corner < 4; corner++) {
-                    int cornerStart = (corner - 1) * 90;
-                    int cornerEnd = cornerStart + 90;
-                    for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                        float angle = (float) Math.toRadians(i);
-                        float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
-                        float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
-                        consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
-                    }
+            for (int corner = 0; corner < 4; corner++) {
+                int cornerStart = (corner - 1) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry, 0).setColor(color);
                 }
-
-                consumer.addVertexWith2DPose(pose, corners[0][0], y, 0).setColor(color); // connect last to first vertex
             }
-            public @NotNull RenderPipeline pipeline() {return RenderPipelines.GUI;}
-            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
-            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
-            public ScreenRectangle bounds() {return new ScreenRectangle(x, y, w, h);}
-        });
+
+            consumer.addVertexWith2DPose(pose, corners[0][0], y, 0).setColor(color); // connect last to first vertex
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //圆角横线
@@ -388,37 +336,50 @@ public class RenderUtil {
     }
 
     // image
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float uw, float uh, float width, float height, float opacity) {
+    public static void renderImage(GuiGraphics guiGraphics, Matrix3x2f pose, ResourceLocation resourceLocation, float x, float y, float uw, float uh, float width, float height, float opacity) {
         GpuTextureView view = minecraft.getTextureManager().getTexture(resourceLocation).getTextureView();
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(view), x, y, width, height, uw, uh, getColor(opacity), 0));
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(view), pose, x, y, width, height, uw, uh, getColor(opacity)));
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float opacity) {
-        renderImage(guiGraphics, resourceLocation, x / scale, y / scale, z, 1, 1, width * scale, height * scale, opacity);
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float width, float height, float scale, float opacity, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
+        Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose()).rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2).scale(scale);
+        x = (x / scale);
+        y = (y / scale);
+        renderImage(guiGraphics, pose, resourceLocation, x, y, 1, 1, width, height, opacity);
+        for (var attachment : attachments) {
+            var a = attachment.mapParameter();
+            renderImage(guiGraphics, pose, ResourceLocation.parse(a.value), x + a.x, y + a.y, 1, 1, a.width, a.height, opacity);
+        }
     }
 
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity) {
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float width, float height, float scale, float opacity, float angle) {
+        renderImage(guiGraphics, resourceLocation, x, y, width, height, scale, opacity, angle, List.of());
+    }
+
+    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity, float angle) {
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + (float) size / 2, y + (float) size / 2);
         x = (int) (x / scale);
         y = (int) (y / scale);
-        guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(scale, scale);
-        //guiGraphics.pose().rotateAbout((float) Math.toRadians(45), x + (float) size * scale / 2, y + (float) size * scale / 2);
         PlayerFaceRenderer.draw(guiGraphics, getSkin(input), x, y, size, getColor(opacity));
         guiGraphics.pose().popMatrix();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, String text) {
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
+        guiGraphics.pose().pushMatrix();
+        // 应用旋转
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + 16f / 2, y + 16f / 2);
         x = (int) (x / scale);
         y = (int) (y / scale);
-        guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(scale, scale);
         guiGraphics.renderItem(item, x, y);
         guiGraphics.renderItemDecorations(minecraft.font, item, x, y, text);
         guiGraphics.pose().popMatrix();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale) {
-        renderItem(guiGraphics, item, x, y, scale, "");
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
+        renderItem(guiGraphics, item, x, y, scale, angle, "");
     }
 
     // text
@@ -473,7 +434,7 @@ public class RenderUtil {
         GLFW.glfwSetCursorPos(window.getWindow(), x / ratW, y / ratH);
     }
 
-    public static Point getCursor() {
+    public static Vec2 getCursor() {
         Window window = minecraft.getWindow();
         int w1 = window.getWidth();
         int w2 = screenWidth();
@@ -481,7 +442,7 @@ public class RenderUtil {
         int h2 = screenHeight();
         double rW = (double) w2 / (double) w1;
         double rH = (double) h2 / (double) h1;
-        return new Point((int) (rW * minecraft.mouseHandler.xpos()), (int) (rH * minecraft.mouseHandler.ypos()));
+        return new Vec2((int) (rW * minecraft.mouseHandler.xpos()), (int) (rH * minecraft.mouseHandler.ypos()));
     }
 
     //util

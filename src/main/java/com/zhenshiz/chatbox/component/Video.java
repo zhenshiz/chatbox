@@ -175,7 +175,7 @@ public class Video extends AbstractComponent<Video> {
     private void drawTexture(GuiGraphics guiGraphics, int texture, float x, float y, float width, float height, int color) {
         // todo 1.21.8还没修好
         GpuTextureView shaderTexture = RenderSystem.getShaderTexture(texture);
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(shaderTexture), x, y, width, height, 1, 1, color, 0));
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(shaderTexture), guiGraphics.pose(), x, y, width, height, 1, 1, color));
     }
 
     private void draw(GuiGraphics guiGraphics, String text, int height) {

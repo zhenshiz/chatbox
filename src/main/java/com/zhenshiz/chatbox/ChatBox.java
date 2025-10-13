@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox;
 
 import com.mojang.logging.LogUtils;
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
@@ -16,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
+@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public class ChatBox implements ModInitializer {
     public static final String MOD_ID = "chatbox";
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -24,6 +26,8 @@ public class ChatBox implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        LOGGER.info("Ciallo～(∠·ω< )⌒★");
+        ChatOptionClickEvent.Command.register();
         ChatBoxSettingLoader.chatBoxLoader();
         Packets.register();
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);
@@ -37,13 +41,6 @@ public class ChatBox implements ModInitializer {
         });
         ServerLifecycleEvents.SERVER_STARTED.register(ChatBoxDialoguesLoader::loadCriteria);
     }
-
-/*    @SubscribeEvent
-    public static void onWorldLoad(LevelEvent.Load event) {
-        LevelAccessor levelAccessor = event.getLevel();
-        //只需要保存在主世界的data目录下即可
-        if (levelAccessor instanceof ServerLevel world && world.dimension() == Level.OVERWORLD) triggerCounts = world.getDataStorage().computeIfAbsent(ChatBoxTriggerCount.factory(world), "chatbox_trigger_count");
-    }*/
 
     public static ResourceLocation ResourceLocationMod(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);

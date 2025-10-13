@@ -7,6 +7,7 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
 
 public class FunctionalButton extends AbstractComponent<FunctionalButton> {
@@ -86,7 +87,7 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
                 case AUTOPLAY -> Component.translatable("chatbox.button.autoplay");
             };
             Vec2 position = getCurrentPosition();
-            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, -1);
+            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, CommonColors.WHITE);
         }
     }
 

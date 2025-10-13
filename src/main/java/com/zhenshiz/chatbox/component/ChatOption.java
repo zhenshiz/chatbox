@@ -1,11 +1,9 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.payload.c2s.SendCommandPayload;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
@@ -16,6 +14,8 @@ import net.minecraft.world.phys.Vec2;
 import org.joml.Matrix3x2fStack;
 
 import java.util.List;
+
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class ChatOption extends AbstractComponent<ChatOption> {
     //默认材质
@@ -54,7 +54,6 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setOptionTooltip("", false);
         setTextAlign(TextAlign.LEFT);
         setNext("");
-        defaultOption();
         setIsSelect(false);
     }
 
@@ -106,15 +105,11 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     public ChatOption setClickEvent(String type, String value) {
-        if (type != null && value != null) {
+        if (type != null) {
             this.onClickEvent = () -> {
                 if (minecraft.player != null) {
-                    if (type.equals("command")) {
-                        var commands = value.split(";");
-                        for (var command : commands) {
-                            command = command.trim();
-                            if (!command.isBlank()) ClientPlayNetworking.send(new SendCommandPayload(command));
-                        }
+                    if (ChatOptionClickEvent.CLICK_EVENTS.containsKey(type.toUpperCase())) {
+                        ChatOptionClickEvent.CLICK_EVENTS.get(type.toUpperCase()).execute(value == null ? "" : value);
                     }
                 }
             };
@@ -155,14 +150,14 @@ public class ChatOption extends AbstractComponent<ChatOption> {
             //跳转到指定的对话或者其它模块的对话
             if (StrUtil.isEmpty(this.next)) {
                 //跳转下一句话
-                ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.group, this.index + 1);
+                skipDialogues(dialoguesResourceLocation, group, index + 1);
             } else if (StrUtil.isInteger(this.next)) {
                 //如果为数字跳转到指定序号的对话
                 int index = Integer.parseInt(this.next);
-                ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.group, index);
+                skipDialogues(dialoguesResourceLocation, group, index);
             } else {
                 //如果是英文则跳转到指定模块的对话
-                ChatBoxUtil.skipDialogues(this.dialoguesResourceLocation, this.next);
+                skipDialogues(dialoguesResourceLocation, this.next);
             }
 
         }

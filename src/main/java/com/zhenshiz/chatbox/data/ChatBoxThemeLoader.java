@@ -13,8 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ChatBoxThemeLoader extends SimpleJsonDataLoader implements IdentifiableResourceReloadListener {
-    public static final ChatBoxThemeLoader INSTANCE = new ChatBoxThemeLoader();
-    public final Map<ResourceLocation, String> themeMap = new HashMap<>();
+    public static final Map<ResourceLocation, String> themeMap = new HashMap<>();
 
     public ChatBoxThemeLoader() {
         super(FileToIdConverter.json("chatbox/theme"));

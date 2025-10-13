@@ -2,21 +2,14 @@ package com.zhenshiz.chatbox.client;
 
 import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.resources.ResourceLocation;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ChatBoxClient implements ClientModInitializer {
     public static Config conf;
@@ -30,42 +23,13 @@ public class ChatBoxClient implements ClientModInitializer {
     }
 
     private static void registerReceiver() {
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreenPayload.TYPE,
-                (payload, context) -> ChatBoxUtil.skipDialogues(payload.dialogues(), payload.group(), payload.index()));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreenPayload.TYPE, ChatBoxPayload.OpenScreenPayload::execute);
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenChatBox.TYPE,
-                (payload, context) -> ChatBoxCommandUtil.clientOpenChatBox());
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.TYPE, ChatBoxPayload.AllChatBoxThemeToClient::execute);
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ToggleTheme.TYPE,
-                (payload, context) -> ChatBoxCommandUtil.clientToggleTheme(payload.theme()));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ChatBoxPayload.AllChatBoxDialoguesToClient::execute);
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.TYPE,
-                (payload, context) -> {
-                    ChatBoxUtil.setTheme(mergeString(payload.themeMap()));
-                    if (ChatBoxCommandUtil.themeResourceLocation != null) {
-                        ResourceLocation theme = ResourceLocation.tryParse(ChatBoxCommandUtil.themeResourceLocation);
-                        if (theme != null) {
-                            ChatBoxUtil.toggleTheme(theme);
-                        }
-                    }
-                });
-
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE,
-                (payload, context) -> ChatBoxUtil.setDialogues(mergeString(payload.dialoguesMap())));
-    }
-
-    private static Map<ResourceLocation, String> mergeString(Map<ResourceLocation, List<String>> map) {
-        Map<ResourceLocation, String> result = new HashMap<>();
-        for (var entry : map.entrySet()) {
-            ResourceLocation rl = entry.getKey();
-            List<String> parts = entry.getValue();
-            StringBuilder builder = new StringBuilder();
-            for (String part : parts) {
-                builder.append(part);
-            }
-            result.put(rl, builder.toString());
-        }
-        return result;
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SimplePayload.TYPE, ChatBoxPayload.SimplePayload::execute);
     }
 
     private void registerRenderEvents() {

@@ -8,7 +8,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.advancements.Criterion;
@@ -31,9 +31,8 @@ import java.util.function.Predicate;
 public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader implements IdentifiableResourceReloadListener {
     private static final Gson GSON =
             (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-    public static final ChatBoxDialoguesLoader INSTANCE = new ChatBoxDialoguesLoader();
     //记录所有的对话文件
-    public final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
+    public static final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
     //记录对应对话文件里的组名
     public static final Map<ResourceLocation, Set<String>> dialoguesGroupMap = new HashMap<>();
 
@@ -52,8 +51,12 @@ public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader implements Iden
     @Override
     protected void apply(@NotNull Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         dialoguesMap.clear();
+        dialoguesGroupMap.clear();
+        criteriaElements.clear();
+        dialoguesCriteriaMap.clear();
+        defaultMaxTriggerCount.clear();
         resourceLocationJsonElementMap.forEach((resourceLocation, jsonElement) -> dialoguesMap.put(resourceLocation, jsonElement.toString()));
-        setDialogues(dialoguesMap);
+        setDialogues();
     }
 
     public static <T extends SimpleCriterionTrigger.SimpleInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {
@@ -67,6 +70,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader implements Iden
                     var criterion = entry2.getValue();
                     CriterionTriggerInstance instance = criterion.triggerInstance();
                     try {
+                        //noinspection unchecked
                         T t = (T) instance;
                         if (testTrigger.test(t)) {
                             //判断玩家的触发次数是否为0，为0则不触发对话
@@ -77,16 +81,14 @@ public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader implements Iden
                                 ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreenPayload(rl, group, 0));
                             }
                         }
-                    } catch (ClassCastException e) {
-                        continue;
-                    }
+                    } catch (ClassCastException ignored) {}
                 }
             }
         }
     }
 
-    private static void setDialogues(Map<ResourceLocation, String> map) {
-        map.forEach((resourceLocation, str) -> {
+    private static void setDialogues() {
+        dialoguesMap.forEach((resourceLocation, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
             if (jsonElement == null) return;
             JsonElement dialoguesElement = jsonElement.getAsJsonObject().get("dialogues");

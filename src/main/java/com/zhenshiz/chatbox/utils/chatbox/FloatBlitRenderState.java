@@ -40,12 +40,13 @@ public record FloatBlitRenderState(
             GuiGraphics guiGraphics,
             RenderPipeline pipeline,
             TextureSetup textureSetup,
+            Matrix3x2f pose,
             float x, float y,
             float width, float height,
             float u, float v,
-            int color, float angle
+            int color
     ) {
-        this(pipeline, textureSetup, new Matrix3x2f(guiGraphics.pose()).rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2), x, y, x + width, y + height, 0, u, 0, v, color, guiGraphics.scissorStack.peek());
+        this(pipeline, textureSetup, pose, x, y, x + width, y + height, 0, u, 0, v, color, guiGraphics.scissorStack.peek());
     }
 
     @Override

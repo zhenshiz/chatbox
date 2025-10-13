@@ -1,55 +1,59 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
-import com.zhenshiz.chatbox.component.DialogBox;
-import com.zhenshiz.chatbox.payload.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
+
 public class ChatBoxCommandUtil {
-    private static final Minecraft minecraft = Minecraft.getInstance();
-    public static String themeResourceLocation = null;
 
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
-        if (player != null) ServerPlayNetworking.send(player, new ChatBoxPayload.ToggleTheme(theme));
+        if (player != null) ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("set_theme", theme.toString()));
     }
 
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index) {
         if (player != null) ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
     }
 
-    public static void skipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
         serverSkipDialogues(player, dialogues, group, 0);
     }
 
-    public static void openChatBox(ServerPlayer player) {
-        if (player != null) ServerPlayNetworking.send(player, new ChatBoxPayload.OpenChatBox());
+    public static void serverOpenChatBox(ServerPlayer player) {
+        if (player != null) ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("open_dialog", ""));
     }
 
-    public static void clientToggleTheme(ResourceLocation theme) {
-        ChatBoxUtil.toggleTheme(theme);
-        themeResourceLocation = theme.toString();
+    public static void clientToggleTheme(String theme) {
+        toggleTheme(ResourceLocation.parse(theme));
+        themeResourceLocation = theme;
     }
 
     public static void clientSkipDialogues(ResourceLocation dialogues, String group, Integer index) {
-        ChatBoxUtil.skipDialogues(dialogues, group, index);
+        skipDialogues(dialogues, group, index);
     }
 
     public static void clientSkipDialogues(ResourceLocation dialogues, String group) {
-        ChatBoxUtil.skipDialogues(dialogues, group, 0);
+        clientSkipDialogues(dialogues, group, 0);
     }
 
     public static void clientOpenChatBox() {
-        if (minecraft.player != null) {
-            DialogBox dialogBox = ChatBoxUtil.chatBoxScreen.dialogBox;
-            ResourceLocation dialoguesResourceLocation = dialogBox.dialoguesResourceLocation;
-            String group = dialogBox.group;
-            Integer index = dialogBox.index;
-            if (dialoguesResourceLocation != null && group != null && index != null) {
-                ChatBoxUtil.skipDialogues(dialoguesResourceLocation, group, index);
-            }
+        if (dialoguesResourceLocation != null && group != null && index != null) {
+            skipDialogues(dialoguesResourceLocation, group, index);
         }
+    }
+
+    public static void clientNextDialogue() {
+        chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+    }
+
+    public static void clientAutoPlay(boolean autoPlay) {
+        chatBoxScreen.autoPlay = autoPlay;
+    }
+
+    public static void clientSetIsScreen(boolean isScreen) {
+        ChatBoxUtil.isScreen = isScreen;
     }
 
 }

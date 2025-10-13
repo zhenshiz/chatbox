@@ -55,13 +55,13 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
             float y = vec2.y;
 
             //right scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, ResourceLocation.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, 0, mouseTextureWidth, mouseTextureHeight, 1, opacity);
+            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, ResourceLocation.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 0f);
             drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
 
             x += mouseTextureWidth + font.width(keyRightClick) + 4;
 
             //mouse scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, ResourceLocation.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, 0, mouseTextureWidth, mouseTextureHeight, 1, opacity);
+            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, ResourceLocation.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 0f);
             drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
 
             x += mouseTextureWidth + font.width(keyScroll) + 4;
