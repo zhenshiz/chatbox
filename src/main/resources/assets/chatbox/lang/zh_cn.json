@@ -13,8 +13,7 @@
   "text.autoconfig.chatbox_config.option.historicalScrollSpeed": "历史记录界面滚轮速度",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "音效中断",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "下句话如果没有新音效，是否中断前面正在播放的音效",
-  "text.autoconfig.chatbox_config.option.isScreen":"是否为屏幕主题对话框",
-  "text.autoconfig.chatbox_config.option.isScreen.@Tooltip":"屏幕主题可以让鼠标点击选项，非屏幕主题玩家可以在显示对话框的时候移动",
+  "text.autoconfig.chatbox_config.option.charPerSecond":"每秒显示的字符数",
 
   "chatbox.key.right_click": "确定",
   "chatbox.key.scroll": "切换选项",

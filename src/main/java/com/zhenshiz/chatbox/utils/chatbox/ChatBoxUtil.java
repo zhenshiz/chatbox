@@ -49,6 +49,8 @@ public class ChatBoxUtil {
     public static String group;
     //文本序号
     public static Integer index;
+    //对话框主题分支
+    public static boolean isScreen = true;
 
     public static void setDialoguesInfo(ResourceLocation resourceLocation, String group, Integer index) {
         if (resourceLocation != null && group != null && index != null) {
@@ -89,6 +91,7 @@ public class ChatBoxUtil {
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
         Boolean isTranslatable = chatBoxDialogues.isTranslatable;
+        if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
         String theme = chatBoxDialogues.theme;
         if (theme != null && !theme.equals(themeResourceLocation)) { //如果是同一个主题就不切换了
             toggleTheme(ResourceLocation.parse(theme));
@@ -140,7 +143,7 @@ public class ChatBoxUtil {
             SkipChatEvent.EVENT.invoker().skipChat(chatBoxScreen, dialoguesResourceLocation, group, index);
             //NeoForge.EVENT_BUS.post(new SkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index));
 
-            if (ChatBoxClient.conf.isScreen) {
+            if (isScreen) {
                 minecraft.setScreen(chatBoxScreen);
             } else {
                 ChatBoxRender.isOpenChatBox = true;
@@ -148,7 +151,7 @@ public class ChatBoxUtil {
             // 确认对话框加载完成后再设置客户端对话框信息
             setDialoguesInfo(dialoguesResourceLocation, group, index);
         } else {
-            if (ChatBoxClient.conf.isScreen) {
+            if (isScreen) {
                 if (minecraft.screen != null) {
                     minecraft.screen.onClose();
                 }

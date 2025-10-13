@@ -64,8 +64,24 @@ public class ChatBoxCommand {
                         .then(Commands.literal("autoPlay")
                                 .then(Commands.argument("AutoPlay", BoolArgumentType.bool()).executes(ChatBoxCommand::autoPlay))
                         )
+                        .then(Commands.literal("isScreen")
+                                .then(Commands.argument("IsScreen", BoolArgumentType.bool()).executes(ChatBoxCommand::setIsScreen))
+                        )
                 )
         );
+    }
+
+    private static int setIsScreen(CommandContext<CommandSourceStack> context) {
+        boolean isScreen = BoolArgumentType.getBool(context, "IsScreen");
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("set_is_screen", String.valueOf(isScreen)));
+            return 1;
+        } else {
+            context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+            return 0;
+        }
     }
 
     private static int autoPlay(CommandContext<CommandSourceStack> context) {
@@ -73,7 +89,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.AutoPlayPayload(autoPlay));
+            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("auto_play", String.valueOf(autoPlay)));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -85,7 +101,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.NextDialoguePayload());
+            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("next_dialogue", ""));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -98,8 +114,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.ToggleTheme(theme));
-            //player.connection.send(new ChatBoxPayload.ToggleTheme(theme));
+            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("set_theme", theme.toString()));
             context.getSource().sendSuccess(() -> Component.translatable("commands.toggle.theme"), true);
             return 1;
         } else {
@@ -120,7 +135,6 @@ public class ChatBoxCommand {
             if (count != 0) {
                 counts.setPlayerMaxTriggerCount(player, dialogues, count - 1);
                 ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
-                //player.connection.send(new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
                 context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             }
             return 1;
@@ -133,9 +147,7 @@ public class ChatBoxCommand {
     private static int openChatBox(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.OpenChatBox());
-            //player.connection.send(new ChatBoxPayload.OpenChatBox());
-
+            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("open_dialog", ""));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);

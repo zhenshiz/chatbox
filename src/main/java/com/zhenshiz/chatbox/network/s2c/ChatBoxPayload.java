@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class ChatBoxPayload {
     public record OpenScreenPayload(ResourceLocation dialogues, String group,
@@ -37,42 +38,6 @@ public class ChatBoxPayload {
 
         public static void execute(OpenScreenPayload payload, ClientPlayNetworking.Context context) {
             ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index());
-        }
-    }
-
-    public record OpenChatBox() implements CustomPacketPayload {
-        public static final Type<OpenChatBox> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_dialog"));
-        public static final StreamCodec<FriendlyByteBuf, OpenChatBox> CODEC = StreamCodec.ofMember(OpenChatBox::write, OpenChatBox::new);
-
-        public OpenChatBox(FriendlyByteBuf friendlyByteBuf) {this();}
-
-        private void write(FriendlyByteBuf buf) {}
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-
-        public static void execute(OpenChatBox payload, ClientPlayNetworking.Context context) {
-            ChatBoxCommandUtil.clientOpenChatBox();
-        }
-    }
-
-    public record ToggleTheme(ResourceLocation theme) implements CustomPacketPayload {
-        public static final Type<ToggleTheme> TYPE = new Type<>(ChatBox.ResourceLocationMod("toggle_theme"));
-        public static final StreamCodec<FriendlyByteBuf, ToggleTheme> CODEC = StreamCodec.composite(
-                ResourceLocation.STREAM_CODEC,
-                ToggleTheme::theme,
-                ToggleTheme::new
-        );
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-
-        public static void execute(ToggleTheme payload, ClientPlayNetworking.Context context) {
-            ChatBoxCommandUtil.clientToggleTheme(payload.theme());
         }
     }
 
@@ -126,34 +91,24 @@ public class ChatBoxPayload {
         }
     }
 
-    public record NextDialoguePayload() implements CustomPacketPayload {
-        public static final Type<NextDialoguePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_next_dialogue"));
-        public static final StreamCodec<FriendlyByteBuf, NextDialoguePayload> CODEC = StreamCodec.ofMember(NextDialoguePayload::write, NextDialoguePayload::new);
-
-        public NextDialoguePayload(FriendlyByteBuf friendlyByteBuf) {this();}
-
-        private void write(FriendlyByteBuf buf) {}
-
-        public static void execute(NextDialoguePayload payload, ClientPlayNetworking.Context context) {
-            ChatBoxCommandUtil.clientNextDialogue();
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public record AutoPlayPayload(boolean autoPlay) implements CustomPacketPayload {
-        public static final Type<AutoPlayPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_auto_play"));
-        public static final StreamCodec<FriendlyByteBuf, AutoPlayPayload> CODEC = StreamCodec.composite(
-                ByteBufCodecs.BOOL,
-                AutoPlayPayload::autoPlay,
-                AutoPlayPayload::new
+    public record SimplePayload(String name, String value) implements CustomPacketPayload {
+        public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("simple_payload"));
+        public static final StreamCodec<FriendlyByteBuf, SimplePayload> CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, SimplePayload::name,
+                ByteBufCodecs.STRING_UTF8, SimplePayload::value,
+                SimplePayload::new
         );
+        private static final Map<String, Consumer<String>> handlers = new HashMap<>();
+        static {
+            handlers.put("open_dialog", s -> ChatBoxCommandUtil.clientOpenChatBox());
+            handlers.put("set_theme", ChatBoxCommandUtil::clientToggleTheme);
+            handlers.put("next_dialogue", s -> ChatBoxCommandUtil.clientNextDialogue());
+            handlers.put("auto_play", s -> ChatBoxCommandUtil.clientAutoPlay(Boolean.parseBoolean(s)));
+            handlers.put("set_is_screen", s -> ChatBoxCommandUtil.clientSetIsScreen(Boolean.parseBoolean(s)));
+        }
 
-        public static void execute(AutoPlayPayload payload, ClientPlayNetworking.Context context) {
-            ChatBoxCommandUtil.clientAutoPlay(payload.autoPlay());
+        public static void execute(SimplePayload payload, ClientPlayNetworking.Context context) {
+            if (handlers.containsKey(payload.name())) handlers.get(payload.name()).accept(payload.value());
         }
 
         @Override

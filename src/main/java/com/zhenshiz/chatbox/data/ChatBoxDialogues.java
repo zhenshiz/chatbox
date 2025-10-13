@@ -30,6 +30,7 @@ public class ChatBoxDialogues {
     public Boolean isPause = true;
     public Boolean isHistoricalSkip = true;
     public String theme;
+    public Boolean isScreen;
 
     public static class Dialogues {
         public DialogBox dialogBox = new DialogBox();
