@@ -78,7 +78,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            player.connection.send(new ClientChatBoxPayload.ToggleIsScreenPayload(isScreen));
+            player.connection.send(new ClientChatBoxPayload.SimplePayload("set_is_screen", String.valueOf(isScreen)));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -91,7 +91,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            player.connection.send(new ClientChatBoxPayload.AutoPlayPayload(autoPlay));
+            player.connection.send(new ClientChatBoxPayload.SimplePayload("auto_play", String.valueOf(autoPlay)));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -103,7 +103,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            player.connection.send(new ClientChatBoxPayload.NextDialoguePayload());
+            player.connection.send(new ClientChatBoxPayload.SimplePayload("next_dialogue", ""));
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -116,7 +116,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            player.connection.send(new ClientChatBoxPayload.ToggleTheme(theme));
+            ChatBoxCommandUtil.serverToggleTheme(player, theme);
             context.getSource().sendSuccess(() -> Component.translatable("commands.toggle.theme"), true);
             return 1;
         } else {
@@ -131,7 +131,7 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index));
+            ChatBoxCommandUtil.serverSkipDialogues(player, dialogues, group, index);
             context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             return 1;
         } else {
@@ -143,8 +143,7 @@ public class ChatBoxCommand implements ICommand {
     private static int openChatBox(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
-            player.connection.send(new ClientChatBoxPayload.OpenChatBox());
-
+            ChatBoxCommandUtil.serverOpenChatBox(player);
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);

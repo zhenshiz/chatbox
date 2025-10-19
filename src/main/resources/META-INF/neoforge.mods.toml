@@ -15,14 +15,14 @@ logoFile = "icon.png"
 [[dependencies.chatbox]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.0,)"
+versionRange = "[21.1.199,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.chatbox]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21,1.22)"
+versionRange = "[1.21,1.21.1)"
 ordering = "NONE"
 side = "BOTH"
 

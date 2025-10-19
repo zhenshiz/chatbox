@@ -215,7 +215,7 @@ public class ChatBoxUtil {
             }
             animationMap.putAll(customAnimation);
 
-            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, functionButton, keyPrompt).setDefaultValue());
+            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, functionButton, keyPrompt, null).setDefaultValue());
         });
     }
 

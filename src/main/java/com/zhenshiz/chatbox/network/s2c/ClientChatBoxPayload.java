@@ -7,7 +7,6 @@ import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class ClientChatBoxPayload {
     public record OpenScreenPayload(ResourceLocation dialogues, String group,
@@ -34,45 +34,6 @@ public class ClientChatBoxPayload {
 
         public static void execute(OpenScreenPayload payload, IPayloadContext context) {
             ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index());
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public record OpenChatBox() implements CustomPacketPayload {
-        public static final Type<OpenChatBox> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_dialog"));
-        public static final StreamCodec<FriendlyByteBuf, OpenChatBox> CODEC = StreamCodec.ofMember(OpenChatBox::write, OpenChatBox::new);
-
-        public OpenChatBox(FriendlyByteBuf friendlyByteBuf) {
-            this();
-        }
-
-        private void write(FriendlyByteBuf buf) {
-        }
-
-        public static void execute(OpenChatBox payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientOpenChatBox();
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public record ToggleTheme(ResourceLocation theme) implements CustomPacketPayload {
-        public static final Type<ToggleTheme> TYPE = new Type<>(ChatBox.ResourceLocationMod("toggle_theme"));
-        public static final StreamCodec<FriendlyByteBuf, ToggleTheme> CODEC = StreamCodec.composite(
-                ResourceLocation.STREAM_CODEC,
-                ToggleTheme::theme,
-                ToggleTheme::new
-        );
-
-        public static void execute(ToggleTheme payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientToggleTheme(payload.theme());
         }
 
         @Override
@@ -196,37 +157,31 @@ public class ClientChatBoxPayload {
         }
     }
 
-    public record NextDialoguePayload() implements CustomPacketPayload {
-        public static final Type<NextDialoguePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_next_dialogue"));
-        public static final StreamCodec<FriendlyByteBuf, NextDialoguePayload> CODEC = StreamCodec.ofMember(NextDialoguePayload::write, NextDialoguePayload::new);
-
-        public NextDialoguePayload(FriendlyByteBuf friendlyByteBuf) {
-            this();
-        }
-
-        private void write(FriendlyByteBuf buf) {
-        }
-
-        public static void execute(NextDialoguePayload payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientNextDialogue();
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public record AutoPlayPayload(boolean autoPlay) implements CustomPacketPayload {
-        public static final Type<AutoPlayPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_auto_play"));
-        public static final StreamCodec<FriendlyByteBuf, AutoPlayPayload> CODEC = StreamCodec.composite(
-                ByteBufCodecs.BOOL,
-                AutoPlayPayload::autoPlay,
-                AutoPlayPayload::new
+    public record SimplePayload(String name, String value) implements CustomPacketPayload {
+        public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("simple_payload"));
+        public static final StreamCodec<FriendlyByteBuf, SimplePayload> CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8,
+                SimplePayload::name,
+                ByteBufCodecs.STRING_UTF8,
+                SimplePayload::value,
+                SimplePayload::new
         );
+        private static final Map<String, Consumer<String>> handlers = new HashMap<>();
 
-        public static void execute(AutoPlayPayload payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientAutoPlay(payload.autoPlay());
+        static {
+            handlers.put("open_dialog", s -> ChatBoxCommandUtil.clientOpenChatBox());
+            handlers.put("set_theme", ChatBoxCommandUtil::clientToggleTheme);
+            handlers.put("next_dialogue", s -> ChatBoxCommandUtil.clientNextDialogue());
+            handlers.put("auto_play", s -> ChatBoxCommandUtil.clientAutoPlay(Boolean.parseBoolean(s)));
+            handlers.put("set_is_screen", s -> ChatBoxCommandUtil.clientSetIsScreen(Boolean.parseBoolean(s)));
+        }
+
+        public static void execute(SimplePayload payload, IPayloadContext context) {
+            String name = payload.name();
+            String value = payload.value();
+            if (handlers.containsKey(name)) {
+                handlers.get(name).accept(value);
+            }
         }
 
         @Override
@@ -247,23 +202,5 @@ public class ClientChatBoxPayload {
             result.put(rl, builder.toString());
         }
         return result;
-    }
-
-    public record ToggleIsScreenPayload(boolean isScreen) implements CustomPacketPayload {
-        public static final Type<ToggleIsScreenPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_toggle_is_screen"));
-        public static final StreamCodec<FriendlyByteBuf, ToggleIsScreenPayload> CODEC = StreamCodec.composite(
-                ByteBufCodecs.BOOL,
-                ToggleIsScreenPayload::isScreen,
-                ToggleIsScreenPayload::new
-        );
-
-        public static void execute(ToggleIsScreenPayload payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientToggleIsScreen(payload.isScreen);
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
     }
 }

@@ -29,7 +29,8 @@ public class ChatBoxDialogues {
     public Boolean isEsc = true;
     public Boolean isPause = true;
     public Boolean isHistoricalSkip = true;
-    public Integer maxTriggerCount;
+    public Integer maxTriggerCount = -1;
+    public Boolean isScreen = true;
     public String theme;
 
     public static class Dialogues {
@@ -177,8 +178,8 @@ public class ChatBoxDialogues {
             public String text;
             public Boolean isLock = false;
             public Condition lock = new Condition();
-            public Condition hidden = new Condition();
             public Boolean isHidden = false;
+            public Condition hidden = new Condition();
             public String next;
             public Click click = new Click();
             public String tooltip;

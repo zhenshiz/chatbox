@@ -20,10 +20,11 @@ import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 public class ChatBoxCommandUtil {
     @Info("服务端切换对话框主题样式")
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
-        if (player != null) player.connection.send(new ClientChatBoxPayload.ToggleTheme(theme));
+        if (player != null)
+            player.connection.send(new ClientChatBoxPayload.SimplePayload("set_theme", theme.toString()));
     }
 
-    @Info("服务端跳转对话，自带同步数据附件")
+    @Info("服务端跳转对话")
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index) {
         if (player != null) {
             player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index));
@@ -37,16 +38,10 @@ public class ChatBoxCommandUtil {
 
     @Info("服务端打开对话框，无视最大访问次数")
     public static void serverOpenChatBox(ServerPlayer player) {
-        if (player != null) player.connection.send(new ClientChatBoxPayload.OpenChatBox());
+        if (player != null) player.connection.send(new ClientChatBoxPayload.SimplePayload("open_dialog", ""));
     }
 
-    @Info("""
-            服务端设置最大访问次数，不包含同步
-            
-            需要自行发包保证双端同步
-            
-            player.connection.send(new ClientChatBoxPayload.SetMaxTriggerCount(ResourceLocation,int));
-            """)
+    @Info("服务端设置最大访问次数，自带同步")
     public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
         if (player != null) {
             ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
@@ -59,13 +54,7 @@ public class ChatBoxCommandUtil {
         }
     }
 
-    @Info("""
-            服务端重置访问次数，不包含同步
-            
-            需要自行发包保证双端同步
-            
-            player.connection.send(new ClientChatBoxPayload.ResetMaxTriggerCount());
-            """)
+    @Info("服务端重置访问次数，自带同步")
     public static void serverResetMaxTriggerCount(ServerPlayer player) {
         if (player != null) {
             player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, new ChatBoxTriggerCount.MaxTriggerCount());
@@ -73,9 +62,9 @@ public class ChatBoxCommandUtil {
     }
 
     @Info("客户端切换对话框主题样式")
-    public static void clientToggleTheme(ResourceLocation theme) {
-        toggleTheme(theme);
-        themeResourceLocation = theme.toString();
+    public static void clientToggleTheme(String theme) {
+        toggleTheme(ResourceLocation.parse(theme));
+        themeResourceLocation = theme;
     }
 
     @Info("客户端跳转对话，自带同步数据附件")
@@ -99,7 +88,8 @@ public class ChatBoxCommandUtil {
         }
 
         String theme = chatBoxDialogues.theme;
-        if (theme != null && !theme.equals(themeResourceLocation)) clientToggleTheme(ResourceLocation.parse(theme));
+        if (theme != null && !theme.equals(themeResourceLocation)) clientToggleTheme(theme);
+        clientSetIsScreen(chatBoxDialogues.isScreen);
         skipDialogues(dialoguesResourceLocation, group, index);
     }
 
@@ -115,13 +105,7 @@ public class ChatBoxCommandUtil {
         }
     }
 
-    @Info("""
-            客户端设置最大访问次数，不包含同步
-            
-            需要自行发包保证双端同步
-            
-            player.connection.send(new ServerChatBoxPayload.SetMaxTriggerCountPayload(ResourceLocation,int));
-            """)
+    @Info("客户端设置最大访问次数，自带同步")
     public static void clientSetMaxTriggerCount(ResourceLocation dialogResourceLocation, int count) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
@@ -132,13 +116,7 @@ public class ChatBoxCommandUtil {
         minecraft.player.setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
     }
 
-    @Info("""
-            客户端重置访问次数，不包含同步
-            
-            需要自行发包保证双端同步
-            
-            player.connection.send(new ServerChatBoxPayload.ResetMaxTriggerCount());
-            """)
+    @Info("客户端重置访问次数，自带同步")
     public static void clientResetMaxTriggerCount() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
@@ -161,7 +139,7 @@ public class ChatBoxCommandUtil {
     }
 
     @Info("切换对话框是否为屏幕")
-    public static void clientToggleIsScreen(boolean isScreen) {
+    public static void clientSetIsScreen(boolean isScreen) {
         ChatBoxUtil.isScreen = isScreen;
     }
 }

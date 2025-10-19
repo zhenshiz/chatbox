@@ -24,6 +24,7 @@ public class ChatBoxTheme {
     public DialogBox dialogBox;
     public List<FunctionButton> functionalButton;
     public KeyPrompt keyPrompt;
+    public Map<String, List<Portrait.CustomAnimation>> customAnimation;
 
     public ChatBoxTheme setDefaultValue() {
         for (FunctionButton button : this.functionalButton) {
@@ -39,6 +40,7 @@ public class ChatBoxTheme {
         {
             this.renderOrder = 20;
         }
+
         public String type;
         public String value;
         public Integer customItemData;
@@ -93,6 +95,7 @@ public class ChatBoxTheme {
         {
             this.renderOrder = 10;
         }
+
         public String texture;
         public String selectTexture;
         public String lockTexture;
@@ -115,6 +118,7 @@ public class ChatBoxTheme {
         {
             this.renderOrder = 0;
         }
+
         public String texture;
         public Float lineWidth;
         public Float nameX = DEFAULT_FLOAT;
@@ -141,6 +145,7 @@ public class ChatBoxTheme {
             this.alignY = AbstractComponent.AlignY.BOTTOM.name();
             this.renderOrder = 30;
         }
+
         public String type;
         public String texture;
         public String hoverTexture;
@@ -158,6 +163,7 @@ public class ChatBoxTheme {
         {
             this.renderOrder = 40;
         }
+
         public Boolean visible = true;
         public Float mouseTextureWidth = 16f;
         public Float mouseTextureHeight = 16f;
