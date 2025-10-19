@@ -89,7 +89,7 @@ public class ChatBoxCommandUtil {
 
         String theme = chatBoxDialogues.theme;
         if (theme != null && !theme.equals(themeResourceLocation)) clientToggleTheme(theme);
-        clientSetIsScreen(chatBoxDialogues.isScreen);
+        if (chatBoxDialogues.isScreen != null) clientSetIsScreen(chatBoxDialogues.isScreen);
         skipDialogues(dialoguesResourceLocation, group, index);
     }
 

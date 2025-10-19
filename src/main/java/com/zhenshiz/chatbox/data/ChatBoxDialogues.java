@@ -30,7 +30,7 @@ public class ChatBoxDialogues {
     public Boolean isPause = true;
     public Boolean isHistoricalSkip = true;
     public Integer maxTriggerCount = -1;
-    public Boolean isScreen = true;
+    public Boolean isScreen;
     public String theme;
 
     public static class Dialogues {
