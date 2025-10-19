@@ -90,6 +90,7 @@ public class ChatBoxUtil {
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
         Boolean isTranslatable = chatBoxDialogues.isTranslatable;
+        if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
         String theme = chatBoxDialogues.theme;
         if (theme != null && !theme.equals(themeResourceLocation)) {
             toggleTheme(new ResourceLocation(theme));

@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.api;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import net.minecraft.commands.CommandSourceStack;
@@ -82,12 +83,14 @@ public interface ChatOptionClickEvent {
 
         public static void executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {
             // 创建命令源，并赋予2级权限，且禁止输出
-            CommandSourceStack commandSource = server.createCommandSourceStack()
-                    .withPermission(Commands.LEVEL_GAMEMASTERS).withSuppressedOutput();
-            if (entity != null) commandSource = commandSource.withEntity(entity);
+            CommandSourceStack commandSource;
+            if (entity != null) commandSource = entity.createCommandSourceStack();
+            else commandSource = server.createCommandSourceStack();
+            commandSource = commandSource.withPermission(Commands.LEVEL_GAMEMASTERS).withSuppressedOutput();
+            var dispatcher = server.getCommands().getDispatcher();
             try {
-                server.getCommands().performPrefixedCommand(commandSource, command);
-            } catch (Exception e) {
+                dispatcher.execute(dispatcher.parse(command, commandSource));
+            } catch (CommandSyntaxException e) {
                 ChatBox.LOGGER.error("Error executing command on server: {}", command, e);
             }
         }
