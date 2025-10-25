@@ -4,10 +4,11 @@ import com.zhenshiz.chatbox.event.forge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.forge.SkipChatEvent;
 import com.zhenshiz.chatbox.network.CustomPacket;
 import com.zhenshiz.chatbox.network.NetworkForge;
-import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.DistExecutor;
@@ -16,6 +17,7 @@ import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.io.File;
+import java.util.List;
 
 public class ForgePlatformHelper implements IPlatformHelper {
     @Override
@@ -56,7 +58,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void postSkipChatEvent(ChatBoxScreen chatBoxScreen, ResourceLocation resourceLocation, String group, Integer index) {
-        MinecraftForge.EVENT_BUS.post(new SkipChatEvent(chatBoxScreen, resourceLocation, group, index));
+    public void postSkipChatEvent(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets) {
+        MinecraftForge.EVENT_BUS.post(new SkipChatEvent(player, resourceLocation, group, index, targets));
     }
 }

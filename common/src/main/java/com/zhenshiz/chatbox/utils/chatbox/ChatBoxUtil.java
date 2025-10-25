@@ -15,10 +15,12 @@ import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
+import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.Entity;
 
 import java.util.*;
 
@@ -48,14 +50,17 @@ public class ChatBoxUtil {
     public static String group;
     //文本序号
     public static Integer index;
+    //对话目标实体列表
+    public static List<Entity> chatTargets = new ArrayList<>();
     //对话框主题分支
     public static boolean isScreen = true;
 
-    public static void setDialoguesInfo(ResourceLocation resourceLocation, String group, Integer index) {
+    public static void setDialoguesInfo(ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets) {
         if (resourceLocation != null && group != null && index != null) {
             dialoguesResourceLocation = resourceLocation;
             ChatBoxUtil.group = group;
             ChatBoxUtil.index = index;
+            chatTargets = targets;
         }
     }
 
@@ -86,6 +91,13 @@ public class ChatBoxUtil {
 
     //跳转对话
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index) {
+        skipDialogues(dialoguesResourceLocation, group, index, chatTargets);
+    }
+    public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index, String entityList) {
+        //minecraft.level写在ChatBoxCommandUtil里就会炸服务端，不知道为什么
+        skipDialogues(dialoguesResourceLocation, group, index, ChatBoxCommandUtil.fromString(entityList, minecraft.level));
+    }
+    public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index, List<Entity> targets) {
         if (minecraft.player == null) return;
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
@@ -111,8 +123,6 @@ public class ChatBoxUtil {
                     .setIsPause(chatBoxDialogues.isPause)
                     .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip);
 
-            chatBoxScreen.dialogBox.resetTickCount();
-            chatBoxScreen.dialogBox.setAllOver(false);
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
                 //如果不是对话框和历史记录界面跳转，就清除历史记录
                 historicalDialogue = new HistoricalDialogueScreen();
@@ -139,7 +149,8 @@ public class ChatBoxUtil {
 
             //调试用
             //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);
-            ChatBox.PLATFORM.postSkipChatEvent(chatBoxScreen, dialoguesResourceLocation, group, index);
+            ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, targets);
+            ChatBoxCommandUtil.simplePayloadC2S(ChatBoxCommandUtil.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, String.valueOf(index)));
 
             if (isScreen) {
                 minecraft.setScreen(chatBoxScreen);
@@ -147,7 +158,7 @@ public class ChatBoxUtil {
                 ChatBoxRenderCommon.isOpenChatBox = true;
             }
             // 确认对话框加载完成后再设置客户端对话框信息
-            setDialoguesInfo(dialoguesResourceLocation, group, index);
+            setDialoguesInfo(dialoguesResourceLocation, group, index, targets);
         } else {
             if (isScreen) {
                 if (minecraft.screen != null) {

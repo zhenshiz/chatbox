@@ -32,7 +32,7 @@ public class NetworkForge {
             OPEN_SCREEN = registerChannel(ChatBoxPayload.OpenScreen.class),
             ALL_CHATBOX_THEME_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxThemeToClient.class),
             ALL_CHATBOX_DIALOGUES_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxDialoguesToClient.class),
-            SIMPLE_PAYLOAD = registerChannel(ChatBoxPayload.SimplePayload.class),
+            SIMPLE_PAYLOAD = registerChannel(SimplePayload.class),
 
     SEND_CLICK_EVENT = registerChannel(SendClickEvent.class);
 
@@ -56,8 +56,12 @@ public class NetworkForge {
             ctx.get().setPacketHandled(true);
         });
 
-        SIMPLE_PAYLOAD.registerMessage(nextId(), ChatBoxPayload.SimplePayload.class, ChatBoxPayload.SimplePayload::encode, ChatBoxPayload.SimplePayload::decode, (packet, ctx) -> {
-            ctx.get().enqueueWork(() -> ChatBoxPayload.SimplePayload.handleOnClient(packet));
+        SIMPLE_PAYLOAD.registerMessage(nextId(), SimplePayload.class, SimplePayload::encode, SimplePayload::decode, (packet, ctx) -> {
+            ctx.get().enqueueWork(() -> {
+                ServerPlayer sender = ctx.get().getSender();
+                if (sender != null) SimplePayload.handleOnServer(sender, packet);
+                else SimplePayload.handleOnClient(packet);
+            });
             ctx.get().setPacketHandled(true);
         });
 

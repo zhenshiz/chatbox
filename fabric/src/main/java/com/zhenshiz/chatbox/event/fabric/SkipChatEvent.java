@@ -1,17 +1,20 @@
 package com.zhenshiz.chatbox.event.fabric;
 
-import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.List;
 
 public interface SkipChatEvent {
     Event<SkipChatEvent> EVENT = EventFactory.createArrayBacked(SkipChatEvent.class,
-            (listeners) -> (screen, res, group, index) -> {
+            (listeners) -> (player, resourceLocation, group, index, targets) -> {
                 for (SkipChatEvent event : listeners) {
-                    event.skipChat(screen, res, group, index);
+                    event.skipChat(player, resourceLocation, group, index, targets);
                 }
             });
 
-    void skipChat(ChatBoxScreen chatBoxScreen, ResourceLocation resourceLocation, String group, Integer index);
+    void skipChat(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets);
 }

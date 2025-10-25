@@ -3,7 +3,6 @@ package com.zhenshiz.chatbox.platform;
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.fabric.SkipChatEvent;
 import com.zhenshiz.chatbox.network.CustomPacket;
-import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -12,8 +11,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 
 import java.io.File;
+import java.util.List;
 
 public class FabricPlatformHelper implements IPlatformHelper {
     @Override
@@ -59,7 +61,7 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void postSkipChatEvent(ChatBoxScreen chatBoxScreen, ResourceLocation resourceLocation, String group, Integer index) {
-        SkipChatEvent.EVENT.invoker().skipChat(chatBoxScreen, resourceLocation, group, index);
+    public void postSkipChatEvent(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets) {
+        SkipChatEvent.EVENT.invoker().skipChat(player, resourceLocation, group, index, targets);
     }
 }

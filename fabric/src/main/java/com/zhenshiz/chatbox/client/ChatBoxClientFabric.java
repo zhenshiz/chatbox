@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.client;
 
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
 import net.fabricmc.api.ClientModInitializer;
@@ -23,7 +24,7 @@ public class ChatBoxClientFabric implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(ChatBoxPayload.AllChatBoxDialoguesToClient.decode(buf)));
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SimplePayload.ID, (client, h, buf, r) -> ChatBoxPayload.SimplePayload.handleOnClient(ChatBoxPayload.SimplePayload.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(SimplePayload.ID, (client, h, buf, r) -> SimplePayload.handleOnClient(SimplePayload.decode(buf)));
     }
 
     private void registerRenderEvents() {

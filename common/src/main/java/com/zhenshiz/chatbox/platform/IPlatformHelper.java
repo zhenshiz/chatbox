@@ -1,12 +1,14 @@
 package com.zhenshiz.chatbox.platform;
 
 import com.zhenshiz.chatbox.network.CustomPacket;
-import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 
 import java.io.File;
+import java.util.List;
 
 public interface IPlatformHelper {
 
@@ -39,5 +41,5 @@ public interface IPlatformHelper {
 
     void postRenderEventPost(GuiGraphics guiGraphics);
 
-    void postSkipChatEvent(ChatBoxScreen chatBoxScreen, ResourceLocation resourceLocation, String group, Integer index);
+    void postSkipChatEvent(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets);
 }

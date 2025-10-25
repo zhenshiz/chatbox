@@ -70,7 +70,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
                             int count = counts.getPlayerMaxTriggerCount(player, rl);
                             if (count != 0) {
                                 counts.setPlayerMaxTriggerCount(player, rl, count - 1);
-                                ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenScreen(rl, group, 0));
+                                ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenScreen(rl, group, 0, ""));
                             }
                         }
                     } catch (ClassCastException ignored) {}

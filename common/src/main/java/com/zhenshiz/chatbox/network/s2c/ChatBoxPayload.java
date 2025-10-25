@@ -1,6 +1,5 @@
 package com.zhenshiz.chatbox.network.s2c;
 
-import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.network.CustomPacket;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -10,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static com.zhenshiz.chatbox.ChatBox.PLATFORM;
 import static com.zhenshiz.chatbox.ChatBox.ResourceLocationMod;
@@ -18,7 +16,7 @@ import static com.zhenshiz.chatbox.ChatBox.ResourceLocationMod;
 @SuppressWarnings("unused")
 public class ChatBoxPayload {
 
-    public record OpenScreen(ResourceLocation dialogues, String group, int index) implements CustomPacket {
+    public record OpenScreen(ResourceLocation dialogues, String group, int index, String targets) implements CustomPacket {
         public ResourceLocation id() {return ID;}
         public static final ResourceLocation ID = ResourceLocationMod("open_screen");
 
@@ -28,14 +26,15 @@ public class ChatBoxPayload {
             buf.writeResourceLocation(packet.dialogues);
             buf.writeUtf(packet.group);
             buf.writeInt(packet.index);
+            buf.writeUtf(packet.targets);
         }
 
         public static OpenScreen decode(FriendlyByteBuf buf) {
-            return new OpenScreen(buf.readResourceLocation(), buf.readUtf(), buf.readInt());
+            return new OpenScreen(buf.readResourceLocation(), buf.readUtf(), buf.readInt(), buf.readUtf());
         }
 
         public static void handleOnClient(OpenScreen packet) {
-            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientSkipDialogues(packet.dialogues, packet.group, packet.index));
+            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientSkipDialogues(packet.dialogues, packet.group, packet.index, packet.targets));
         }
     }
 
@@ -82,36 +81,6 @@ public class ChatBoxPayload {
 
         public static void handleOnClient(AllChatBoxDialoguesToClient packet) {
             PLATFORM.runOnClient(() -> ChatBoxUtil.setDialogues(mergeString(packet.dialoguesMap)));
-        }
-    }
-
-    public record SimplePayload(String name, String value) implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ChatBox.ResourceLocationMod("simple_payload");
-
-        public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-        public static void encode(SimplePayload packet, FriendlyByteBuf buf) {
-            buf.writeUtf(packet.name); buf.writeUtf(packet.value);
-        }
-
-        public static SimplePayload decode(FriendlyByteBuf buf) {
-            return new SimplePayload(buf.readUtf(), buf.readUtf());
-        }
-
-        private static final Map<String, Consumer<String>> handlers = new HashMap<>();
-        static {
-            handlers.put("open_dialog", s -> ChatBoxCommandUtil.clientOpenChatBox());
-            handlers.put("set_theme", ChatBoxCommandUtil::clientToggleTheme);
-            handlers.put("next_dialogue", s -> ChatBoxCommandUtil.clientNextDialogue());
-            handlers.put("auto_play", s -> ChatBoxCommandUtil.clientAutoPlay(Boolean.parseBoolean(s)));
-            handlers.put("set_is_screen", s -> ChatBoxCommandUtil.clientSetIsScreen(Boolean.parseBoolean(s)));
-        }
-
-        public static void handleOnClient(SimplePayload packet) {
-            PLATFORM.runOnClient(() -> {
-                if (handlers.containsKey(packet.name)) handlers.get(packet.name).accept(packet.value);
-            });
         }
     }
 
