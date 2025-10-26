@@ -4,6 +4,8 @@ import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
+import com.zhenshiz.chatbox.network.SimplePayload;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -21,8 +23,12 @@ import java.util.List;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
 public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTick, InputEvent.Key, InputEvent.MouseButton.Post, InputEvent.MouseScrollingEvent {
-    //是否打开了对话框
-    public static Boolean isOpenChatBox = false;
+    //是否打开了对话框，包括对话框渲染层和对话框界面
+    public static boolean isOpenChatBox = false;
+    //上次同步对话目标实体时间
+    public static long lastSyncTime = 0;
+    //是否渲染对话框渲染层
+    public static boolean shouldRender = false;
     //当前选择的选项序号
     public static int selectIndex = 0;
     private final static Minecraft minecraft = Minecraft.getInstance();
@@ -54,6 +60,11 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
 
     @Override
     public void onEndTick(Minecraft minecraft) {
+        if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
+        // 客户端每5 tick请求同步对话目标实体
+        if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
+            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_SYNC, "");
+        }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
         }
@@ -108,12 +119,13 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
         return false;
     }
 
-    private static boolean isRenderChatBox() {
-        return !ChatBoxUtil.isScreen && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
+    public static boolean isRenderChatBox() {
+        return !ChatBoxUtil.isScreen && shouldRender && minecraft.screen == null && chatBoxScreen.dialogBox != null;
     }
 
     public static void onClose() {
         isOpenChatBox = false;
+        shouldRender = false;
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false; // 这行没必要
         if (chatBoxScreen.video != null) chatBoxScreen.video.close();

@@ -116,7 +116,7 @@ public class ChatBoxDialogues {
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, boolean isTranslatable) {
                 return dialogBox.setName(this.name, isTranslatable)
                         .setText(this.text, isTranslatable)
-                        .resetTickCount();
+                        .resetTickCount().setAllOver(false);
             }
         }
 

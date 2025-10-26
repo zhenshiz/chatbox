@@ -116,7 +116,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         while (index < input.length()) {
             char c = input.charAt(index);
             stringBuilder.append(c);
-            if (ChatBox.isModLoaded("textanimator") && c == '<') {
+            if (c == '<') {
                 int closing = input.indexOf('>', index + 1);
                 if (closing != -1) {
                     stringBuilder.append(input, index + 1, closing + 1);

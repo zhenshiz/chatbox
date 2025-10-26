@@ -8,8 +8,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;
@@ -78,7 +77,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener imp
                             int count = counts.getPlayerMaxTriggerCount(player, rl);
                             if (count != 0) {
                                 counts.setPlayerMaxTriggerCount(player, rl, count - 1);
-                                ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreenPayload(rl, group, 0));
+                                ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
                             }
                         }
                     } catch (ClassCastException ignored) {}
