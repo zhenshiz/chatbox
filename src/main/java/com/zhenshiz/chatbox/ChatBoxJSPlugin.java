@@ -12,14 +12,14 @@ import net.neoforged.neoforge.common.NeoForge;
 public class ChatBoxJSPlugin implements KubeJSPlugin {
     @Override
     public void init() {
-        NeoForge.EVENT_BUS.register(CommonEventsPostJS.class);
+        if (FMLEnvironment.dist.isClient()) {
+            NeoForge.EVENT_BUS.register(CommonEventsPostJS.class);
+        }
     }
 
     @Override
     public void registerBindings(BindingRegistry bindings) {
-        if (FMLEnvironment.dist.isClient()) {
-            bindings.add("ChatBoxUtil", ChatBoxCommandUtil.class);
-        }
+        bindings.add("ChatBoxUtil", ChatBoxCommandUtil.class);
     }
 
     @Override

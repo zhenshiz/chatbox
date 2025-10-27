@@ -19,13 +19,14 @@ public class ChatBoxNetWork {
         registrar.playToClient(ClientChatBoxPayload.AllChatBoxThemeToClient.TYPE, ClientChatBoxPayload.AllChatBoxThemeToClient.CODEC, ClientChatBoxPayload.AllChatBoxThemeToClient::execute);
         registrar.playToClient(ClientChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ClientChatBoxPayload.AllChatBoxDialoguesToClient.CODEC, ClientChatBoxPayload.AllChatBoxDialoguesToClient::execute);
         registrar.playToClient(ClientChatBoxPayload.SetMaxTriggerCount.TYPE, ClientChatBoxPayload.SetMaxTriggerCount.CODEC, ClientChatBoxPayload.SetMaxTriggerCount::execute);
-        registrar.playToClient(ClientChatBoxPayload.SetMaxTriggerCountPlus.TYPE, ClientChatBoxPayload.SetMaxTriggerCountPlus.CODEC, ClientChatBoxPayload.SetMaxTriggerCountPlus::execute);
         registrar.playToClient(ClientChatBoxPayload.ResetMaxTriggerCount.TYPE, ClientChatBoxPayload.ResetMaxTriggerCount.CODEC, ClientChatBoxPayload.ResetMaxTriggerCount::execute);
-        registrar.playToClient(ClientChatBoxPayload.SimplePayload.TYPE, ClientChatBoxPayload.SimplePayload.CODEC, ClientChatBoxPayload.SimplePayload::execute);
+        registrar.playToClient(ClientChatBoxPayload.SyncEntityData.TYPE, ClientChatBoxPayload.SyncEntityData.CODEC, ClientChatBoxPayload.SyncEntityData::execute);
 
         //c2s
-        registrar.playToServer(ServerChatBoxPayload.SetMaxTriggerCountPayload.TYPE, ServerChatBoxPayload.SetMaxTriggerCountPayload.CODEC, ServerChatBoxPayload.SetMaxTriggerCountPayload::execute);
+        registrar.playToServer(ServerChatBoxPayload.SetMaxTriggerCount.TYPE, ServerChatBoxPayload.SetMaxTriggerCount.CODEC, ServerChatBoxPayload.SetMaxTriggerCount::execute);
         registrar.playToServer(ServerChatBoxPayload.ResetMaxTriggerCount.TYPE, ServerChatBoxPayload.ResetMaxTriggerCount.CODEC, ServerChatBoxPayload.ResetMaxTriggerCount::execute);
         registrar.playToServer(SendClickEvent.TYPE, SendClickEvent.CODEC, SendClickEvent::execute);
+
+        registrar.playBidirectional(SimplePayload.TYPE, SimplePayload.CODEC, SimplePayload::execute);
     }
 }

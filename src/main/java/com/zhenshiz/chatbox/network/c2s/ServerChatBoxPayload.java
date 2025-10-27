@@ -12,18 +12,18 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
 public class ServerChatBoxPayload {
-    public record SetMaxTriggerCountPayload(ResourceLocation resourceLocation,
-                                            int maxTriggerCount) implements CustomPacketPayload {
-        public static final Type<SetMaxTriggerCountPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("server_set_max_trigger_count"));
-        public static final StreamCodec<FriendlyByteBuf, SetMaxTriggerCountPayload> CODEC = StreamCodec.composite(
+    public record SetMaxTriggerCount(ResourceLocation resourceLocation,
+                                     int maxTriggerCount) implements CustomPacketPayload {
+        public static final Type<SetMaxTriggerCount> TYPE = new Type<>(ChatBox.ResourceLocationMod("server_set_max_trigger_count"));
+        public static final StreamCodec<FriendlyByteBuf, SetMaxTriggerCount> CODEC = StreamCodec.composite(
                 ResourceLocation.STREAM_CODEC,
-                SetMaxTriggerCountPayload::resourceLocation,
+                SetMaxTriggerCount::resourceLocation,
                 ByteBufCodecs.INT,
-                SetMaxTriggerCountPayload::maxTriggerCount,
-                SetMaxTriggerCountPayload::new
+                SetMaxTriggerCount::maxTriggerCount,
+                SetMaxTriggerCount::new
         );
 
-        public static void execute(SetMaxTriggerCountPayload payload, IPayloadContext context) {
+        public static void execute(SetMaxTriggerCount payload, IPayloadContext context) {
             ServerPlayer player = (ServerPlayer) context.player();
             ChatBoxCommandUtil.serverSetMaxTriggerCount(player, payload.resourceLocation(), payload.maxTriggerCount());
         }

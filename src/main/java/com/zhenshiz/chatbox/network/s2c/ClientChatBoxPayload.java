@@ -1,9 +1,9 @@
 package com.zhenshiz.chatbox.network.s2c;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -12,15 +12,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.*;
 
 public class ClientChatBoxPayload {
     public record OpenScreenPayload(ResourceLocation dialogues, String group,
-                                    int index) implements CustomPacketPayload {
+                                    int index, String targets) implements CustomPacketPayload {
         public static final Type<OpenScreenPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_screen"));
         public static final StreamCodec<FriendlyByteBuf, OpenScreenPayload> CODEC = StreamCodec.composite(
                 ResourceLocation.STREAM_CODEC,
@@ -29,6 +25,8 @@ public class ClientChatBoxPayload {
                 OpenScreenPayload::group,
                 ByteBufCodecs.INT,
                 OpenScreenPayload::index,
+                ByteBufCodecs.STRING_UTF8,
+                OpenScreenPayload::targets,
                 OpenScreenPayload::new
         );
 
@@ -116,26 +114,6 @@ public class ClientChatBoxPayload {
         }
     }
 
-    public record SetMaxTriggerCountPlus(
-            ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount) implements CustomPacketPayload {
-        public static final Type<SetMaxTriggerCountPlus> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_set_max_trigger_count_plus"));
-        public static final StreamCodec<FriendlyByteBuf, SetMaxTriggerCountPlus> CODEC = StreamCodec.composite(
-                ChatBoxTriggerCount.MaxTriggerCount.STREAM_CODEC,
-                SetMaxTriggerCountPlus::maxTriggerCount,
-                SetMaxTriggerCountPlus::new
-        );
-
-        public static void execute(SetMaxTriggerCountPlus payload, IPayloadContext context) {
-            ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = payload.maxTriggerCount();
-            context.player().setData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT, maxTriggerCount);
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
     public record ResetMaxTriggerCount() implements CustomPacketPayload {
         public static final Type<ResetMaxTriggerCount> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_reset_max_trigger_count"));
         public static final StreamCodec<FriendlyByteBuf, ResetMaxTriggerCount> CODEC = StreamCodec.ofMember(ResetMaxTriggerCount::write, ResetMaxTriggerCount::new);
@@ -157,36 +135,24 @@ public class ClientChatBoxPayload {
         }
     }
 
-    public record SimplePayload(String name, String value) implements CustomPacketPayload {
-        public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("simple_payload"));
-        public static final StreamCodec<FriendlyByteBuf, SimplePayload> CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8,
-                SimplePayload::name,
-                ByteBufCodecs.STRING_UTF8,
-                SimplePayload::value,
-                SimplePayload::new
+    public record SyncEntityData(LinkedHashMap<Integer, CompoundTag> entities) implements CustomPacketPayload {
+        public static final Type<SyncEntityData> TYPE = new Type<>(ChatBox.ResourceLocationMod("sync_entity_data"));
+        public static final StreamCodec<FriendlyByteBuf, SyncEntityData> CODEC = StreamCodec.composite(
+                ByteBufCodecs.map(
+                        LinkedHashMap::new,
+                        ByteBufCodecs.INT,
+                        ByteBufCodecs.COMPOUND_TAG
+                ),
+                SyncEntityData::entities,
+                SyncEntityData::new
         );
-        private static final Map<String, Consumer<String>> handlers = new HashMap<>();
 
-        static {
-            handlers.put("open_dialog", s -> ChatBoxCommandUtil.clientOpenChatBox());
-            handlers.put("set_theme", ChatBoxCommandUtil::clientToggleTheme);
-            handlers.put("next_dialogue", s -> ChatBoxCommandUtil.clientNextDialogue());
-            handlers.put("auto_play", s -> ChatBoxCommandUtil.clientAutoPlay(Boolean.parseBoolean(s)));
-            handlers.put("set_is_screen", s -> ChatBoxCommandUtil.clientSetIsScreen(Boolean.parseBoolean(s)));
-        }
-
-        public static void execute(SimplePayload payload, IPayloadContext context) {
-            String name = payload.name();
-            String value = payload.value();
-            if (handlers.containsKey(name)) {
-                handlers.get(name).accept(value);
-            }
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        public @NotNull Type<? extends CustomPacketPayload> type() {
             return TYPE;
+        }
+
+        public static void execute(SyncEntityData payload, IPayloadContext context) {
+            ChatBoxUtil.setChatTargets(payload.entities());
         }
     }
 

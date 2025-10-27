@@ -1,10 +1,10 @@
 package com.zhenshiz.chatbox.render;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -27,8 +27,12 @@ import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
 @EventBusSubscriber(modid = ChatBox.MOD_ID, value = Dist.CLIENT)
 public class ChatBoxRender {
-    //是否打开了对话框
-    public static Boolean isOpenChatBox = false;
+    //是否打开了对话框，包括对话框渲染层和对话框界面
+    public static boolean isOpenChatBox = false;
+    //上次同步对话目标实体时间
+    public static long lastSyncTime = 0;
+    //是否渲染对话框渲染层
+    public static boolean shouldRender = false;
     //当前选择的选项序号
     public static int selectIndex = 0;
     private final static Minecraft minecraft = Minecraft.getInstance();
@@ -43,7 +47,7 @@ public class ChatBoxRender {
             }
 
             if (chatBoxScreen.backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1,0);
+                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();
@@ -63,6 +67,11 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderTick(ClientTickEvent.Post event) {
+        if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
+        // 客户端每5 tick请求同步对话目标实体
+        if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
+            SimplePayload.simplePayloadC2S(SimplePayload.REQUEST_SYNC, "");
+        }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
         }
@@ -123,13 +132,14 @@ public class ChatBoxRender {
         }
     }
 
-    private static boolean isRenderChatBox() {
-        return !ChatBoxUtil.isScreen && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
+    public static boolean isRenderChatBox() {
+        return !ChatBoxUtil.isScreen && shouldRender && minecraft.screen == null && chatBoxScreen.dialogBox != null;
     }
 
     //关闭对话框
     public static void onClose() {
         isOpenChatBox = false;
+        shouldRender = false;
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false;
         if (chatBoxScreen.video != null) chatBoxScreen.video.close();

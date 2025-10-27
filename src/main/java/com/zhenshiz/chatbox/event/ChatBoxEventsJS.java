@@ -10,5 +10,5 @@ public interface ChatBoxEventsJS {
 
     EventHandler CHAT_BOX_RENDER_PRE = GROUP.client("renderPre", () -> ChatBoxRenderEventJS.Pre.class).hasResult();
     EventHandler CHAT_BOX_RENDER_POST = GROUP.client("renderPost", () -> ChatBoxRenderEventJS.Post.class);
-    EventHandler CHAT_BOX_SKIP_CHAT = GROUP.client("skipChat", () -> SkipChatEventJS.class);
+    EventHandler CHAT_BOX_SKIP_CHAT = GROUP.common("skipChat", () -> SkipChatEventJS.class);
 }

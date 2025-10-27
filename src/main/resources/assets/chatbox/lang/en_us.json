@@ -2,14 +2,14 @@
   "command.target.player.only": "The target of this command should be the a player",
   "command.target.entity.only": "The target of this command should be the an entity",
   "commands.toggle.theme": "Successfully switched the theme style of the dialog box",
-  "commands.skip.dialogues": "Successfully jumped to the %s sentence of the %s group",
+  "commands.skip.dialogues": "Successfully jumped to %s group sentence %s",
   "commands.set.max.trigger.count": "Successfully set maximum trigger count of %s to %s",
   "commands.reset.max.trigger.count": "Successfully reset maximum trigger count for all dialogues",
 
   "chatbox.configuration.config": "ChatBox Mod Config Screen",
   "chatbox.configuration.historical_scroll_speed": "The speed of the historical record interface scroll wheel",
   "chatbox.configuration.sound_interruption_enabled": "Whether to interrupt currently playing sound when no new sound is available",
-  "chatbox.configuration.charPerSecond": "Characters displayed per second",
+  "chatbox.configuration.char_per_second": "Characters displayed per second",
   "chatbox.configuration.is_stop_terra_dialog": "Whether to block TerraNpc's dialogue system",
 
   "chatbox.key.right_click": "Confirm",
