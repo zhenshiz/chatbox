@@ -32,6 +32,7 @@ public class NetworkForge {
             OPEN_SCREEN = registerChannel(ChatBoxPayload.OpenScreen.class),
             ALL_CHATBOX_THEME_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxThemeToClient.class),
             ALL_CHATBOX_DIALOGUES_TO_CLIENT = registerChannel(ChatBoxPayload.AllChatBoxDialoguesToClient.class),
+            SYNC_ENTITY_DATA = registerChannel(ChatBoxPayload.SyncEntityData.class),
             SIMPLE_PAYLOAD = registerChannel(SimplePayload.class),
 
     SEND_CLICK_EVENT = registerChannel(SendClickEvent.class);
@@ -53,6 +54,11 @@ public class NetworkForge {
 
         ALL_CHATBOX_DIALOGUES_TO_CLIENT.registerMessage(nextId(), ChatBoxPayload.AllChatBoxDialoguesToClient.class, ChatBoxPayload.AllChatBoxDialoguesToClient::encode, ChatBoxPayload.AllChatBoxDialoguesToClient::decode, (packet, ctx) -> {
             ctx.get().enqueueWork(() -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(packet));
+            ctx.get().setPacketHandled(true);
+        });
+
+        SYNC_ENTITY_DATA.registerMessage(nextId(), ChatBoxPayload.SyncEntityData.class, ChatBoxPayload.SyncEntityData::encode, ChatBoxPayload.SyncEntityData::decode, (packet, ctx) -> {
+            ctx.get().enqueueWork(() -> ChatBoxPayload.SyncEntityData.handleOnClient(packet));
             ctx.get().setPacketHandled(true);
         });
 

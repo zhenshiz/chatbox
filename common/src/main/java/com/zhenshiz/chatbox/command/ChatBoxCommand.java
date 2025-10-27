@@ -167,7 +167,6 @@ public class ChatBoxCommand {
             int count = counts.getPlayerMaxTriggerCount(player, dialogues);
             if (count != 0) {
                 counts.setPlayerMaxTriggerCount(player, dialogues, count - 1);
-                TARGETS_MAP.put(player.getUUID(), targets);
                 ChatBoxCommandUtil.serverSkipDialogues(player, dialogues, group, index, targets);
                 context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             }

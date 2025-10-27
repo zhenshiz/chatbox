@@ -1,12 +1,15 @@
 package com.zhenshiz.chatbox.network.s2c;
 
+import com.google.common.collect.Maps;
 import com.zhenshiz.chatbox.network.CustomPacket;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +19,7 @@ import static com.zhenshiz.chatbox.ChatBox.ResourceLocationMod;
 @SuppressWarnings("unused")
 public class ChatBoxPayload {
 
-    public record OpenScreen(ResourceLocation dialogues, String group, int index, String targets) implements CustomPacket {
+    public record OpenScreen(ResourceLocation dialogues, String group, int index) implements CustomPacket {
         public ResourceLocation id() {return ID;}
         public static final ResourceLocation ID = ResourceLocationMod("open_screen");
 
@@ -26,15 +29,14 @@ public class ChatBoxPayload {
             buf.writeResourceLocation(packet.dialogues);
             buf.writeUtf(packet.group);
             buf.writeInt(packet.index);
-            buf.writeUtf(packet.targets);
         }
 
         public static OpenScreen decode(FriendlyByteBuf buf) {
-            return new OpenScreen(buf.readResourceLocation(), buf.readUtf(), buf.readInt(), buf.readUtf());
+            return new OpenScreen(buf.readResourceLocation(), buf.readUtf(), buf.readInt());
         }
 
         public static void handleOnClient(OpenScreen packet) {
-            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientSkipDialogues(packet.dialogues, packet.group, packet.index, packet.targets));
+            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientSkipDialogues(packet.dialogues, packet.group, packet.index));
         }
     }
 
@@ -81,6 +83,25 @@ public class ChatBoxPayload {
 
         public static void handleOnClient(AllChatBoxDialoguesToClient packet) {
             PLATFORM.runOnClient(() -> ChatBoxUtil.setDialogues(mergeString(packet.dialoguesMap)));
+        }
+    }
+
+    public record SyncEntityData(LinkedHashMap<Integer, CompoundTag> entities) implements CustomPacket {
+        public ResourceLocation id() {return ID;}
+        public static final ResourceLocation ID = ResourceLocationMod("sync_entity_data");
+
+        public void write(FriendlyByteBuf buf) {encode(this, buf);}
+
+        public static void encode(SyncEntityData packet, FriendlyByteBuf buf) {
+            buf.writeMap(packet.entities, FriendlyByteBuf::writeInt, FriendlyByteBuf::writeNbt);
+        }
+
+        public static SyncEntityData decode(FriendlyByteBuf buf) {
+            return new SyncEntityData(buf.readMap(Maps::newLinkedHashMapWithExpectedSize, FriendlyByteBuf::readInt, FriendlyByteBuf::readNbt));
+        }
+
+        public static void handleOnClient(SyncEntityData packet) {
+            PLATFORM.runOnClient(() -> ChatBoxUtil.setChatTargets(packet.entities));
         }
     }
 

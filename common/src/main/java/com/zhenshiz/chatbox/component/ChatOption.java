@@ -207,13 +207,13 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         //render option text
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
+        Component component = Component.nullToEmpty(parseText(optionChat.getString()));
+        int responsiveX = (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX);
+        int responsiveY = (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY);
         switch (this.textAlign) {
-            case LEFT ->
-                    RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-            case CENTER ->
-                    RenderUtil.drawCenterScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-            case RIGHT ->
-                    RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+            case LEFT -> RenderUtil.drawLeftScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
+            case CENTER -> RenderUtil.drawCenterScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
+            case RIGHT -> RenderUtil.drawRightScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
         }
         poseStack.popPose();
     }

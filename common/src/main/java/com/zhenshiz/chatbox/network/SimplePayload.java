@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static com.zhenshiz.chatbox.ChatBox.PLATFORM;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil.*;
 
 public record SimplePayload(String name, String value) implements CustomPacket {
@@ -51,7 +50,7 @@ public record SimplePayload(String name, String value) implements CustomPacket {
     }
 
     public static void handleOnClient(SimplePayload packet) {
-        PLATFORM.runOnClient(() -> {
+        ChatBox.PLATFORM.runOnClient(() -> {
             if (handlersS2C.containsKey(packet.name)) handlersS2C.get(packet.name).accept(packet.value);
         });
     }
@@ -61,7 +60,20 @@ public record SimplePayload(String name, String value) implements CustomPacket {
             player.server.execute(() -> handlersC2S.get(packet.name).accept(player, packet.value));
     }
 
+    public static final String REQUEST_SYNC         = "request_sync";
+    public static final String SKIP_CHAT_C2S        = "skip_chat_c2s";
+
+    public static final String OPEN_DIALOG          = "open_dialog";
+    public static final String SET_THEME            = "set_theme";
+    public static final String NEXT_DIALOGUE        = "next_dialogue";
+    public static final String AUTO_PLAY            = "auto_play";
+    public static final String SET_IS_SCREEN        = "set_is_screen";
+    public static final String SET_DIALOG_BOX       = "set_dialog_box";
+    public static final String ADD_CHAT_OPTION      = "add_chat_option";
+    public static final String CLEAR_CHAT_OPTION    = "clear_chat_option";
+
     static {
+        addSimpleHandlerC2S(REQUEST_SYNC, (player, s) -> serverSyncEntityData(player));
         addSimpleHandlerC2S(SKIP_CHAT_C2S, (player, s) -> {
             String[] parsed = StrUtil.parse(s);
             if (parsed.length != 3) return;

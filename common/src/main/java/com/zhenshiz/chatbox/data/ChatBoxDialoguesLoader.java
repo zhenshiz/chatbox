@@ -6,7 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
@@ -70,7 +70,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
                             int count = counts.getPlayerMaxTriggerCount(player, rl);
                             if (count != 0) {
                                 counts.setPlayerMaxTriggerCount(player, rl, count - 1);
-                                ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenScreen(rl, group, 0, ""));
+                                ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
                             }
                         }
                     } catch (ClassCastException ignored) {}

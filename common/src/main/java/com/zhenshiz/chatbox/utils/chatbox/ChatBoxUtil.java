@@ -11,6 +11,8 @@ import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.mixin.EntityAccessor;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
@@ -18,16 +20,21 @@ import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChatBoxUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
-    public static final Gson GSON =
-            (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //所有的对话框主题
     public static final Map<ResourceLocation, ChatBoxTheme> themeMap = new HashMap<>();
     //所有的对话信息
@@ -55,12 +62,34 @@ public class ChatBoxUtil {
     //对话框主题分支
     public static boolean isScreen = true;
 
-    public static void setDialoguesInfo(ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets) {
+    public static void setChatTargets(Map<Integer, CompoundTag> tags) {
+        var level = minecraft.level;
+        if (level == null) return;
+        ChatBoxRenderCommon.lastSyncTime = level.getGameTime();
+        chatTargets.clear();
+        tags.forEach((id, tag) -> {
+            Entity entity = level.getEntity(id);
+            if (entity != null) {
+                // 读取标签和额外数据应该够了，有需要再加（不能直接entity.load(tag)）
+                entity.getTags().clear();
+                if (tag.contains("Tags", 9)) {
+                    ListTag listTag4 = tag.getList("Tags", 8);
+                    int i = Math.min(listTag4.size(), 1024);
+                    for(int j = 0; j < i; ++j) {
+                        entity.getTags().add(listTag4.getString(j));
+                    }
+                }
+                ((EntityAccessor) entity).readAdditionalData(tag);
+                chatTargets.add(entity);
+            }
+        });
+    }
+
+    public static void setDialoguesInfo(ResourceLocation resourceLocation, String group, Integer index) {
         if (resourceLocation != null && group != null && index != null) {
             dialoguesResourceLocation = resourceLocation;
             ChatBoxUtil.group = group;
             ChatBoxUtil.index = index;
-            chatTargets = targets;
         }
     }
 
@@ -91,13 +120,6 @@ public class ChatBoxUtil {
 
     //跳转对话
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index) {
-        skipDialogues(dialoguesResourceLocation, group, index, chatTargets);
-    }
-    public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index, String entityList) {
-        //minecraft.level写在ChatBoxCommandUtil里就会炸服务端，不知道为什么
-        skipDialogues(dialoguesResourceLocation, group, index, ChatBoxCommandUtil.fromString(entityList, minecraft.level));
-    }
-    public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index, List<Entity> targets) {
         if (minecraft.player == null) return;
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
@@ -149,16 +171,17 @@ public class ChatBoxUtil {
 
             //调试用
             //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);
-            ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, targets);
-            ChatBoxCommandUtil.simplePayloadC2S(ChatBoxCommandUtil.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, String.valueOf(index)));
+            ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets);
+            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, String.valueOf(index)));
 
+            ChatBoxRenderCommon.isOpenChatBox = true;
             if (isScreen) {
                 minecraft.setScreen(chatBoxScreen);
             } else {
-                ChatBoxRenderCommon.isOpenChatBox = true;
+                ChatBoxRenderCommon.shouldRender = true;
             }
             // 确认对话框加载完成后再设置客户端对话框信息
-            setDialoguesInfo(dialoguesResourceLocation, group, index, targets);
+            setDialoguesInfo(dialoguesResourceLocation, group, index);
         } else {
             if (isScreen) {
                 if (minecraft.screen != null) {
@@ -236,11 +259,30 @@ public class ChatBoxUtil {
         });
     }
 
+    // 属性解析器映射
+    private static final Map<String, Function<Entity, String>> PROPERTY_RESOLVERS = new HashMap<>();
+
+    public static void addPropertyResolver(String key, Function<Entity, String> resolver) {
+        PROPERTY_RESOLVERS.put(key, resolver);
+    }
+
+    static {
+        addPropertyResolver("name", entity -> entity.getDisplayName().getString());
+        addPropertyResolver("uuid", entity -> entity.getUUID().toString());
+        addPropertyResolver("tags", entity -> String.join(", ", entity.getTags()));
+        addPropertyResolver("health", entity -> {
+            if (entity instanceof LivingEntity livingEntity) return String.valueOf(livingEntity.getHealth());
+            return "0";
+        });
+    }
+
     //解析文本
     public static String parseText(String input, boolean isLineBreak) {
         if (minecraft.player != null) {
             // @s 替换成当前玩家id
             input = input.replaceAll("(?<!@)@s", Objects.requireNonNull(minecraft.player.getDisplayName()).getString());
+
+            input = parseTargetPlaceholders(input);
 
             if (isLineBreak) input = input.replaceAll("\n", "");
 
@@ -248,5 +290,48 @@ public class ChatBoxUtil {
             return input.replaceAll("@@", "@");
         }
         return input;
+    }
+
+    private static String parseTargetPlaceholders(String input) {
+        if (chatTargets.isEmpty()) return input;
+        // 匹配 <targetN.property> 或 <targetN> 格式的占位符
+        Pattern pattern = Pattern.compile("<target(\\d+)(\\.(\\w+))?>");
+        Matcher matcher = pattern.matcher(input);
+        StringBuilder sb = new StringBuilder();
+        int lastIndex = 0;
+
+        while (matcher.find()) {
+            // 追加匹配前的文本
+            sb.append(input, lastIndex, matcher.start());
+            lastIndex = matcher.end();
+            try {
+                // 获取目标索引
+                int index = Integer.parseInt(matcher.group(1)) - 1; // 转换为0-based索引
+                // 获取属性名，如果没有指定则默认为"name"
+                String property = matcher.group(3) != null ? matcher.group(3) : "name";
+                // 检查索引是否有效
+                if (index >= 0 && index < chatTargets.size()) {
+                    Entity target = chatTargets.get(index);
+                    // 获取属性解析器
+                    Function<Entity, String> resolver = PROPERTY_RESOLVERS.getOrDefault(property, null);
+                    if (resolver != null) {
+                        // 应用解析器获取属性值
+                        sb.append(resolver.apply(target));
+                    } else {
+                        // 如果没有对应的解析器，保留占位符
+                        sb.append(matcher.group());
+                    }
+                } else {
+                    // 如果索引无效，保留占位符
+                    sb.append(matcher.group());
+                }
+            } catch (NumberFormatException e) {
+                // 如果解析索引失败，保留占位符
+                sb.append(matcher.group());
+            }
+        }
+        // 追加剩余文本
+        sb.append(input.substring(lastIndex));
+        return sb.toString();
     }
 }

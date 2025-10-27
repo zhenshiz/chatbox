@@ -15,7 +15,7 @@ public class MinecraftMixin {
 
     @Inject(method = "pauseGame", at = @At(value = "HEAD"), cancellable = true)
     private void pauseGame(CallbackInfo ci) {
-        if (ChatBoxRenderCommon.isOpenChatBox && ChatBoxUtil.chatBoxScreen.isEsc) {
+        if (ChatBoxRenderCommon.isRenderChatBox() && ChatBoxUtil.chatBoxScreen.isEsc) {
             ChatBoxRenderCommon.onClose();
             ci.cancel();
         }

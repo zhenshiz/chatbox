@@ -4,6 +4,7 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
 import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
+import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
@@ -214,6 +215,7 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public void onClose() {
+        ChatBoxRenderCommon.isOpenChatBox = false;
         autoPlay = false;
         fastForward = false;
         hideDialogBox = false;

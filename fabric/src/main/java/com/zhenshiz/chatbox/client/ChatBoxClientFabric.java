@@ -24,6 +24,8 @@ public class ChatBoxClientFabric implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(ChatBoxPayload.AllChatBoxDialoguesToClient.decode(buf)));
 
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.ID, (client, h, buf, r) -> ChatBoxPayload.SyncEntityData.handleOnClient(ChatBoxPayload.SyncEntityData.decode(buf)));
+
         ClientPlayNetworking.registerGlobalReceiver(SimplePayload.ID, (client, h, buf, r) -> SimplePayload.handleOnClient(SimplePayload.decode(buf)));
     }
 
