@@ -294,7 +294,7 @@ public class ChatBoxUtil {
         return input;
     }
 
-    private static String parseTargetPlaceholders(String input) {
+    public static String parseTargetPlaceholders(String input) {
         if (chatTargets.isEmpty()) return input;
         // 匹配 <targetN.property> 或 <targetN> 格式的占位符
         Pattern pattern = Pattern.compile("<target(\\d+)(\\.(\\w+))?>");

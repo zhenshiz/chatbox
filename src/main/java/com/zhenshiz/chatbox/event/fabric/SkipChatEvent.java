@@ -16,5 +16,5 @@ public interface SkipChatEvent {
                 }
             });
 
-    void skipChat(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets);
+    void skipChat(Player player, ResourceLocation resourceLocation, String group, int index, List<Entity> targets);
 }
