@@ -10,9 +10,6 @@ import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.scores.Objective;
-import net.minecraft.world.scores.Score;
-import net.minecraft.world.scores.Scoreboard;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -172,20 +169,14 @@ public class ChatBoxDialogues {
         public static class Option {
             public String text;
             public Boolean isLock = false;
-            public Condition lock = new Condition();
-            public Condition hidden = new Condition();
-            public Boolean isHidden = false;
+            public Boolean isHidden = false; // 实际上没有作用了，留在这里做纪念（？）
+            public String unlockCommand;
             public String next;
             public Click click = new Click();
             public String tooltip;
 
             public static class Click {
                 public String type;
-                public String value;
-            }
-
-            public static class Condition {
-                public String objective;
                 public String value;
             }
         }
@@ -195,28 +186,14 @@ public class ChatBoxDialogues {
             ClientLevel level = Minecraft.getInstance().level;
             if (level != null && !CollUtil.isEmpty(this.options)) {
                 int i = -1;
-                for (Option value : this.options) {
-                    Scoreboard scoreboard = level.getScoreboard();
-                    Objective objective = scoreboard.getObjective(value.hidden.objective);
-                    Score scoreAccess = null;
-                    if (objective != null) {
-                        scoreAccess = scoreboard.getOrCreatePlayerScore(value.hidden.value, objective);
-                    }
-                    //如果这个选项标记隐藏，那么如果对应的计分板不在或者计分板的值不为1则隐藏这个选项
-                    if (value.isHidden && (scoreAccess == null || scoreAccess.getScore() != 1)) {
-                        continue;
-                    }
+                for (Option option : this.options) {
                     i++;
-                    objective = scoreboard.getObjective(value.lock.objective);
-                    if (objective != null) {
-                        scoreAccess = scoreboard.getOrCreatePlayerScore(value.lock.value, objective);
-                    }
-                    ChatOption chatOption = new ChatOption().setOptionTooltip(value.tooltip, isTranslatable)
-                            .setOptionChat(value.text, isTranslatable)
-                            //如果这个选项标记上锁，那么如果对应的计分板不在或者计分板的值不为1则给这个选项上锁
-                            .setIsLock(value.isLock && (scoreAccess == null || scoreAccess.getScore() != 1))
-                            .setNext(value.next)
-                            .setClickEvent(value.click.type, value.click.value);
+                    ChatOption chatOption = new ChatOption().setOptionTooltip(option.tooltip, isTranslatable)
+                            .setOptionChat(option.text, isTranslatable)
+                            .setIsLock(option.isLock)
+                            .setUnlockCommand(option.unlockCommand)
+                            .setNext(option.next)
+                            .setClickEvent(option.click.type, option.click.value);
 
                     chatOptions.add(ChatBoxUtil.chatBoxTheme.option.setChatOptionTheme(chatOption, i));
                 }

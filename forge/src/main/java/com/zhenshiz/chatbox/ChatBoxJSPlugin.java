@@ -11,8 +11,9 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 public class ChatBoxJSPlugin extends KubeJSPlugin {
     @Override
     public void init() {
+        MinecraftForge.EVENT_BUS.register(CommonEventsPostJS.Common.class);
         if (FMLEnvironment.dist.isClient()) {
-            MinecraftForge.EVENT_BUS.register(CommonEventsPostJS.class);
+            MinecraftForge.EVENT_BUS.register(CommonEventsPostJS.Client.class);
         }
     }
 

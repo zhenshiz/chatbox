@@ -81,7 +81,7 @@ public interface ChatOptionClickEvent {
             }
         }
 
-        public static void executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {
+        public static int executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {
             // 创建命令源，并赋予2级权限，且禁止输出
             CommandSourceStack commandSource;
             if (entity != null) commandSource = entity.createCommandSourceStack();
@@ -89,9 +89,10 @@ public interface ChatOptionClickEvent {
             commandSource = commandSource.withPermission(Commands.LEVEL_GAMEMASTERS).withSuppressedOutput();
             var dispatcher = server.getCommands().getDispatcher();
             try {
-                dispatcher.execute(dispatcher.parse(command, commandSource));
+                return dispatcher.execute(dispatcher.parse(command, commandSource));
             } catch (CommandSyntaxException e) {
                 ChatBox.LOGGER.error("Error executing command on server: {}", command, e);
+                return 0;
             }
         }
     }

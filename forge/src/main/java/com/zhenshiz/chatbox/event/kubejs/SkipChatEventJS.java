@@ -14,7 +14,7 @@ public class SkipChatEventJS extends EventJS {
     private final Player player;
     private final ResourceLocation resourceLocation;
     private final String group;
-    private final Integer index;
+    private final int index;
     private final List<Entity> targets;
 
     public SkipChatEventJS(SkipChatEvent event) {

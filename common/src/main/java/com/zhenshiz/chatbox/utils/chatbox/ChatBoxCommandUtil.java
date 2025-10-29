@@ -37,6 +37,11 @@ public class ChatBoxCommandUtil {
         simplePayloadS2C(player, SET_THEME, theme.toString());
     }
 
+    public static void clientToggleTheme(String theme) {
+        toggleTheme(new ResourceLocation(theme));
+        themeResourceLocation = theme;
+    }
+
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
@@ -47,25 +52,20 @@ public class ChatBoxCommandUtil {
         serverSkipDialogues(player, dialogues, group, 0, List.of(targets));
     }
 
-    public static List<Entity> serverGetChatTargets(ServerPlayer player) {
-        return ChatBoxCommand.TARGETS_MAP.getOrDefault(player.getUUID(), List.of());
-    }
-
-    public static void serverOpenChatBox(ServerPlayer player) {
-        simplePayloadS2C(player, OPEN_DIALOG, "");
-    }
-
-    public static void clientToggleTheme(String theme) {
-        toggleTheme(new ResourceLocation(theme));
-        themeResourceLocation = theme;
-    }
-
     public static void clientSkipDialogues(ResourceLocation dialogues, String group, Integer index) {
         skipDialogues(dialogues, group, index);
     }
 
     public static void clientSkipDialogues(ResourceLocation dialogues, String group) {
         clientSkipDialogues(dialogues, group, 0);
+    }
+
+    public static List<Entity> serverGetChatTargets(ServerPlayer player) {
+        return ChatBoxCommand.TARGETS_MAP.getOrDefault(player.getUUID(), List.of());
+    }
+
+    public static void serverOpenChatBox(ServerPlayer player) {
+        simplePayloadS2C(player, OPEN_DIALOG, "");
     }
 
     public static void clientOpenChatBox() {
@@ -124,6 +124,24 @@ public class ChatBoxCommandUtil {
 
     public static void clientClearChatOption() {
         chatBoxScreen.chatOptions.clear();
+    }
+
+    // 服务端并不能获取当前客户端的选项信息，故不提供服务端解锁以及隐藏选项的方法
+    public static void clientUnlockChatOption(int index) {
+        List<ChatOption> options = chatBoxScreen.chatOptions;
+        if (index < 0 || index >= options.size()) return;
+        options.get(index).setIsLock(false);
+    }
+
+    public static void clientHideChatOption(int index) {
+        List<ChatOption> options = chatBoxScreen.chatOptions;
+        if (index < 0 || index >= options.size()) return;
+        options.remove(index);
+        // 移除一个选项后，要修改后面选项的高度
+        if (index < options.size()) for (int i = index; i < options.size(); i++) {
+            ChatOption option = options.get(i);
+            option.setPosition(option.x, option.y - option.height);
+        }
     }
 
     public static void registerClickEvent(String type, Consumer<String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {

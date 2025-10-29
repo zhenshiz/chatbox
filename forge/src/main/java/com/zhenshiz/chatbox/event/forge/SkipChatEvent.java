@@ -15,6 +15,6 @@ public class SkipChatEvent extends Event {
     private final Player player;
     private final ResourceLocation resourceLocation;
     private final String group;
-    private final Integer index;
+    private final int index;
     private final List<Entity> targets;
 }

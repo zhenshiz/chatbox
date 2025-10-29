@@ -4,10 +4,13 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
 import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -49,7 +52,13 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setChatOptions(List<ChatOption> chatOptions) {
-        if (chatOptions != null) this.chatOptions = chatOptions;
+        if (chatOptions != null) {
+            this.chatOptions = chatOptions;
+            for (ChatOption option : chatOptions) {
+                if (StrUtil.isEmpty(option.unlockCommand)) continue;
+                ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_UNLOCK, StrUtil.merge(String.valueOf(option.isLock), String.valueOf(chatOptions.indexOf(option)), option.unlockCommand));
+            }
+        }
         return this;
     }
 
