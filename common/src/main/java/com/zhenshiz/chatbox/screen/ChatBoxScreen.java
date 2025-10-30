@@ -135,7 +135,14 @@ public class ChatBoxScreen extends Screen {
             List<AbstractComponent<?>> list = new ArrayList<>();
             if (!hideDialogBox) list.add(dialogBox);
             if (video != null) list.add(video);
-            if (chatOptions != null && !hideDialogBox) list.addAll(chatOptions);
+            if (chatOptions != null && !hideDialogBox) {
+                int i = 0; // 渲染选项时设置选项在列表中的索引
+                for (ChatOption option : chatOptions) {
+                    if (option.renderIndex < 0) continue;
+                    option.renderIndex = i++;
+                    list.add(option);
+                }
+            }
             if (portraits != null) list.addAll(hideDialogBox ?
                     portraits.stream().filter(portrait -> portrait.renderOrder < dialogBox.renderOrder).toList() : portraits);
             if (functionalButtons != null && !hideDialogBox) list.addAll(functionalButtons);
@@ -176,14 +183,12 @@ public class ChatBoxScreen extends Screen {
                 for (ChatOption chatOption : chatOptions) {
                     if (chatOption.isSelect(pMouseX, pMouseY) && dialogBox.isAllOver) {
                         chatOption.click();
-                        return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
                 }
 
                 for (FunctionalButton button : functionalButtons) {
                     if (button.isSelect(pMouseX, pMouseY)) {
                         button.click();
-                        return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
                 }
 
@@ -229,6 +234,7 @@ public class ChatBoxScreen extends Screen {
         fastForward = false;
         hideDialogBox = false;
         if (video != null) video.close();
+        ChatBoxUtil.onCloseDialogBox();
         super.onClose();
     }
 

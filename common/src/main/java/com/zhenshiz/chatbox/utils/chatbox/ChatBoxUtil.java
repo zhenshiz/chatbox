@@ -188,13 +188,19 @@ public class ChatBoxUtil {
                     minecraft.screen.onClose();
                 }
             } else {
-                ChatBoxRenderCommon.onClose();
+                if (ChatBoxRenderCommon.isRenderChatBox()) ChatBoxRenderCommon.onClose();
             }
         }
     }
 
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String dialogBlock) {
         skipDialogues(dialoguesResourceLocation, dialogBlock, 0);
+    }
+
+    public static void onCloseDialogBox() {
+        if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
+        ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets);
+        ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, "-1"));
     }
 
     //切换对话框主题
