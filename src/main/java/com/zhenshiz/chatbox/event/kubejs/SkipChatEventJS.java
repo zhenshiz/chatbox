@@ -11,7 +11,7 @@ public class SkipChatEventJS implements KubeEvent {
     private final Player player;
     private final ResourceLocation resourceLocation;
     private final String group;
-    private final Integer index;
+    private final int index;
 
     public SkipChatEventJS(SkipChatEvent event) {
         player = event.getPlayer();

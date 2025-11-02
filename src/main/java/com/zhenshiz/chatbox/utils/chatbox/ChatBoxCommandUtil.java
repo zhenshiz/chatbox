@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.zhenshiz.chatbox.network.SimplePayload.*;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
@@ -119,12 +120,6 @@ public class ChatBoxCommandUtil {
         ChatBoxUtil.isScreen = isScreen;
     }
 
-    @Info("注册一个选项点击事件，可以在服务端任意位置使用")
-    public static void registerClickEvent(String type, Consumer<String> executeOnClient, Boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
-        ChatOptionClickEvent.registerClickEvent(type, executeOnClient, shouldExecuteOnServer, executeOnServer);
-    }
-
-
     @Info("服务端设置最大访问次数，自带同步")
     public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
         if (player != null) {
@@ -177,7 +172,7 @@ public class ChatBoxCommandUtil {
     @Info("客户端添加选项")
     public static void clientAddChatOption(String text, String next, String tip, String clickType, String clickValue) {
         ChatOption option = new ChatOption().setOptionChat(text, true).setNext(next).setOptionTooltip(tip, true).setClickEvent(clickType, clickValue);
-        chatBoxTheme.option.setChatOptionTheme(option, chatBoxScreen.chatOptions.size());
+        chatBoxTheme.option.setChatOptionTheme(option);
         chatBoxScreen.addChatOptions(option);
     }
 
@@ -189,6 +184,31 @@ public class ChatBoxCommandUtil {
     @Info("客户端清除选项")
     public static void clientClearChatOption() {
         chatBoxScreen.chatOptions.clear();
+    }
+
+    // 服务端并不能获取当前客户端的选项信息，故不提供服务端解锁以及隐藏选项的方法
+    @Info("客户端解锁选项")
+    public static void clientUnlockChatOption(int index) {
+        List<ChatOption> options = chatBoxScreen.chatOptions;
+        if (index < 0 || index >= options.size()) return;
+        options.get(index).setIsLock(false);
+    }
+
+    @Info("客户端隐藏选项")
+    public static void clientHideChatOption(int index) {
+        List<ChatOption> options = chatBoxScreen.chatOptions;
+        if (index < 0 || index >= options.size()) return;
+        options.get(index).renderIndex = -1;
+    }
+
+    @Info("注册一个选项点击事件，可以在服务端任意位置使用")
+    public static void registerClickEvent(String type, Consumer<String> executeOnClient, Boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
+        ChatOptionClickEvent.registerClickEvent(type, executeOnClient, shouldExecuteOnServer, executeOnServer);
+    }
+
+    @Info("添加一个占位符属性解析器，在客户端任意位置使用")
+    public static void addPlaceholderResolver(String key, Function<Entity, String> resolver) {
+        addPropertyResolver(key, resolver);
     }
 
     private static boolean testMaxTriggerCount(ResourceLocation dialogues) {

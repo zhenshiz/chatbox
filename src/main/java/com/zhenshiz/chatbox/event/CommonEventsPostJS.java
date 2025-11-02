@@ -5,6 +5,7 @@ import com.zhenshiz.chatbox.event.kubejs.SkipChatEventJS;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import dev.latvian.mods.kubejs.event.EventResult;
+import dev.latvian.mods.kubejs.script.ScriptTypeHolder;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 
@@ -29,7 +30,7 @@ public class CommonEventsPostJS {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void chatBoxSkipChat(SkipChatEvent event) {
         if (ChatBoxEventsJS.CHAT_BOX_SKIP_CHAT.hasListeners()) {
-            ChatBoxEventsJS.CHAT_BOX_SKIP_CHAT.post(new SkipChatEventJS(event));
+            ChatBoxEventsJS.CHAT_BOX_SKIP_CHAT.post((ScriptTypeHolder) event.getPlayer(), new SkipChatEventJS(event));
         }
     }
 }

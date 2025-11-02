@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.network;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.api.Command;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -39,6 +40,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
 
     public static final String REQUEST_SYNC = "request_sync";
     public static final String SKIP_CHAT_C2S = "skip_chat_c2s";
+    public static final String REQUEST_UNLOCK = "request_unlock";
 
     public static final String OPEN_DIALOG = "open_dialog";
     public static final String SET_THEME = "set_theme";
@@ -48,6 +50,8 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     public static final String SET_DIALOG_BOX = "set_dialog_box";
     public static final String ADD_CHAT_OPTION = "add_chat_option";
     public static final String CLEAR_CHAT_OPTION = "clear_chat_option";
+    public static final String UNLOCK_CHAT_OPTION = "unlock_chat_option";
+    public static final String HIDE_CHAT_OPTION = "hide_chat_option";
 
     private static final Map<String, Consumer<String>> handlersS2C = new HashMap<>();
 
@@ -124,6 +128,16 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             if (parsed.length != 3) return;
             NeoForge.EVENT_BUS.post(new SkipChatEvent(player, ResourceLocation.parse(parsed[0]), parsed[1], Integer.parseInt(parsed[2])));
         });
+        addSimpleHandlerC2S(REQUEST_UNLOCK, (player, s) -> {
+            String[] parsed = StrUtil.parse(s);
+            if (parsed.length != 3) return;
+            boolean isLock = Boolean.parseBoolean(parsed[0]);
+            int result = Command.executeCommand(player.server, player, parsed[2]);
+            // 如果命令测试通过且是锁定状态，则解锁聊天选项
+            if (result == 1 && isLock) simplePayloadS2C(player, UNLOCK_CHAT_OPTION, parsed[1]);
+            // 如果命令测试失败且不是锁定状态，则隐藏聊天选项
+            if (result != 1 && !isLock) simplePayloadS2C(player, HIDE_CHAT_OPTION, parsed[1]);
+        });
 
         addSimpleHandlerS2C(OPEN_DIALOG, s -> clientOpenChatBox());
         addSimpleHandlerS2C(SET_THEME, ChatBoxCommandUtil::clientToggleTheme);
@@ -141,6 +155,8 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             clientAddChatOption(parts[0], parts[1], parts[2], parts[3], parts[4]);
         });
         addSimpleHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
+        addSimpleHandlerS2C(UNLOCK_CHAT_OPTION, s -> clientUnlockChatOption(Integer.parseInt(s)));
+        addSimpleHandlerS2C(HIDE_CHAT_OPTION, s -> clientHideChatOption(Integer.parseInt(s)));
     }
 
     public static void execute(SimplePayload payload, IPayloadContext context) {

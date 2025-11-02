@@ -30,6 +30,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     public Runnable onClickEvent;
     //是否上锁
     public boolean isLock;
+    //解锁命令，若解锁命令不为null，则客户端设置完选项后会执行命令，若命令测试通过，选项会是正常可选状态
+    //若命令测试不通过，如果原本isLock为true，则选项锁定，否则隐藏选项
+    public String unlockCommand;
     //悬浮字体
     public Component optionTooltip;
     //文本对齐
@@ -38,6 +41,10 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     public String next;
     //是否选择，用于render对话框
     public boolean isSelect;
+    //记录选项原始y位置
+    private float originY;
+    //选项在chatBoxScreen被渲染时的索引，小于0不渲染也不能点击（隐藏）
+    public int renderIndex = 0;
 
     public ChatOption() {
         setTextures(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
@@ -52,6 +59,12 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setTextAlign(TextAlign.LEFT);
         setNext("");
         setIsSelect(false);
+    }
+
+    @Override
+    public ChatOption setPosition(float x, float y) {
+        this.originY = y;
+        return super.setPosition(x, y);
     }
 
     public ChatOption setOptionChat(String optionChat, boolean isTranslatable) {
@@ -119,6 +132,13 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
+    public ChatOption setUnlockCommand(String unlockCommand) {
+        // 虽然execute也可以执行任意命令，但是为了不让玩家随意通过解锁命令执行任意命令，还是加个判断吧
+        if (unlockCommand != null && unlockCommand.startsWith("execute"))
+            this.unlockCommand = parseTargetPlaceholders(unlockCommand);
+        return this;
+    }
+
     public ChatOption setNext(String next) {
         if (next != null) this.next = next;
         return this;
@@ -141,6 +161,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     public void click() {
+        if (this.renderIndex < 0) return;
         if (!this.isLock && minecraft.player != null) {
             //触发自定义事件
             this.onClickEvent.run();
@@ -162,6 +183,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        if (this.renderIndex < 0) return;
+        this.y = this.originY + this.renderIndex * this.height;
+
         Vec2 pos = getCurrentPosition();
         float x = pos.x;
         float y = pos.y;
@@ -199,6 +223,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
     @Override
     public void render(GuiGraphics guiGraphics, float pPartialTick) {
+        if (this.renderIndex < 0) return;
+        this.y = this.originY + this.renderIndex * this.height;
+
         Vec2 pos = getCurrentPosition();
         float x = pos.x;
         float y = pos.y;
@@ -218,13 +245,16 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         //render option text
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
+        Component component = Component.nullToEmpty(parseText(optionChat.getString()));
+        int responsiveX = (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX);
+        int responsiveY = (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY);
         switch (this.textAlign) {
             case LEFT ->
-                    RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+                    RenderUtil.drawLeftScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
             case CENTER ->
-                    RenderUtil.drawCenterScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+                    RenderUtil.drawCenterScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
             case RIGHT ->
-                    RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
+                    RenderUtil.drawRightScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
         }
         poseStack.popPose();
     }

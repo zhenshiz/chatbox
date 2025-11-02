@@ -191,13 +191,19 @@ public class ChatBoxUtil {
                     minecraft.screen.onClose();
                 }
             } else {
-                ChatBoxRender.onClose();
+                if (ChatBoxRender.isRenderChatBox()) ChatBoxRender.onClose();
             }
         }
     }
 
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String dialogBlock) {
         skipDialogues(dialoguesResourceLocation, dialogBlock, 0);
+    }
+
+    public static void onCloseDialogBox() {
+        if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
+        NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index));
+        SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, "-1"));
     }
 
     //切换对话框主题
@@ -298,7 +304,7 @@ public class ChatBoxUtil {
         return input;
     }
 
-    private static String parseTargetPlaceholders(String input) {
+    public static String parseTargetPlaceholders(String input) {
         if (chatTargets.isEmpty()) return input;
         // 匹配 <targetN.property> 或 <targetN> 格式的占位符
         Pattern pattern = Pattern.compile("<target(\\d+)(\\.(\\w+))?>");

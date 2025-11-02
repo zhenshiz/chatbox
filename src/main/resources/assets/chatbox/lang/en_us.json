@@ -36,13 +36,13 @@
   "chatbox.test.text.11": "Additionally, the NeoForge version provides KubeJS integration. You can use the module's exposed interfaces to implement functions similar to the provided commands, and use the module's events for more flexible dialog configuration.",
   "chatbox.test.text.12": "For more detailed tutorials and JSON file generation for dialog data packs, please visit the module's Wiki page.",
   "chatbox.test.text.13": "<wiggle>TextAnimator</wiggle> is a mod by <wave><rainb>Snownee</rainb></wave>.",
-  "chatbox.test.option.1": "Locked Option",
-  "chatbox.test.option.2": "Unlocked Option, triggers command when selected",
+  "chatbox.test.option.1": "Option 1",
+  "chatbox.test.option.2": "Option 2",
   "chatbox.test.option.3": "Option 3",
   "chatbox.test.option.4": "Locked Option",
-  "chatbox.test.option.5": "Unlocked Option, triggers command when selected",
+  "chatbox.test.option.5": "Unlocked Option",
   "chatbox.test.option.6": "Set weather to rainy",
   "chatbox.test.option.7": "Set weather to clear",
   "chatbox.test.option.8": "Set weather to thunder",
-  "chatbox.test.tooltip.1": "It seems some mysterious ritual is required to unlock this option."
+  "chatbox.test.tooltip.1": "Unlocked when you have a netherite sword in your first slot"
 }

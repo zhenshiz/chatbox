@@ -5,9 +5,11 @@ import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.mixin.SoundEngineAccessor;
 import com.zhenshiz.chatbox.mixin.SoundInstanceAccessor;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -51,7 +53,13 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setChatOptions(List<ChatOption> chatOptions) {
-        if (chatOptions != null) this.chatOptions = chatOptions;
+        if (chatOptions != null) {
+            this.chatOptions = chatOptions;
+            for (ChatOption option : chatOptions) {
+                if (StrUtil.isEmpty(option.unlockCommand)) continue;
+                SimplePayload.simplePayloadC2S(SimplePayload.REQUEST_UNLOCK, StrUtil.merge(String.valueOf(option.isLock), String.valueOf(chatOptions.indexOf(option)), option.unlockCommand));
+            }
+        }
         return this;
     }
 
@@ -129,13 +137,20 @@ public class ChatBoxScreen extends Screen {
             }
 
             if (backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1,0);
+                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
             }
 
             List<AbstractComponent<?>> list = new ArrayList<>();
             if (!hideDialogBox) list.add(dialogBox);
             if (video != null) list.add(video);
-            if (chatOptions != null && !hideDialogBox) list.addAll(chatOptions);
+            if (chatOptions != null && !hideDialogBox) {
+                int i = 0; // 渲染选项时设置选项在列表中的索引
+                for (ChatOption option : chatOptions) {
+                    if (option.renderIndex < 0) continue;
+                    option.renderIndex = i++;
+                    list.add(option);
+                }
+            }
             if (portraits != null) {
                 list.addAll(hideDialogBox ?
                         portraits.stream().filter(portrait -> portrait.renderOrder < dialogBox.renderOrder).toList() :
@@ -179,14 +194,12 @@ public class ChatBoxScreen extends Screen {
                 for (ChatOption chatOption : chatOptions) {
                     if (chatOption.isSelect(pMouseX, pMouseY) && dialogBox.isAllOver) {
                         chatOption.click();
-                        return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
                 }
 
                 for (FunctionalButton button : functionalButtons) {
                     if (button.isSelect(pMouseX, pMouseY)) {
                         button.click();
-                        return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
                 }
 
@@ -233,6 +246,7 @@ public class ChatBoxScreen extends Screen {
         fastForward = false;
         hideDialogBox = false;
         if (video != null) video.close();
+        ChatBoxUtil.onCloseDialogBox();
         super.onClose();
     }
 

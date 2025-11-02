@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.network.c2s;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,9 +17,13 @@ public record SendClickEvent(String clickType, String value) implements CustomPa
             ByteBufCodecs.STRING_UTF8,
             SendClickEvent::clickType,
             ByteBufCodecs.STRING_UTF8,
-            SendClickEvent::value,
+            SendClickEvent::getParsedValue,
             SendClickEvent::new
     );
+
+    private String getParsedValue() {
+        return ChatBoxUtil.parseTargetPlaceholders(value);
+    }
 
     public static void execute(SendClickEvent payload, IPayloadContext context) {
         ServerPlayer player = (ServerPlayer) context.player();

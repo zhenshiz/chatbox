@@ -53,7 +53,14 @@ public class ChatBoxRender {
             List<AbstractComponent<?>> list = new ArrayList<>();
             list.add(chatBoxScreen.dialogBox);
             if (chatBoxScreen.video != null) list.add(chatBoxScreen.video);
-            if (chatBoxScreen.chatOptions != null) list.addAll(chatBoxScreen.chatOptions);
+            if (chatBoxScreen.chatOptions != null) {
+                int i = 0; // 渲染选项时设置选项在列表中的索引
+                for (ChatOption option : chatBoxScreen.chatOptions) {
+                    if (option.renderIndex < 0) continue;
+                    option.renderIndex = i++;
+                    list.add(option);
+                }
+            }
             if (chatBoxScreen.portraits != null) list.addAll(chatBoxScreen.portraits);
             if (chatBoxScreen.keyPromptRender != null) list.add(chatBoxScreen.keyPromptRender);
 
@@ -143,5 +150,6 @@ public class ChatBoxRender {
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false;
         if (chatBoxScreen.video != null) chatBoxScreen.video.close();
+        ChatBoxUtil.onCloseDialogBox();
     }
 }
