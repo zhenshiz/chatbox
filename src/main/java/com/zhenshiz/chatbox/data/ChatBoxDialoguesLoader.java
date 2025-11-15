@@ -73,10 +73,9 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener imp
                         T t = (T) instance;
                         if (testTrigger.test(t)) {
                             //判断玩家的触发次数是否为0，为0则不触发对话
-                            ChatBoxTriggerCount counts = ChatBox.getTriggerCounts();
-                            int count = counts.getPlayerMaxTriggerCount(player, rl);
+                            int count = ChatBoxCommandUtil.serverGetMaxTriggerCount(player, rl);
                             if (count != 0) {
-                                counts.setPlayerMaxTriggerCount(player, rl, count - 1);
+                                ChatBoxCommandUtil.serverSetMaxTriggerCount(player, rl, count - 1);
                                 ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
                             }
                         }

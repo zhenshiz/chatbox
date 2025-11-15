@@ -95,8 +95,8 @@ public class ChatBoxTheme {
         public Float optionChatY = DEFAULT_FLOAT;
         public String textAlign = ChatOption.TextAlign.LEFT.name();
 
-        public ChatOption setChatOptionTheme(ChatOption chatOption, int index) {
-            return chatOption.setDefaultOption(this.x, this.y + this.height * index, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
+        public ChatOption setChatOptionTheme(ChatOption chatOption) {
+            return chatOption.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
                     .setTextures(this.texture)
                     .setSelectTexture(this.selectTexture)
                     .setLockTexture(this.lockTexture)

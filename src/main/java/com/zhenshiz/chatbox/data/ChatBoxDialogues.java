@@ -170,7 +170,6 @@ public class ChatBoxDialogues {
         public static class Option {
             public String text;
             public Boolean isLock = false;
-            public Boolean isHidden = false; // 实际上没有作用了，留在这里做纪念（？）
             public String unlockCommand;
             public String next;
             public Click click = new Click();
@@ -186,9 +185,7 @@ public class ChatBoxDialogues {
             List<ChatOption> chatOptions = new ArrayList<>();
             ClientLevel level = Minecraft.getInstance().level;
             if (level != null && !CollUtil.isEmpty(this.options)) {
-                int i = -1;
                 for (Option option : this.options) {
-                    i++;
                     ChatOption chatOption = new ChatOption().setOptionTooltip(option.tooltip, isTranslatable)
                             .setOptionChat(option.text, isTranslatable)
                             .setIsLock(option.isLock)
@@ -196,7 +193,7 @@ public class ChatBoxDialogues {
                             .setNext(option.next)
                             .setClickEvent(option.click.type, option.click.value);
 
-                    chatOptions.add(ChatBoxUtil.chatBoxTheme.option.setChatOptionTheme(chatOption, i));
+                    chatOptions.add(ChatBoxUtil.chatBoxTheme.option.setChatOptionTheme(chatOption));
                 }
             }
             return chatOptions;

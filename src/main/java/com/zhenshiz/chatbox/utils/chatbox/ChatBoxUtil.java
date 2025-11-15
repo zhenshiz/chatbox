@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
@@ -189,13 +190,19 @@ public class ChatBoxUtil {
                     minecraft.screen.onClose();
                 }
             } else {
-                ChatBoxRender.onClose();
+                if (ChatBoxRender.isRenderChatBox()) ChatBoxRender.onClose();
             }
         }
     }
 
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String dialogBlock) {
         skipDialogues(dialoguesResourceLocation, dialogBlock, 0);
+    }
+
+    public static void onCloseDialogBox() {
+        if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
+        SkipChatEvent.EVENT.invoker().skipChat(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets);
+        ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, "-1"));
     }
 
     //切换对话框主题

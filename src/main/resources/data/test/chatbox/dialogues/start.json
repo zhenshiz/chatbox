@@ -58,21 +58,19 @@
         ],
         "options": [
           {
-            "text": "chatbox.test.option.1",
-            "isHidden": true,
-            "hidden": {
-              "objective": "test",
-              "value": "test"
-            }
+            "text": "Hidden Option",
+            "tooltip": "Hidden if you don't have a diamond",
+            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:diamond\"}]}]"
           },
           {
             "text": "chatbox.test.option.4",
             "isLock": true,
-            "lock": {
-              "objective": "test",
-              "value": "test"
-            },
-            "tooltip": "chatbox.test.tooltip.1"
+            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:netherite_sword\",Slot:0b}]}]",
+            "tooltip": "chatbox.test.tooltip.1",
+            "click": {
+              "type": "command",
+              "value": "give @s minecraft:diamond"
+            }
           },
           {
             "text": "chatbox.test.option.5"

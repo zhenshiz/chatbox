@@ -10,7 +10,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
-import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -163,10 +162,9 @@ public class ChatBoxCommand {
 
         if (player != null) {
             //判断玩家的触发次数是否为0，为0则不触发对话
-            ChatBoxTriggerCount counts = ChatBox.getTriggerCounts();
-            int count = counts.getPlayerMaxTriggerCount(player, dialogues);
+            int count = ChatBoxCommandUtil.serverGetMaxTriggerCount(player, dialogues);
             if (count != 0) {
-                counts.setPlayerMaxTriggerCount(player, dialogues, count - 1);
+                ChatBoxCommandUtil.serverSetMaxTriggerCount(player, dialogues, count - 1);
                 ChatBoxCommandUtil.serverSkipDialogues(player, dialogues, group, index, targets);
                 context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             }

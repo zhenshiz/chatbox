@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -98,6 +99,18 @@ public class ChatBoxCommandUtil {
         ChatBoxUtil.isScreen = isScreen;
     }
 
+    public static int serverGetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation) {
+        return ChatBox.getTriggerCounts().getPlayerMaxTriggerCount(player, dialogResourceLocation);
+    }
+
+    public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
+        ChatBox.getTriggerCounts().setPlayerMaxTriggerCount(player, dialogResourceLocation, count);
+    }
+
+    public static void serverResetMaxTriggerCount(ServerPlayer player) {
+        ChatBox.getTriggerCounts().resetPlayerMaxTriggerCount(player);
+    }
+
     public static void serverSetDialogBox(ServerPlayer player, String name, String text) {
         simplePayloadS2C(player, SET_DIALOG_BOX, StrUtil.merge(name, text));
     }
@@ -114,7 +127,7 @@ public class ChatBoxCommandUtil {
 
     public static void clientAddChatOption(String text, String next, String tip, String clickType, String clickValue) {
         ChatOption option = new ChatOption().setOptionChat(text, true).setNext(next).setOptionTooltip(tip, true).setClickEvent(clickType, clickValue);
-        chatBoxTheme.option.setChatOptionTheme(option, chatBoxScreen.chatOptions.size());
+        chatBoxTheme.option.setChatOptionTheme(option);
         chatBoxScreen.addChatOptions(option);
     }
 
@@ -136,12 +149,7 @@ public class ChatBoxCommandUtil {
     public static void clientHideChatOption(int index) {
         List<ChatOption> options = chatBoxScreen.chatOptions;
         if (index < 0 || index >= options.size()) return;
-        options.remove(index);
-        // 移除一个选项后，要修改后面选项的高度
-        if (index < options.size()) for (int i = index; i < options.size(); i++) {
-            ChatOption option = options.get(i);
-            option.setPosition(option.x, option.y - option.height);
-        }
+        options.get(index).renderIndex = -1;
     }
 
     public static void addPlaceholderResolver(String key, Function<Entity, String> resolver) {

@@ -127,9 +127,6 @@ public class ChatBoxScreen extends Screen {
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (dialogBox != null) {
             if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
-/*            if (NeoForge.EVENT_BUS.post(new ChatBoxRender.Pre(guiGraphics)).isCanceled()) {
-                return;
-            }*/
             if (backgroundImage != null) {
                 RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0f);
             }
@@ -137,7 +134,14 @@ public class ChatBoxScreen extends Screen {
             List<AbstractComponent<?>> list = new ArrayList<>();
             if (!hideDialogBox) list.add(dialogBox);
             if (video != null) list.add(video);
-            if (chatOptions != null && !hideDialogBox) list.addAll(chatOptions);
+            if (chatOptions != null && !hideDialogBox) {
+                int i = 0; // 渲染选项时设置选项在列表中的索引
+                for (ChatOption option : chatOptions) {
+                    if (option.renderIndex < 0) continue;
+                    option.renderIndex = i++;
+                    list.add(option);
+                }
+            }
             if (portraits != null) list.addAll(hideDialogBox ?
                     portraits.stream().filter(portrait -> portrait.renderOrder < dialogBox.renderOrder).toList() : portraits);
             if (functionalButtons != null && !hideDialogBox) list.addAll(functionalButtons);
@@ -147,7 +151,6 @@ public class ChatBoxScreen extends Screen {
             list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, pMouseX, pMouseY, pPartialTick));
 
             ChatBoxRenderEvent.POST.invoker().post(guiGraphics);
-            //NeoForge.EVENT_BUS.post(new ChatBoxRender.Post(guiGraphics));
         }
         super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
     }
@@ -179,14 +182,12 @@ public class ChatBoxScreen extends Screen {
                 for (ChatOption chatOption : chatOptions) {
                     if (chatOption.isSelect(pMouseX, pMouseY) && dialogBox.isAllOver) {
                         chatOption.click();
-                        return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
                 }
 
                 for (FunctionalButton button : functionalButtons) {
                     if (button.isSelect(pMouseX, pMouseY)) {
                         button.click();
-                        return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
                 }
 
@@ -231,6 +232,7 @@ public class ChatBoxScreen extends Screen {
         fastForward = false;
         hideDialogBox = false;
         if (video != null) video.close();
+        ChatBoxUtil.onCloseDialogBox();
         super.onClose();
     }
 

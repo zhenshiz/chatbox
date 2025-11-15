@@ -41,6 +41,10 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     public String next;
     //是否选择，用于render对话框
     public boolean isSelect;
+    //记录选项原始y位置
+    private float originY;
+    //选项在chatBoxScreen被渲染时的索引，小于0不渲染也不能点击（隐藏）
+    public int renderIndex = 0;
 
     public ChatOption() {
         setTextures(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
@@ -54,6 +58,12 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setTextAlign(TextAlign.LEFT);
         setNext("");
         setIsSelect(false);
+    }
+
+    @Override
+    public ChatOption setPosition(float x, float y) {
+        this.originY = y;
+        return super.setPosition(x, y);
     }
 
     public ChatOption setOptionChat(String optionChat, boolean isTranslatable) {
@@ -150,6 +160,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     }
 
     public void click() {
+        if (this.renderIndex < 0) return;
         if (!this.isLock && minecraft.player != null) {
             //触发自定义事件
             this.onClickEvent.run();
@@ -170,6 +181,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        if (this.renderIndex < 0) return;
+        this.y = this.originY + this.renderIndex * this.height;
+
         Vec2 pos = getCurrentPosition();
         float x = pos.x;
         float y = pos.y;
@@ -193,6 +207,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
     @Override
     public void render(GuiGraphics guiGraphics, float pPartialTick) {
+        if (this.renderIndex < 0) return;
+        this.y = this.originY + this.renderIndex * this.height;
+
         Vec2 pos = getCurrentPosition();
         float x = pos.x;
         float y = pos.y;
