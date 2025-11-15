@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -93,7 +93,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端跳转下一条对话")
     public static void clientNextDialogue() {
-        chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+        chatBoxScreen.dialogBoxClick();
     }
 
     @Info("服务端开关自动对话")
@@ -138,9 +138,9 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端设置对话框")
     public static void clientSetDialogBox(String name, String text) {
-        chatBoxScreen.dialogBox.setName(name, true).setText(text, true).resetTickCount().setAllOver(false);
+        chatBoxScreen.dialogBox.setName(name).setText(text).resetTickCount().setAllOver(false);
         var historicalInfos = historicalDialogue.historicalDialogue.historicalInfos;
-        historicalInfos.get(historicalInfos.size() - 1).setName(name, true).setText(text, true);
+        historicalInfos.get(historicalInfos.size() - 1).setName(name).setText(text);
     }
 
     @Info("服务端添加选项")
@@ -150,7 +150,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端添加选项")
     public static void clientAddChatOption(String text, String next, String tip, String clickType, String clickValue) {
-        ChatOption option = new ChatOption().setOptionChat(text, true).setNext(next).setOptionTooltip(tip, true).setClickEvent(clickType, clickValue);
+        ChatOption option = new ChatOption().setOptionChat(text).setNext(next).setOptionTooltip(tip).setClickEvent(clickType, clickValue);
         chatBoxTheme.option.setChatOptionTheme(option);
         chatBoxScreen.addChatOptions(option);
     }
@@ -179,9 +179,9 @@ public class ChatBoxCommandUtil {
         options.get(index).renderIndex = -1;
     }
 
-    @Info("注册一个选项点击事件，可以在服务端任意位置使用")
-    public static void registerClickEvent(String type, Consumer<String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
-        ChatOptionClickEvent.registerClickEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
+    @Info("注册一个组件事件，可以在服务端任意位置使用")
+    public static void registerComponentEvent(String type, Consumer<String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
+        EventExecutor.registerEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
     }
 
     @Info("添加一个占位符属性解析器，在客户端任意位置使用")

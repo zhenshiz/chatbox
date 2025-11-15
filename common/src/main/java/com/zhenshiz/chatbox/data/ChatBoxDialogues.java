@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
+import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
@@ -20,25 +21,37 @@ import java.util.Map;
 
 public class ChatBoxDialogues {
     public Map<String, List<Dialogues>> dialogues = new HashMap<>();
-    public Boolean isTranslatable = false;
     public Boolean isEsc = true;
     public Boolean isPause = true;
     public Boolean isHistoricalSkip = true;
     public String theme;
     public Boolean isScreen;
 
+    public static List<ComponentEvent> transform(List<Dialogues.RenderEvent> renderEvents) {
+        return renderEvents.stream().map(Dialogues.RenderEvent::transform).toList();
+    }
+
     public static class Dialogues {
         public DialogBox dialogBox = new DialogBox();
         public List<JsonElement> portrait;
         public List<Option> options;
         public String sound = "";
-        public Float volume = 1f;
-        public Float pitch = 1f;
         public String command;
         public String backgroundImage;
         public Video video;
         public Boolean clearOldPortrait = true;
         public List<String> removePortrait;
+        public List<RenderEvent> renderEvents = new ArrayList<>();
+
+        public static class RenderEvent {
+            public String trigger = "on_start";
+            public String type = "";
+            public String value = "";
+
+            public ComponentEvent transform() {
+                return new ComponentEvent(ComponentEvent.Trigger.of(trigger), type, value);
+            }
+        }
 
         public List<Portrait> setPortraitDialogues(List<Portrait> portraitList) {
             Map<String, ChatBoxTheme.Portrait> map = ChatBoxUtil.chatBoxTheme.portrait;
@@ -53,19 +66,16 @@ public class ChatBoxDialogues {
                     Portrait portrait = null;
                     if (p instanceof String s) {
                         try {
-                            portrait = map.get(s)
-                                  .setPortraitTheme()
-                                  .build();
-                            portrait.id = s;
+                            portrait = map.get(s).setPortraitTheme().setId(s);
                         } catch (Exception e) {
                             ChatBox.LOGGER.error("portrait {} not found", p);
                         }
                     } else if (p instanceof ReplacePortrait replacePortrait) {
                         try {
                             portrait = replacePortrait.replace(map.get(replacePortrait.id))
-                                  .setPortraitTheme()
-                                  .build();
-                            portrait.id = replacePortrait.id;
+                                    .setPortraitTheme()
+                                    .setId(replacePortrait.id)
+                                    .setEvents(transform(replacePortrait.renderEvents));
                         } catch (Exception e) {
                             ChatBox.LOGGER.error("portrait {} not found", replacePortrait.id);
                         }
@@ -107,11 +117,12 @@ public class ChatBoxDialogues {
         public static class DialogBox {
             public String name = "";
             public String text = "";
+            public List<RenderEvent> renderEvents = new ArrayList<>();
 
-            public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox, boolean isTranslatable) {
-                return dialogBox.setName(this.name, isTranslatable)
-                        .setText(this.text, isTranslatable)
-                        .resetTickCount().setAllOver(false);
+            public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
+                return dialogBox.setName(this.name).setText(this.text)
+                        .resetTickCount().setAllOver(false)
+                        .setEvents(transform(renderEvents));
             }
         }
 
@@ -130,6 +141,7 @@ public class ChatBoxDialogues {
                 loop = null;
             }
             public String id;
+            public List<RenderEvent> renderEvents = new ArrayList<>();
 
             public ChatBoxTheme.Portrait replace(ChatBoxTheme.Portrait portrait) {
                 ChatBoxTheme.Portrait copy = new ChatBoxTheme.Portrait();
@@ -151,6 +163,7 @@ public class ChatBoxDialogues {
             public Boolean canControl = true;
             public Boolean canSkip = true;
             public Boolean loop = false;
+            public List<RenderEvent> renderEvents = new ArrayList<>();
 
             public com.zhenshiz.chatbox.component.Video setVideo() {
                 if (!ChatBox.isWaterMediaLoaded()) return null;
@@ -162,7 +175,8 @@ public class ChatBoxDialogues {
                     return null;
                 }
                 return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop)
-                        .setDefaultOption(x, y, width, height, AbstractComponent.AlignX.of(alignX), AbstractComponent.AlignY.of(alignY), opacity, renderOrder, angle);
+                        .setDefaultOption(x, y, width, height, AbstractComponent.AlignX.of(alignX), AbstractComponent.AlignY.of(alignY), opacity, renderOrder, angle)
+                        .setEvents(transform(renderEvents));
             }
         }
 
@@ -181,13 +195,13 @@ public class ChatBoxDialogues {
             }
         }
 
-        public List<ChatOption> setChatOptionDialogues(boolean isTranslatable) {
+        public List<ChatOption> setChatOptionDialogues() {
             List<ChatOption> chatOptions = new ArrayList<>();
             ClientLevel level = Minecraft.getInstance().level;
             if (level != null && !CollUtil.isEmpty(this.options)) {
                 for (Option option : this.options) {
-                    ChatOption chatOption = new ChatOption().setOptionTooltip(option.tooltip, isTranslatable)
-                            .setOptionChat(option.text, isTranslatable)
+                    ChatOption chatOption = new ChatOption().setOptionTooltip(option.tooltip)
+                            .setOptionChat(option.text)
                             .setIsLock(option.isLock)
                             .setUnlockCommand(option.unlockCommand)
                             .setNext(option.next)

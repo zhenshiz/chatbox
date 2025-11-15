@@ -1,6 +1,6 @@
 package com.zhenshiz.chatbox.compat.terraentity;
 
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.SimpleMenuProvider;
@@ -12,7 +12,7 @@ import org.confluence.terraentity.mixed.IPlayer;
 public class TerraEntityShop {
 
     public static void register() {
-        ChatOptionClickEvent.registerClickEvent("TERRA_ENTITY_SHOP", v -> {}, () -> {
+        EventExecutor.registerEvent("TERRA_ENTITY_SHOP", v -> {}, () -> {
             //noinspection ConstantConditions
             ITradeHolder iTradeHolder = ((IPlayer) Minecraft.getInstance().player).terra_entity$getTradeHolder();
             return iTradeHolder instanceof AbstractTerraNPC;

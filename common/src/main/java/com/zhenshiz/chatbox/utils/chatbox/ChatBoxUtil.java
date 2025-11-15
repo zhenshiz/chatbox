@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -19,11 +18,9 @@ import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -47,8 +44,6 @@ public class ChatBoxUtil {
     public static ChatBoxScreen chatBoxScreen = new ChatBoxScreen();
     //玩家的历史对话记录
     public static HistoricalDialogueScreen historicalDialogue = new HistoricalDialogueScreen();
-    //上一轮对话放的音乐
-    public static ResourceLocation lastSoundResourceLocation = null;
     //当前使用的对话框主题
     public static String themeResourceLocation = null;
     //文本路径
@@ -123,7 +118,6 @@ public class ChatBoxUtil {
         if (minecraft.player == null) return;
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
-        Boolean isTranslatable = chatBoxDialogues.isTranslatable;
         if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
         String theme = chatBoxDialogues.theme;
         if (theme != null && !theme.equals(themeResourceLocation)) {
@@ -135,39 +129,26 @@ public class ChatBoxUtil {
         if (index >= 0 && index < dialogues.size()) {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
-            chatBoxScreen.setDialogBox(dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox, isTranslatable))
+            chatBoxScreen.setDialogBox(dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox))
                     .setVideo(dialog.video != null ? dialog.video.setVideo() : null)
                     .setPortrait(bakePortrait(dialoguesResourceLocation, group, index))
-                    .setChatOptions(dialog.setChatOptionDialogues(isTranslatable))
+                    .setChatOptions(dialog.setChatOptionDialogues())
                     .setBackgroundImage(dialog.backgroundImage)
-                    .setIsTranslatable(isTranslatable)
                     .setIsEsc(chatBoxDialogues.isEsc)
                     .setIsPause(chatBoxDialogues.isPause)
-                    .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip);
+                    .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip)
+                    .playVoice(dialog.sound)
+                    // 一切就绪，再触发ON_START事件
+                    .setEvents(ChatBoxDialogues.transform(dialog.renderEvents)).fireEvent("ON_START");
 
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
                 //如果不是对话框和历史记录界面跳转，就清除历史记录
                 historicalDialogue = new HistoricalDialogueScreen();
             }
             //添加历史聊天记录
-            historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesResourceLocation, group, index)
-                    .setName(dialogBox.name, isTranslatable)
-                    .setText(dialogBox.text, isTranslatable)
-            );
+            historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesResourceLocation, group, index).setName(dialogBox.name).setText(dialogBox.text));
             //进入对话执行自定义指令
             if (dialog.command != null) ChatBox.PLATFORM.sendToServer(new SendClickEvent("COMMAND", dialog.command));
-            //播放音乐
-            ResourceLocation soundResourceLocation = ResourceLocation.tryParse(dialog.sound);
-            //如果新的一句话没有音效，根据配置决定是否中断上一句话的音效
-            if (!ChatBoxClient.conf.soundInterruptionEnabled && Objects.equals(dialog.sound, "")) soundResourceLocation = null;
-            if (soundResourceLocation != null) {
-                if (lastSoundResourceLocation != null) {
-                    minecraft.getSoundManager().stop(lastSoundResourceLocation, null);
-                }
-                SoundEvent soundEvent = Holder.direct(SoundEvent.createVariableRangeEvent(soundResourceLocation)).value();
-                lastSoundResourceLocation = soundResourceLocation;
-                minecraft.player.playSound(soundEvent, dialog.volume, dialog.pitch);
-            }
 
             //调试用
             //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);

@@ -15,6 +15,7 @@ import java.util.List;
 
 import static com.zhenshiz.chatbox.utils.math.EasingUtil.easingFunction;
 
+@SuppressWarnings("UnusedReturnValue")
 @NoArgsConstructor
 public class Portrait extends AbstractComponent<Portrait> {
     public Type type;
@@ -40,7 +41,7 @@ public class Portrait extends AbstractComponent<Portrait> {
     private int customAnimationIndex = 0;
 
     public Portrait(Type type, String animationType, List<ChatBoxTheme.Portrait.CustomAnimation> customAnimation, Float scale, Boolean loop) {
-        setType(type).setAnimationType(animationType).setCustomAnimation(customAnimation).setLoop(loop).setScale(scale).build();
+        setType(type).setAnimationType(animationType).setCustomAnimation(customAnimation).setLoop(loop).setScale(scale);
     }
 
     //texture
@@ -112,6 +113,11 @@ public class Portrait extends AbstractComponent<Portrait> {
         return this;
     }
 
+    public Portrait setId(String id) {
+        if (id != null) this.id = id;
+        return this;
+    }
+
     public void setTarget(float x, float y, float scale, float opacity, float angle) {
         this.targetCustomAnimation.x = x;
         this.targetCustomAnimation.y = y;
@@ -130,6 +136,7 @@ public class Portrait extends AbstractComponent<Portrait> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (type != null && value != null) {
             Vec2 position = getCurrentPosition();
             float x = position.x;
@@ -185,6 +192,8 @@ public class Portrait extends AbstractComponent<Portrait> {
                     setAngle(this.startCustomAnimation.angle);
                 } else {
                     setIsAnimation(false);
+                    // 立绘有动画且动画播放完成时触发ON_END事件
+                    fireEvent("ON_END");
                 }
             }
         }

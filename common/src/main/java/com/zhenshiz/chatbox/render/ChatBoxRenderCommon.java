@@ -1,20 +1,12 @@
 package com.zhenshiz.chatbox.render;
 
-import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
-import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
-import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
@@ -32,30 +24,7 @@ public class ChatBoxRenderCommon {
 
     public static void onHudRender(GuiGraphics guiGraphics, float partialTick) {
         if (isRenderChatBox()) {
-            if (ChatBox.PLATFORM.postRenderEventPre(guiGraphics)) return;
-
-            if (chatBoxScreen.backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
-            }
-
-            List<AbstractComponent<?>> list = new ArrayList<>();
-            list.add(chatBoxScreen.dialogBox);
-            if (chatBoxScreen.video != null) list.add(chatBoxScreen.video);
-            if (chatBoxScreen.chatOptions != null) {
-                int i = 0; // 渲染选项时设置选项在列表中的索引
-                for (ChatOption option : chatBoxScreen.chatOptions) {
-                    if (option.renderIndex < 0) continue;
-                    option.renderIndex = i++;
-                    list.add(option);
-                }
-            }
-            if (chatBoxScreen.portraits != null) list.addAll(chatBoxScreen.portraits);
-            if (chatBoxScreen.keyPromptRender != null) list.add(chatBoxScreen.keyPromptRender);
-
-            list.sort(Comparator.comparingInt(p -> p.renderOrder));
-            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, partialTick));
-
-            ChatBox.PLATFORM.postRenderEventPost(guiGraphics);
+            chatBoxScreen.renderInner(guiGraphics, 0, 0, partialTick, false);
         }
     }
 
@@ -75,7 +44,7 @@ public class ChatBoxRenderCommon {
         if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
             //ctrl快进
             if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
-                chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                chatBoxScreen.dialogBoxClick();
             }
             if (action == 1 && key == GLFW.GLFW_KEY_F6) {
                 //自动播放
@@ -87,29 +56,26 @@ public class ChatBoxRenderCommon {
     public static void mousePost(int button, int action, int modifiers) {
         if (isRenderChatBox()) {
             if (action == 1 && button == 1) {
-                if (!CollUtil.isEmpty(chatBoxScreen.chatOptions) && chatBoxScreen.dialogBox.isAllOver) {
-                    ChatOption chatOption = chatBoxScreen.chatOptions.get(selectIndex);
-                    chatOption.click();
+                if (chatBoxScreen.getRenderOptionCount() > 0 && chatBoxScreen.dialogBox.isAllOver) {
+                    chatBoxScreen.chatOptions.stream().filter(option -> option.renderIndex == selectIndex).findFirst().ifPresent(ChatOption::click);
                     selectIndex = 0;
                 }
 
-                if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBoxClick();
             }
         }
     }
 
     public static boolean onMouseScroll(double scrollDelta, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY) {
-        if (isRenderChatBox() && !chatBoxScreen.chatOptions.isEmpty()) {
-            if (scrollDelta > 0) {
-                //向上
-                selectIndex = (selectIndex - 1 + chatBoxScreen.chatOptions.size()) % chatBoxScreen.chatOptions.size();
-            } else if (scrollDelta < 0) {
-                //向下
-                selectIndex = (selectIndex + 1) % (chatBoxScreen.chatOptions.size());
+        int optionCount = chatBoxScreen.getRenderOptionCount();
+        if (isRenderChatBox() && optionCount > 0) {
+            if (scrollDelta > 0) { //向上
+                selectIndex = (selectIndex - 1 + optionCount) % optionCount;
+            } else if (scrollDelta < 0) { //向下
+                selectIndex = (selectIndex + 1) % optionCount;
             }
-            for (int i = 0; i < chatBoxScreen.chatOptions.size(); i++) {
-                ChatOption chatOption = chatBoxScreen.chatOptions.get(i);
-                chatOption.isSelect = i == selectIndex;
+            for (var option : chatBoxScreen.chatOptions) {
+                option.setIsSelect(selectIndex == option.renderIndex);
             }
             return true;
         }

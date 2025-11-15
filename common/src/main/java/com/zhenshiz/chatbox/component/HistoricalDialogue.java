@@ -105,13 +105,13 @@ public class HistoricalDialogue extends AbstractWidget {
             this.index = index;
         }
 
-        public HistoricalInfo setName(String name, boolean isTranslatable) {
-            if (name != null) this.name = isTranslatable ? Component.translatable(name) : Component.nullToEmpty(name);
+        public HistoricalInfo setName(String name) {
+            if (name != null) this.name = Component.translatable(name);
             return this;
         }
 
-        public HistoricalInfo setText(String text, boolean isTranslatable) {
-            if (text != null) this.text = isTranslatable ? Component.translatable(text) : Component.nullToEmpty(text);
+        public HistoricalInfo setText(String text) {
+            if (text != null) this.text = Component.translatable(text);
             return this;
         }
 

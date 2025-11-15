@@ -4,7 +4,21 @@
   "dialogues": {
     "start": [
       {
+        "renderEvents": [
+        {
+          "trigger": "start",
+          "type": "hide",
+          "value": "@Options"
+        }
+      ],
         "dialogBox": {
+          "renderEvents": [
+            {
+              "trigger": "end",
+              "type": "show",
+              "value": "@Options"
+            }
+          ],
           "name": "chatbox.test.name.1",
           "text": "chatbox.test.text.1"
         },

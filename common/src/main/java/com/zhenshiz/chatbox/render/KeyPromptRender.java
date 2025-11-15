@@ -40,7 +40,8 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (this.visible) {
             RenderUtil.renderOpacity(guiGraphics, this.opacity, () -> {
                 Font font = minecraft.font;

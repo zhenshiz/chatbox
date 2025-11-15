@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.network;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.network.FriendlyByteBuf;
@@ -87,7 +87,7 @@ public record SimplePayload(String name, String value) implements CustomPacket {
             String[] parsed = StrUtil.parse(s);
             if (parsed.length != 3) return;
             boolean isLock = Boolean.parseBoolean(parsed[0]);
-            int result = ChatOptionClickEvent.Command.executeCommand(player.server, player, parsed[2]);
+            int result = ComponentEvent.executeCommand(player.server, player, parsed[2]);
             // 如果命令测试通过且是锁定状态，则解锁聊天选项
             if (result == 1 && isLock) simplePayloadS2C(player, UNLOCK_CHAT_OPTION, parsed[1]);
             // 如果命令测试失败且不是锁定状态，则隐藏聊天选项

@@ -42,9 +42,9 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox() {
         setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
-        setText("", false);
+        setText("");
         setTextPosition(0, 0);
-        setName("", false);
+        setName("");
         setNamePosition(0, 0);
         setLineWidth(100f);
 
@@ -63,10 +63,10 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    public DialogBox setText(String text, boolean isTranslatable) {
+    public DialogBox setText(String text) {
         if (text != null) {
             // 获取翻译键的文本
-            text = isTranslatable ? Language.getInstance().getOrDefault(text) : text;
+            text = Language.getInstance().getOrDefault(text);
             if (ChatBox.PLATFORM.isModLoaded("textanimator")) text = text.replaceAll("<typewriter>", "");
             this.text = text;
             textToTextBuffer();
@@ -74,8 +74,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    public DialogBox setName(String name, boolean isTranslatable) {
-        if (name != null) this.name = isTranslatable ? Component.translatable(name) : Component.nullToEmpty(name);
+    public DialogBox setName(String name) {
+        if (name != null) this.name = Component.translatable(name);
         return this;
     }
 
@@ -98,6 +98,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox setAllOver(boolean allOver) {
         this.isAllOver = allOver;
+        // 全部文字显示完成时触发ON_END事件
+        if (allOver) fireEvent("ON_END");
         return this;
     }
 
@@ -166,6 +168,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         //chatBox image
         if (texture != null) renderImage(guiGraphics, this.texture);
 
