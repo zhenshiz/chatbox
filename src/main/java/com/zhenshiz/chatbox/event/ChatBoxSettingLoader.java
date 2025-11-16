@@ -22,16 +22,16 @@ public class ChatBoxSettingLoader {
 
     @SubscribeEvent
     public static void chatBoxLoader(AddReloadListenerEvent event) {
-        event.addListener(ChatBoxThemeLoader.INSTANCE);
-        event.addListener(ChatBoxDialoguesLoader.INSTANCE);
+        event.addListener(new ChatBoxThemeLoader());
+        event.addListener(new ChatBoxDialoguesLoader());
     }
 
     @SubscribeEvent
     public static void initializeChatBoxScreen(PlayerEvent.PlayerLoggedInEvent event) {
         ServerPlayer player = (ServerPlayer) event.getEntity();
         //发包到客户端
-        player.connection.send(new ClientChatBoxPayload.AllChatBoxThemeToClient(ChatBoxSettingLoader.cutString(ChatBoxThemeLoader.INSTANCE.themeMap)));
-        player.connection.send(new ClientChatBoxPayload.AllChatBoxDialoguesToClient(ChatBoxSettingLoader.cutString(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap)));
+        player.connection.send(new ClientChatBoxPayload.AllChatBoxThemeToClient(ChatBoxSettingLoader.cutString(ChatBoxThemeLoader.themeMap)));
+        player.connection.send(new ClientChatBoxPayload.AllChatBoxDialoguesToClient(ChatBoxSettingLoader.cutString(ChatBoxDialoguesLoader.dialoguesMap)));
     }
 
     @SubscribeEvent

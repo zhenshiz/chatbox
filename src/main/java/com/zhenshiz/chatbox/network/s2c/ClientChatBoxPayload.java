@@ -15,8 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class ClientChatBoxPayload {
-    public record OpenScreenPayload(ResourceLocation dialogues, String group,
-                                    int index, String targets) implements CustomPacketPayload {
+    public record OpenScreenPayload(ResourceLocation dialogues, String group, int index) implements CustomPacketPayload {
         public static final Type<OpenScreenPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_screen"));
         public static final StreamCodec<FriendlyByteBuf, OpenScreenPayload> CODEC = StreamCodec.composite(
                 ResourceLocation.STREAM_CODEC,
@@ -25,8 +24,6 @@ public class ClientChatBoxPayload {
                 OpenScreenPayload::group,
                 ByteBufCodecs.INT,
                 OpenScreenPayload::index,
-                ByteBufCodecs.STRING_UTF8,
-                OpenScreenPayload::targets,
                 OpenScreenPayload::new
         );
 

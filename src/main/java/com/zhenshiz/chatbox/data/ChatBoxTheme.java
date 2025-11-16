@@ -24,7 +24,6 @@ public class ChatBoxTheme {
     public DialogBox dialogBox;
     public List<FunctionButton> functionalButton;
     public KeyPrompt keyPrompt;
-    public Map<String, List<Portrait.CustomAnimation>> customAnimation;
 
     public ChatBoxTheme setDefaultValue() {
         for (FunctionButton button : this.functionalButton) {
@@ -53,9 +52,9 @@ public class ChatBoxTheme {
         public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
             com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.animation, this.customAnimation, this.scale, this.loop);
             switch (portrait.type) {
-                case TEXTURE -> portrait.createTexture(portrait, this.value, this.attachment).build();
-                case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value).build();
-                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData).build();
+                case TEXTURE -> portrait.createTexture(portrait, this.value, this.attachment);
+                case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value);
+                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData);
             }
             return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle);
         }
@@ -109,8 +108,7 @@ public class ChatBoxTheme {
                     .setSelectTexture(this.selectTexture)
                     .setLockTexture(this.lockTexture)
                     .setOptionChatPosition(this.optionChatX, this.optionChatY)
-                    .setTextAlign(ChatOption.TextAlign.of(this.textAlign))
-                    .build();
+                    .setTextAlign(ChatOption.TextAlign.of(this.textAlign));
         }
     }
 
@@ -131,8 +129,7 @@ public class ChatBoxTheme {
                     .setTexture(this.texture)
                     .setNamePosition(this.nameX, this.nameY)
                     .setTextPosition(this.textX, this.textY)
-                    .setLineWidth(this.lineWidth)
-                    .build();
+                    .setLineWidth(this.lineWidth);
         }
     }
 
@@ -178,8 +175,7 @@ public class ChatBoxTheme {
                     .setVisible(this.visible)
                     .setMouseTextureSize(this.mouseTextureWidth, this.mouseTextureHeight)
                     .setRightClickTexture(this.rightClickTexture)
-                    .setScrollTexture(this.scrollTexture)
-                    .build();
+                    .setScrollTexture(this.scrollTexture);
         }
     }
 

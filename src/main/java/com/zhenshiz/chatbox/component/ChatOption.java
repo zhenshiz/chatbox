@@ -2,16 +2,15 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
-import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
 
-import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.parseTargetPlaceholders;
 
 public class ChatOption extends AbstractComponent<ChatOption> {
     //默认材质
@@ -39,8 +38,6 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     public TextAlign textAlign;
     //选项连接的下一个对话
     public String next;
-    //是否选择，用于render对话框
-    public boolean isSelect;
     //记录选项原始y位置
     private float originY;
     //选项在chatBoxScreen被渲染时的索引，小于0不渲染也不能点击（隐藏）
@@ -50,15 +47,12 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setTextures(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
         setSelectTexture(ChatBox.ResourceLocationMod("textures/options/default_checked_option.png"));
         setLockTexture(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
-        setOptionChat("", false);
+        setOptionChat("");
         setOptionChatPosition(0, 0);
-        setClickEvent(() -> {
-        });
+        setClickEvent(() -> {});
         setIsLock(false);
-        setOptionTooltip("", false);
+        setOptionTooltip("");
         setTextAlign(TextAlign.LEFT);
-        setNext("");
-        setIsSelect(false);
     }
 
     @Override
@@ -67,15 +61,13 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return super.setPosition(x, y);
     }
 
-    public ChatOption setOptionChat(String optionChat, boolean isTranslatable) {
-        if (optionChat != null)
-            this.optionChat = isTranslatable ? Component.translatable(optionChat) : Component.nullToEmpty(optionChat);
+    public ChatOption setOptionChat(String optionChat) {
+        if (optionChat != null) this.optionChat = Component.translatable(optionChat);
         return this;
     }
 
-    public ChatOption setOptionTooltip(String optionTooltip, boolean isTranslatable) {
-        if (optionTooltip != null)
-            this.optionTooltip = isTranslatable ? Component.translatable(optionTooltip) : Component.nullToEmpty(optionTooltip);
+    public ChatOption setOptionTooltip(String optionTooltip) {
+        if (optionTooltip != null) this.optionTooltip = Component.translatable(optionTooltip);
         return this;
     }
 
@@ -116,13 +108,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
     public ChatOption setClickEvent(String type, String value) {
         if (type != null) {
-            this.onClickEvent = () -> {
-                if (minecraft.player != null) {
-                    if (ChatOptionClickEvent.CLICK_EVENTS.containsKey(type.toUpperCase())) {
-                        ChatOptionClickEvent.CLICK_EVENTS.get(type.toUpperCase()).execute(value == null ? "" : value);
-                    }
-                }
-            };
+            this.onClickEvent = () -> EventExecutor.executeEvent(this, type, value);
         }
         return this;
     }
@@ -160,70 +146,22 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
-    public void click() {
-        if (this.renderIndex < 0) return;
+    /**@return 是否成功点击*/
+    public boolean click() {
+        if (this.renderIndex < 0 || this.hidden) return false;
         if (!this.isLock && minecraft.player != null) {
             //触发自定义事件
             this.onClickEvent.run();
-            //跳转到指定的对话或者其它模块的对话
-            if (StrUtil.isEmpty(this.next)) {
-                //跳转下一句话
-                skipDialogues(dialoguesResourceLocation, group, index + 1);
-            } else if (StrUtil.isInteger(this.next)) {
-                //如果为数字跳转到指定序号的对话
-                int index = Integer.parseInt(this.next);
-                skipDialogues(dialoguesResourceLocation, group, index);
-            } else {
-                //如果是英文则跳转到指定模块的对话
-                skipDialogues(dialoguesResourceLocation, this.next);
-            }
-
+            EventExecutor.executeEvent(null, "JUMP", this.next);
+            return true;
         }
+        return false;
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         if (this.renderIndex < 0) return;
-        this.y = this.originY + this.renderIndex * this.height;
-
-        Vec2 pos = getCurrentPosition();
-        float x = pos.x;
-        float y = pos.y;
-        int color = CommonColors.WHITE;
-        ResourceLocation texture = this.texture;
-        if (this.isLock) {
-            texture = this.lockTexture;
-            color = CommonColors.GRAY;
-        } else if (isSelect(mouseX, mouseY)) {
-            texture = this.selectTexture;
-            color = CommonColors.YELLOW;
-        }
-
-        //render image
-        if (texture != null) renderImage(guiGraphics, texture);
-
-        //render option text
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-        switch (this.textAlign) {
-            case LEFT ->
-                    RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-            case CENTER ->
-                    RenderUtil.drawCenterScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-            case RIGHT ->
-                    RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-        }
-        poseStack.popPose();
-
-        //render tooltip
-        if (!this.optionTooltip.getString().isEmpty() && isSelect(mouseX, mouseY)) {
-            guiGraphics.renderTooltip(minecraft.font, this.optionTooltip, mouseX, mouseY);
-        }
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
-        if (this.renderIndex < 0) return;
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         this.y = this.originY + this.renderIndex * this.height;
 
         Vec2 pos = getCurrentPosition();
@@ -249,14 +187,16 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         int responsiveX = (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX);
         int responsiveY = (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY);
         switch (this.textAlign) {
-            case LEFT ->
-                    RenderUtil.drawLeftScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
-            case CENTER ->
-                    RenderUtil.drawCenterScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
-            case RIGHT ->
-                    RenderUtil.drawRightScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
+            case LEFT -> RenderUtil.drawLeftScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
+            case CENTER -> RenderUtil.drawCenterScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
+            case RIGHT -> RenderUtil.drawRightScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
         }
         poseStack.popPose();
+
+        //render tooltip
+        if (!this.optionTooltip.getString().isEmpty() && isSelect) {
+            guiGraphics.renderTooltip(minecraft.font, this.optionTooltip, responsiveX, responsiveY);
+        }
     }
 
     public enum TextAlign {

@@ -88,6 +88,7 @@ public class Video extends AbstractComponent<Video> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (!isPlaying()) return;
 
         if (!success && getState() == State.PLAYING) success = true;
@@ -131,11 +132,6 @@ public class Video extends AbstractComponent<Video> {
             draw(guiGraphics, String.format("State: %s", player.getStateName()), getHeightCenter(-12));
             draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(player.getTime())), player.getTime(), FORMAT.format(new Date(player.getDuration())), player.getDuration()), getHeightCenter(0));
         }
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
-        render(guiGraphics, 0, 0, pPartialTick);
     }
 
     private void renderTexture(GuiGraphics guiGraphics, int texture) {
@@ -282,6 +278,8 @@ public class Video extends AbstractComponent<Video> {
             player.start(uri);
             return;
         }
+        // 视频正常播放结束，触发ON_END事件
+        fireEvent("ON_END");
         close();
     }
 

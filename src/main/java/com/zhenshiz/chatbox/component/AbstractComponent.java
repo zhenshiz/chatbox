@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.Minecraft;
@@ -8,10 +9,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "UnusedReturnValue"})
 public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     protected static final Minecraft minecraft = Minecraft.getInstance();
     //水平对齐: LEFT CENTER RIGHT
@@ -32,6 +33,42 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     public Integer renderOrder;
     //旋转角度
     public Float angle;
+
+    // 是否隐藏，被隐藏的组件不会被渲染，不会触发事件；选项被指令隐藏的逻辑不由这个值控制，右键隐藏部分组件也不由这个值控制
+    public boolean hidden = false;
+    // 是否被鼠标选中，用于触发被选中时的事件
+    public boolean isSelect = false;
+    // 是否渲染已开始，用于触发渲染开始时的事件
+    protected boolean renderStarted = false;
+    public List<ComponentEvent> events = new ArrayList<>();
+
+    public T setHidden(boolean hidden) {
+        this.hidden = hidden;
+        return (T) this;
+    }
+
+    public T setIsSelect(boolean isSelect) {
+        this.isSelect = isSelect;
+        return (T) this;
+    }
+
+    public T setEvents(List<ComponentEvent> events) {
+        this.events.clear();
+        for (ComponentEvent event : events) {
+            event.setComponent(this);
+            this.events.add(event);
+        }
+        return (T) this;
+    }
+
+    public int fireEvent(ComponentEvent.Trigger trigger) {
+        if (hidden) return 0;
+        return ComponentEvent.fireAll(events, trigger);
+    }
+
+    public int fireEvent(String trigger) {
+        return fireEvent(ComponentEvent.Trigger.of(trigger));
+    }
 
     public static float getResponsiveWidth(float value) {
         return minecraft.getWindow().getGuiScaledWidth() * value / 100;
@@ -94,10 +131,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T build() {
-        return (T) this;
-    }
-
     protected boolean checkSize(float value) {
         return value > 0;
     }
@@ -131,9 +164,23 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-    }
-
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
+        if (!renderStarted) {
+            renderStarted = true;
+            fireEvent("ON_START");
+        }
+        if (!ChatBoxRender.isRenderChatBox()) {
+            if (isSelect(mouseX, mouseY)) {
+                if (!isSelect) {
+                    setIsSelect(true);
+                    fireEvent("ON_MOUSE_OVER");
+                }
+            } else {
+                if (isSelect) {
+                    setIsSelect(false);
+                    fireEvent("ON_MOUSE_OUT");
+                }
+            }
+        }
     }
 
     public enum AlignX {

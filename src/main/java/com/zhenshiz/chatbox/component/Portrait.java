@@ -15,6 +15,7 @@ import java.util.List;
 
 import static com.zhenshiz.chatbox.utils.math.EasingUtil.easingFunction;
 
+@SuppressWarnings("UnusedReturnValue")
 public class Portrait extends AbstractComponent<Portrait> {
     public Type type;
     public String value;
@@ -39,7 +40,7 @@ public class Portrait extends AbstractComponent<Portrait> {
     private int customAnimationIndex = 0;
 
     public Portrait(Type type, String animationType, List<ChatBoxTheme.Portrait.CustomAnimation> customAnimation, Float scale, Boolean loop) {
-        setType(type).setAnimationType(animationType).setCustomAnimation(customAnimation).setLoop(loop).setScale(scale).build();
+        setType(type).setAnimationType(animationType).setCustomAnimation(customAnimation).setLoop(loop).setScale(scale);
     }
 
     //texture
@@ -54,8 +55,7 @@ public class Portrait extends AbstractComponent<Portrait> {
 
     //item
     public Portrait createItem(Portrait portrait, String value, Integer customItemData) {
-        return portrait.setValue(value)
-                .setCustomItemData(customItemData);
+        return portrait.setValue(value).setCustomItemData(customItemData);
     }
 
     public Portrait setAttachment(List<ChatBoxTheme.Portrait.Attachment> attachments) {
@@ -103,12 +103,21 @@ public class Portrait extends AbstractComponent<Portrait> {
         return this;
     }
 
+    public void updateAnimationTick() {
+        if (this.isAnimation) this.currentAnimationTick++;
+    }
+
     public void resetCurrentAnimationTick() {
         this.currentAnimationTick = 0;
     }
 
     public void setCustomAnimationIndex(Integer customAnimationIndex) {
         if (customAnimationIndex != null) this.customAnimationIndex = customAnimationIndex;
+    }
+
+    public Portrait setId(String id) {
+        if (id != null) this.id = id;
+        return this;
     }
 
     public void setTarget(float x, float y, float scale, float opacity, float angle) {
@@ -129,14 +138,12 @@ public class Portrait extends AbstractComponent<Portrait> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (type != null && value != null) {
             Vec2 position = getCurrentPosition();
             float x = position.x;
             float y = position.y;
-            if (this.isAnimation) {
-                this.currentAnimationTick++;
-                execCustomAnimation();
-            }
+            if (this.isAnimation) execCustomAnimation();
             switch (type) {
                 case TEXTURE ->
                         renderImage(guiGraphics, ResourceLocation.parse(this.value), this.scale, this.attachments);
@@ -151,11 +158,6 @@ public class Portrait extends AbstractComponent<Portrait> {
                 }
             }
         }
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
-        render(guiGraphics, 0, 0, pPartialTick);
     }
 
     //执行自定义动画
@@ -195,6 +197,8 @@ public class Portrait extends AbstractComponent<Portrait> {
                     setAngle(this.startCustomAnimation.angle);
                 } else {
                     setIsAnimation(false);
+                    // 立绘有动画且动画播放完成时触发ON_END事件
+                    fireEvent("ON_END");
                 }
             }
         }

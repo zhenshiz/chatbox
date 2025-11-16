@@ -42,9 +42,9 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox() {
         setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
-        setText("", false);
+        setText("");
         setTextPosition(0, 0);
-        setName("", false);
+        setName("");
         setNamePosition(0, 0);
         setLineWidth(100f);
 
@@ -63,17 +63,17 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    public DialogBox setText(String text, boolean isTranslatable) {
+    public DialogBox setText(String text) {
         if (text != null) {
-            this.text = isTranslatable ? Language.getInstance().getOrDefault(text) : text;
+            this.text = Language.getInstance().getOrDefault(text);
             if (ChatBox.isTextAnimatorLoaded()) this.text = this.text.replaceAll("<typewriter>", "");
             textToTextBuffer();
         }
         return this;
     }
 
-    public DialogBox setName(String name, boolean isTranslatable) {
-        if (name != null) this.name = isTranslatable ? Component.translatable(name) : Component.nullToEmpty(name);
+    public DialogBox setName(String name) {
+        if (name != null) this.name = Component.translatable(name);
         return this;
     }
 
@@ -95,6 +95,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     }
 
     public DialogBox setAllOver(boolean allOver) {
+        // 全部文字显示完成时触发ON_END事件
+        if (allOver) fireEvent("ON_END");
         this.isAllOver = allOver;
         return this;
     }
@@ -166,6 +168,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         //chatBox image
         if (this.texture != null) renderImage(guiGraphics, this.texture);
 
@@ -183,10 +186,5 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.charIndex])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
         }
         poseStack.popPose();
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
-        render(guiGraphics, 0, 0, pPartialTick);
     }
 }

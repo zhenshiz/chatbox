@@ -30,12 +30,12 @@ public class ChatBoxCommand implements ICommand {
     public void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext buildContext, Commands.CommandSelection commandSelection) {
         dispatcher.register(Commands.literal("chatbox").requires(commandSourceStack -> commandSourceStack.hasPermission(2))
                 .then(Commands.literal("theme")
-                        .then(Commands.argument("Theme", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxThemeLoader.INSTANCE.themeMap.keySet(), builder))
+                        .then(Commands.argument("Theme", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxThemeLoader.themeMap.keySet(), builder))
                                 .executes(ChatBoxCommand::toggleTheme)
                         )
                 )
                 .then(Commands.literal("skip")
-                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap.keySet(), builder))
+                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("Group", StringArgumentType.string())
                                         .suggests(((context, builder) -> {
                                             ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
@@ -54,7 +54,7 @@ public class ChatBoxCommand implements ICommand {
                         .executes(ChatBoxCommand::openChatBox)
                 )
                 .then(Commands.literal("maxTriggerCount")
-                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.INSTANCE.dialoguesMap.keySet(), builder))
+                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("MaxTriggerCount", IntegerArgumentType.integer())
                                         .executes(ChatBoxCommand::setMaxTriggerCount)
                                 )
@@ -166,7 +166,6 @@ public class ChatBoxCommand implements ICommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            TARGETS_MAP.put(player.getUUID(), targets);
             ChatBoxCommandUtil.serverSkipDialogues(player, dialogues, group, index, targets);
             context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             return 1;

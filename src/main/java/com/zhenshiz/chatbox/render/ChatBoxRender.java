@@ -1,12 +1,9 @@
 package com.zhenshiz.chatbox.render;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
-import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
-import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,12 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
@@ -42,33 +34,7 @@ public class ChatBoxRender {
         if (isRenderChatBox()) {
             GuiGraphics guiGraphics = event.getGuiGraphics();
             float partialTick = event.getPartialTick().getGameTimeDeltaTicks();
-            if (NeoForge.EVENT_BUS.post(new ChatBoxRenderEvent.Pre(guiGraphics)).isCanceled()) {
-                return;
-            }
-
-            if (chatBoxScreen.backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
-            }
-
-            List<AbstractComponent<?>> list = new ArrayList<>();
-            list.add(chatBoxScreen.dialogBox);
-            if (chatBoxScreen.video != null) list.add(chatBoxScreen.video);
-            if (chatBoxScreen.chatOptions != null) {
-                int i = 0; // 渲染选项时设置选项在列表中的索引
-                for (ChatOption option : chatBoxScreen.chatOptions) {
-                    if (option.renderIndex < 0) continue;
-                    option.renderIndex = i++;
-                    list.add(option);
-                }
-            }
-            if (chatBoxScreen.portraits != null) list.addAll(chatBoxScreen.portraits);
-            if (chatBoxScreen.keyPromptRender != null) list.add(chatBoxScreen.keyPromptRender);
-
-            list.sort(Comparator.comparingInt(p -> p.renderOrder));
-
-            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, partialTick));
-
-            NeoForge.EVENT_BUS.post(new ChatBoxRenderEvent.Post(guiGraphics));
+            chatBoxScreen.renderInner(guiGraphics, 0, 0, partialTick, false);
         }
     }
 
@@ -90,7 +56,7 @@ public class ChatBoxRender {
             int key = event.getKey();
             if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
                 //ctrl快进
-                chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                chatBoxScreen.dialogBoxClick();
             } else if (event.getAction() == 1 && key == GLFW.GLFW_KEY_F6) {
                 //自动播放
                 chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
@@ -102,37 +68,29 @@ public class ChatBoxRender {
     public static void ChatBoxRenderMouseInput(InputEvent.MouseButton.Post event) {
         if (isRenderChatBox()) {
             if (event.getAction() == 1 && event.getButton() == 1) {
-                if (chatBoxScreen.dialogBox != null) {
-                    if (!CollUtil.isEmpty(chatBoxScreen.chatOptions) && chatBoxScreen.dialogBox.isAllOver) {
-                        ChatOption chatOption = chatBoxScreen.chatOptions.get(selectIndex);
-                        chatOption.click();
-                        selectIndex = 0;
-                    }
-
-                    if (chatBoxScreen.keyPromptRender.visible)
-                        chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                if (chatBoxScreen.getRenderOptionCount() > 0 && chatBoxScreen.dialogBox.isAllOver) {
+                    chatBoxScreen.chatOptions.stream().filter(option -> option.renderIndex == selectIndex).findFirst().ifPresent(ChatOption::click);
+                    selectIndex = 0;
                 }
+
+                if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBoxClick();
             }
         }
     }
 
     @SubscribeEvent
     public static void ChatBoxRenderKeyInput(InputEvent.MouseScrollingEvent event) {
-        if (isRenderChatBox() && !chatBoxScreen.chatOptions.isEmpty()) {
+        int optionCount = chatBoxScreen.getRenderOptionCount();
+        if (isRenderChatBox() && optionCount > 0) {
             double scrollDeltaY = event.getScrollDeltaY();
             if (!CollUtil.isEmpty(chatBoxScreen.chatOptions)) {
-                if (scrollDeltaY > 0) {
-                    //向上
-                    selectIndex = (selectIndex - 1 + chatBoxScreen.chatOptions.size())
-                            % chatBoxScreen.chatOptions.size();
-                } else if (scrollDeltaY < 0) {
-                    //向下
-                    selectIndex = (selectIndex + 1) % (chatBoxScreen.chatOptions.size());
+                if (scrollDeltaY > 0) { //向上
+                    selectIndex = (selectIndex - 1 + optionCount) % optionCount;
+                } else if (scrollDeltaY < 0) { //向下
+                    selectIndex = (selectIndex + 1) % optionCount;
                 }
-
-                for (int i = 0; i < chatBoxScreen.chatOptions.size(); i++) {
-                    ChatOption chatOption = chatBoxScreen.chatOptions.get(i);
-                    chatOption.isSelect = i == selectIndex;
+                for (var option : chatBoxScreen.chatOptions) {
+                    option.setIsSelect(selectIndex == option.renderIndex);
                 }
             }
             event.setCanceled(true);

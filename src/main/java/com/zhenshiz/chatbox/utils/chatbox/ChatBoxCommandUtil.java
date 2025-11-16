@@ -1,7 +1,8 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
+import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
@@ -21,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.zhenshiz.chatbox.network.SimplePayload.*;
@@ -54,7 +54,7 @@ public class ChatBoxCommandUtil {
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index, entityListToString(targets)));
+        player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index));
     }
 
     @HideFromJS
@@ -97,7 +97,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端跳转下一条对话")
     public static void clientNextDialogue() {
-        chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+        chatBoxScreen.dialogBoxClick();
     }
 
     @Info("服务端开关自动对话")
@@ -161,7 +161,9 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端设置对话框")
     public static void clientSetDialogBox(String name, String text) {
-        chatBoxScreen.dialogBox.setName(name, true).setText(text, true).resetTickCount().setAllOver(false);
+        chatBoxScreen.dialogBox.setName(name).setText(text).resetTickCount().setAllOver(false);
+        var historicalInfos = historicalDialogue.historicalDialogue.historicalInfos;
+        historicalInfos.getLast().setName(name).setText(text);
     }
 
     @Info("服务端添加选项")
@@ -171,7 +173,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端添加选项")
     public static void clientAddChatOption(String text, String next, String tip, String clickType, String clickValue) {
-        ChatOption option = new ChatOption().setOptionChat(text, true).setNext(next).setOptionTooltip(tip, true).setClickEvent(clickType, clickValue);
+        ChatOption option = new ChatOption().setOptionChat(text).setNext(next).setOptionTooltip(tip).setClickEvent(clickType, clickValue);
         chatBoxTheme.option.setChatOptionTheme(option);
         chatBoxScreen.addChatOptions(option);
     }
@@ -186,15 +188,14 @@ public class ChatBoxCommandUtil {
         chatBoxScreen.chatOptions.clear();
     }
 
-    // 服务端并不能获取当前客户端的选项信息，故不提供服务端解锁以及隐藏选项的方法
-    @Info("客户端解锁选项")
+    @Info("客户端解锁选项，服务端并不能获取当前客户端的选项信息，故不提供服务端对应的方法")
     public static void clientUnlockChatOption(int index) {
         List<ChatOption> options = chatBoxScreen.chatOptions;
         if (index < 0 || index >= options.size()) return;
         options.get(index).setIsLock(false);
     }
 
-    @Info("客户端隐藏选项")
+    @Info("客户端隐藏选项，服务端并不能获取当前客户端的选项信息，故不提供服务端对应的方法")
     public static void clientHideChatOption(int index) {
         List<ChatOption> options = chatBoxScreen.chatOptions;
         if (index < 0 || index >= options.size()) return;
@@ -202,8 +203,8 @@ public class ChatBoxCommandUtil {
     }
 
     @Info("注册一个选项点击事件，可以在服务端任意位置使用")
-    public static void registerClickEvent(String type, Consumer<String> executeOnClient, Boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
-        ChatOptionClickEvent.registerClickEvent(type, executeOnClient, shouldExecuteOnServer, executeOnServer);
+    public static void registerComponentEvent(String type, BiConsumer<AbstractComponent<?>, String> executeOnClient, Boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
+        EventExecutor.registerEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
     }
 
     @Info("添加一个占位符属性解析器，在客户端任意位置使用")

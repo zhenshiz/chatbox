@@ -30,11 +30,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
-    private static final Gson GSON =
-            (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-    public static final ChatBoxDialoguesLoader INSTANCE = new ChatBoxDialoguesLoader();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //记录所有的对话文件
-    public final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
+    public static final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
     //记录对应对话文件里的组名
     public static final Map<ResourceLocation, Set<String>> dialoguesGroupMap = new HashMap<>();
 
@@ -62,11 +60,11 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
             loadCriteria(ServerLifecycleHooks.getCurrentServer());
         }
 
-        setDialogues(dialoguesMap);
+        setDialogues();
     }
 
-    private void setDialogues(Map<ResourceLocation, String> map) {
-        map.forEach((resourceLocation, str) -> {
+    private void setDialogues() {
+        dialoguesMap.forEach((resourceLocation, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
             if (jsonElement == null) return;
             JsonElement dialoguesElement = jsonElement.getAsJsonObject().get("dialogues");
@@ -93,13 +91,10 @@ public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener {
                     var criterion = entry2.getValue();
                     CriterionTriggerInstance instance = criterion.triggerInstance();
                     try {
+                        // noinspection unchecked
                         T t = (T) instance;
-                        if (testTrigger.test(t)) {
-                            ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
-                        }
-                    } catch (ClassCastException e) {
-                        continue;
-                    }
+                        if (testTrigger.test(t)) ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
+                    } catch (ClassCastException ignored) {}
                 }
             }
         }
