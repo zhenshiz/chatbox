@@ -1,34 +1,34 @@
 package com.zhenshiz.chatbox.screen;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
-import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
-import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+@SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
 public class ChatBoxScreen extends Screen {
     public List<ChatOption> chatOptions = new ArrayList<>();
     public List<Portrait> portraits = new ArrayList<>();
     public DialogBox dialogBox = new DialogBox();
     public List<FunctionalButton> functionalButtons = new ArrayList<>();
     public ResourceLocation backgroundImage;
-    public Boolean isTranslatable;
     public Boolean isEsc;
     public Boolean isPause;
     public Boolean isHistoricalSkip;
@@ -41,6 +41,12 @@ public class ChatBoxScreen extends Screen {
     public int tickAutoPlay = 20;
     //是否隐藏对话框，if true，则不渲染对话框、聊天选项、功能按钮，且屏蔽交互
     public boolean hideDialogBox = false;
+    public String voice = "";
+    // 用于限制立绘动画的参数，单位：毫秒
+    private long updateDuration = 16;
+    private long lastUpdateTime = 0;
+
+    public List<ComponentEvent> events = new ArrayList<>();
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -98,11 +104,6 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
-    public ChatBoxScreen setIsTranslatable(Boolean isTranslatable) {
-        if (isTranslatable != null) this.isTranslatable = isTranslatable;
-        return this;
-    }
-
     public ChatBoxScreen setIsEsc(Boolean isEsc) {
         if (isEsc != null) this.isEsc = isEsc;
         return this;
@@ -118,48 +119,125 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
+    public ChatBoxScreen setAnimationFPS(float fps) {
+        if (fps > 0) updateDuration = (long) (1000 / fps);
+        return this;
+    }
+
     public ChatBoxScreen setKeyPromptRender(KeyPromptRender keyPromptRender) {
         if (keyPromptRender != null) this.keyPromptRender = keyPromptRender;
         return this;
     }
 
-    @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        if (dialogBox != null) {
-            if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
-            if (backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0f);
-            }
+    public ChatBoxScreen playVoice(String voice) {
+        if (StrUtil.isEmpty(voice)) {
+            //如果新的一句话没有音效，根据配置决定是否中断上一句话的音效
+            if (ChatBoxClient.conf.soundInterruptionEnabled) SoundUtil.stopSound(this.voice);
+        } else {
+            SoundUtil.stopSound(this.voice);
+            SoundUtil.playSound(voice);
+            this.voice = voice;
+        }
+        return this;
+    }
 
-            List<AbstractComponent<?>> list = new ArrayList<>();
-            if (!hideDialogBox) list.add(dialogBox);
-            if (video != null) list.add(video);
-            if (chatOptions != null && !hideDialogBox) {
-                int i = 0; // 渲染选项时设置选项在列表中的索引
-                for (ChatOption option : chatOptions) {
-                    if (option.renderIndex < 0) continue;
-                    option.renderIndex = i++;
-                    list.add(option);
+    public ChatBoxScreen setEvents(List<ComponentEvent> events) {
+        this.events.clear();
+        if (events != null) this.events.addAll(events);
+        return this;
+    }
+
+    public ChatBoxScreen fireEvent(String trigger) {
+        ComponentEvent.fireAll(events, ComponentEvent.Trigger.of(trigger));
+        return this;
+    }
+
+    public void setComponentHidden(String values, boolean hidden, @Nullable AbstractComponent<?> component) {
+        for (String value : values.split(";")) {
+            if (value.isBlank()) continue;
+            value = value.trim();
+            String lower = value.toLowerCase();
+            // 如果为@s且组件不为空，则隐藏组件自身
+            if (component != null && lower.equals("@s")) {
+                component.setHidden(hidden);
+                continue;
+            }
+            if (lower.contains("@")) { // 包含@符号以及关键字即可，增加容错
+                if (lower.contains("dialog")) dialogBox.setHidden(hidden);
+                if (lower.contains("options")) chatOptions.forEach(option -> option.setHidden(hidden));
+                if (lower.contains("portraits")) portraits.forEach(portrait -> portrait.setHidden(hidden));
+                if (lower.contains("buttons")) functionalButtons.forEach(button -> button.setHidden(hidden));
+                if (lower.contains("video") && video != null) video.setHidden(hidden);
+                if (lower.contains("key")) keyPromptRender.setHidden(hidden);
+            } else {
+                for (var portrait : portraits) {
+                    if (portrait.id.equals(value)) portrait.setHidden(hidden);
                 }
             }
-            if (portraits != null) list.addAll(hideDialogBox ?
-                    portraits.stream().filter(portrait -> portrait.renderOrder < dialogBox.renderOrder).toList() : portraits);
-            if (functionalButtons != null && !hideDialogBox) list.addAll(functionalButtons);
-
-            list.sort(Comparator.comparingInt(p -> p.renderOrder));
-
-            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, pMouseX, pMouseY, pPartialTick));
-
-            ChatBoxRenderEvent.POST.invoker().post(guiGraphics);
         }
+    }
+
+    /**@return 不因指令隐藏的选项数量*/
+    public int getRenderOptionCount() {
+        return chatOptions.stream().filter(option -> option.renderIndex >= 0).toList().size();
+    }
+
+    private List<AbstractComponent<?>> getRenderList(boolean isScreen) {
+        List<AbstractComponent<?>> list = new ArrayList<>();
+        if (!hideDialogBox) {
+            list.add(dialogBox);
+            int i = 0; // 渲染选项时设置选项在列表中的索引
+            for (ChatOption option : chatOptions) {
+                if (option.renderIndex < 0) continue;
+                option.renderIndex = i++;
+                list.add(option);
+            }
+        }
+        list.addAll(hideDialogBox ?
+                portraits.stream().filter(portrait -> portrait.renderOrder < dialogBox.renderOrder).toList() : portraits);
+        if (video != null) list.add(video);
+        if (isScreen) {
+            if (!hideDialogBox) list.addAll(functionalButtons);
+        } else list.add(keyPromptRender);
+
+        list.sort(Comparator.comparingInt(p -> p.renderOrder));
+        return list;
+    }
+
+    public void renderInner(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
+        long currentTime = System.currentTimeMillis();
+        boolean shouldUpdatePortrait = Math.abs(currentTime - lastUpdateTime) >= updateDuration;
+        if (shouldUpdatePortrait) lastUpdateTime = currentTime;
+
+        if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
+
+        if (backgroundImage != null) {
+            RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
+        }
+
+        getRenderList(isScreen).forEach(component -> {
+            if (!component.hidden) {
+                if (shouldUpdatePortrait && component instanceof Portrait portrait) portrait.updateAnimationTick();
+                component.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+            }
+        });
+
+        ChatBoxRenderEvent.POST.invoker().post(guiGraphics);
+    }
+
+    @Override
+    public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+        renderInner(guiGraphics, pMouseX, pMouseY, pPartialTick, true);
         super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean shouldGotoNext() {
         //如果有视频正在播放，且视频设置为不允许跳过，则不能到下一行对话。（不会有人设置循环加不能跳过吧）
         if (video != null && video.isPlaying() && !video.canSkip) return false;
-        return chatOptions.isEmpty();
+        return getRenderOptionCount() == 0;
     }
+
+    public void dialogBoxClick() {dialogBox.click(shouldGotoNext());}
 
     private FunctionalButton getButton(FunctionalButton.Type type) {
         return functionalButtons.stream().filter(b -> b.type == type).findFirst().orElse(null);
@@ -177,22 +255,20 @@ public class ChatBoxScreen extends Screen {
             return true;
         }
         if (pButton == 0) {
-            if (dialogBox != null) {
-                fastForward = false;
-                for (ChatOption chatOption : chatOptions) {
-                    if (chatOption.isSelect(pMouseX, pMouseY) && dialogBox.isAllOver) {
-                        chatOption.click();
-                    }
-                }
-
-                for (FunctionalButton button : functionalButtons) {
-                    if (button.isSelect(pMouseX, pMouseY)) {
-                        button.click();
-                    }
-                }
-
-                dialogBox.click(shouldGotoNext());
+            fastForward = false;
+            for (ChatOption chatOption : chatOptions) { // 选项有最高处理优先级
+                if (chatOption.isSelect && dialogBox.isAllOver && chatOption.click()) return true;
             }
+
+            for (FunctionalButton button : functionalButtons) { // 功能按钮次之
+                if (button.isSelect && button.click()) return true;
+            }
+
+            for (Portrait portrait : portraits) { // 触发立绘的点击事件，重叠的立绘只有位于最上层的才能触发
+                if (portrait.isSelect && portrait.fireEvent("ON_CLICK") > 0) return true;
+            }
+
+            dialogBoxClick();
         }
         return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
@@ -205,17 +281,14 @@ public class ChatBoxScreen extends Screen {
             return true;
         }
         //鼠标滚轮向下滚动，操作同左键点击
-        if (scrollY < 0 && dialogBox != null) {
-            dialogBox.click(shouldGotoNext());
+        if (scrollY < 0) {
+            dialogBoxClick();
             return true;
         }
         //鼠标滚轮向上滚动，打开历史记录
         if (scrollY > 0) {
             FunctionalButton logButton = getButton(FunctionalButton.Type.LOG);
-            if (logButton != null) {
-                logButton.click();
-                return true;
-            }
+            if (logButton != null && logButton.click()) return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
@@ -240,32 +313,18 @@ public class ChatBoxScreen extends Screen {
     public void tick() {
         if (hideDialogBox) return; //如果隐藏对话框，则不tick
         if (!shouldGotoNext()) fastForward = false;
-        if (dialogBox != null) {
-            dialogBox.tick();
-            if (fastForward) dialogBox.click(shouldGotoNext());
 
-            Minecraft minecraft = Minecraft.getInstance();
-            if (autoPlay) {
-                var soundEngine = (SoundInstanceAccessor) ((SoundEngineAccessor) minecraft.getSoundManager()).getSoundEngine();
-                // MC不在暂停游戏时tick声音，那我自己tick一下
-                if (minecraft.isPaused()) soundEngine.invokeTickNonPaused();
-                if (ChatBoxUtil.lastSoundResourceLocation != null) {
-                    var instanceToChannel = soundEngine.getInstanceToChannel();
-                    for (var soundInstance : instanceToChannel.keySet()) {
-                        if (soundInstance.getLocation().equals(ChatBoxUtil.lastSoundResourceLocation)) {
-                            if (minecraft.getSoundManager().isActive(soundInstance)) return;
-                        }
-                    }
-                }
-                if (!dialogBox.isAllOver || video != null && video.isPlaying()) {
-                    return;
-                }
-                tickAutoPlay--;
-                if (tickAutoPlay <= 0) {
-                    tickAutoPlay = 20;
-                    dialogBox.click(shouldGotoNext());
-                }
+        dialogBox.tick();
+        if (fastForward) dialogBoxClick();
+        if (autoPlay) {
+            // MC不在暂停游戏时tick声音，那我自己tick一下
+            SoundUtil.tickWhenPaused();
+            if (SoundUtil.isSoundActive(voice)) return;
+            if (!dialogBox.isAllOver || video != null && video.isPlaying()) {
+                return;
             }
+            tickAutoPlay--;
+            if (tickAutoPlay <= 0) dialogBoxClick();
         }
     }
 

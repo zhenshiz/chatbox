@@ -56,7 +56,8 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
         return this;
     }
 
-    public void click() {
+    /**@return 是否成功点击*/
+    public boolean click() {
         if (minecraft.player != null) {
             switch (type) {
                 case LOG -> minecraft.setScreen(ChatBoxUtil.historicalDialogue);
@@ -68,18 +69,21 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
                 //自动播放只在玩家手动点击这个按钮或快进按钮之后才停止
                 case AUTOPLAY -> chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
             }
+            return true;
         }
+        return false;
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         ResourceLocation texture = this.texture;
-        if (isSelect(mouseX, mouseY)) texture = hoverTexture;
+        if (isSelect) texture = hoverTexture;
         if (type == Type.AUTOPLAY && chatBoxScreen.autoPlay) texture = hoverTexture;
         if (type == Type.FASTFORWARD && chatBoxScreen.fastForward) texture = hoverTexture;
         if (texture != null) renderImage(guiGraphics, texture);
 
-        if (isSelect(mouseX, mouseY)) {
+        if (isSelect) {
             Component text = switch (type) {
                 case LOG -> Component.translatable("chatbox.button.log");
                 case FASTFORWARD -> Component.translatable("chatbox.button.fast_forward");
@@ -89,8 +93,6 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
             RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, 0xFFFFFF);
         }
     }
-
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {}
 
     public enum Type {
         LOG,

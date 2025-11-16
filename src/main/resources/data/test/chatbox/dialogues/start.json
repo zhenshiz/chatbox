@@ -1,10 +1,17 @@
 {
   "$introduce": "这是一段介绍本模组的文本",
   "theme": "test:default",
+  "animationFPS": 60,
   "dialogues": {
     "start": [
       {
+        "renderEvents": [
+          {"trigger": "start", "type": "hide", "value": "@Options"}
+        ],
         "dialogBox": {
+          "renderEvents": [
+            {"trigger": "end", "type": "show", "value": "@Options"}
+          ],
           "name": "chatbox.test.name.1",
           "text": "chatbox.test.text.1"
         },
@@ -196,6 +203,5 @@
         ]
       }
     ]
-  },
-  "isTranslatable": true
+  }
 }

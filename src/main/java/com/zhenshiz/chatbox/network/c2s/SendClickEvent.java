@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.network.c2s;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
@@ -26,6 +26,6 @@ public record SendClickEvent(String typeId, String value) implements CustomPacke
     public @NotNull Type<? extends CustomPacketPayload> type() {return TYPE;}
 
     public static void execute(SendClickEvent payload, ServerPlayNetworking.Context context) {
-        ChatOptionClickEvent.CLICK_EVENTS.get(payload.typeId()).executeOnServer(context.player(), payload.value());
+        EventExecutor.EXECUTORS.get(payload.typeId()).executeOnServer(context.player(), payload.value());
     }
 }

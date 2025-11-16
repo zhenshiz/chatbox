@@ -1,8 +1,8 @@
 package com.zhenshiz.chatbox;
 
 import com.mojang.logging.LogUtils;
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
+import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
@@ -27,7 +27,7 @@ public class ChatBox implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Ciallo～(∠·ω< )⌒★");
-        ChatOptionClickEvent.Command.register();
+        ComponentEvent.registerDefaultEvents();
         ChatBoxSettingLoader.chatBoxLoader();
         Packets.register();
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);
