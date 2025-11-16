@@ -8,7 +8,6 @@ import com.mojang.blaze3d.vertex.*;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.PlayerSkin;
@@ -394,14 +393,19 @@ public class RenderUtil {
     }
 
     public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float angle) {
-        guiGraphics.pose().pushPose();
+        PoseStack pose = guiGraphics.pose();
+        ResourceLocation skin = getSkin(input).texture();
+        pose.pushPose();
         // 应用旋转
         guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + (float) size / 2, y + (float) size / 2, 0);
         x = (int) (x / scale);
         y = (int) (y / scale);
         guiGraphics.pose().scale(scale, scale, scale);
-        PlayerFaceRenderer.draw(guiGraphics, getSkin(input), x, y, size);
-        guiGraphics.pose().popPose();
+        guiGraphics.blit(skin, x, y, size, size, 8, 8, 8, 8, 64, 64);
+        RenderSystem.enableBlend();
+        guiGraphics.blit(skin, x - 1, y - 1, size + 2, size + 2, 40, 8, 8, 8, 64, 64);
+        RenderSystem.disableBlend();
+        pose.popPose();
     }
 
     public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
