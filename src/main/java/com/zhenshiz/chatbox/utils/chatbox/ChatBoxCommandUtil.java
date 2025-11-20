@@ -51,16 +51,25 @@ public class ChatBoxCommandUtil {
     }
 
     @Info("服务端跳转对话")
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
+        serverSkipDialogues(player, dialogues, group, 0, List.of(player));
+    }
+
+    @Info("服务端跳转对话")
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index) {
+        serverSkipDialogues(player, dialogues, group, index, List.of(player));
+    }
+
+    @Info("服务端跳转对话")
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, List<Entity> targets) {
+        serverSkipDialogues(player, dialogues, group, 0, targets);
+    }
+
+    @Info("服务端跳转对话")
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
         player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index));
-    }
-
-    @HideFromJS
-    @Info("服务端跳转对话")
-    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Entity... targets) {
-        serverSkipDialogues(player, dialogues, group, 0, List.of(targets));
     }
 
     @Info("客户端跳转对话")

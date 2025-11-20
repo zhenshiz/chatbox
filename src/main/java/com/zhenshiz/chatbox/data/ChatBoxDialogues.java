@@ -186,7 +186,6 @@ public class ChatBoxDialogues {
         public static class Option {
             public String text;
             public Boolean isLock = false;
-            public Boolean isHidden = false;
             public String unlockCommand;
             public String next;
             public Click click = new Click();
