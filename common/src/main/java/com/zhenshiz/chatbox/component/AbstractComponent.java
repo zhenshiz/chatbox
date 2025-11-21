@@ -54,7 +54,10 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
 
     public T setEvents(List<ComponentEvent> events) {
         this.events.clear();
-        this.events.addAll(events);
+        for (ComponentEvent event : events) {
+            event.setComponent(this);
+            this.events.add(event);
+        }
         return (T) this;
     }
 

@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ChatBoxThemeLoader extends SimpleJsonResourceReloadListener {
-    private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     public static final ChatBoxThemeLoader INSTANCE = new ChatBoxThemeLoader();
     public static final Map<ResourceLocation, String> themeMap = new HashMap<>();
 

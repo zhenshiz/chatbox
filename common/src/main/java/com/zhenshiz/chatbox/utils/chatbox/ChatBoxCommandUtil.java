@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.utils.chatbox;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
+import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
@@ -48,15 +49,25 @@ public class ChatBoxCommandUtil {
     }
 
     @Info("服务端跳转对话")
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
+        serverSkipDialogues(player, dialogues, group, 0, List.of(player));
+    }
+
+    @Info("服务端跳转对话")
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index) {
+        serverSkipDialogues(player, dialogues, group, index, List.of(player));
+    }
+
+    @Info("服务端跳转对话")
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, List<Entity> targets) {
+        serverSkipDialogues(player, dialogues, group, 0, targets);
+    }
+
+    @Info("服务端跳转对话")
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
         ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenScreen(dialogues, group, index));
-    }
-
-    @Info("服务端跳转对话")
-    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Entity... targets) {
-        serverSkipDialogues(player, dialogues, group, 0, List.of(targets));
     }
 
     @Info("客户端跳转对话")
@@ -180,7 +191,7 @@ public class ChatBoxCommandUtil {
     }
 
     @Info("注册一个组件事件，可以在服务端任意位置使用")
-    public static void registerComponentEvent(String type, Consumer<String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
+    public static void registerComponentEvent(String type, BiConsumer<AbstractComponent<?>, String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
         EventExecutor.registerEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
     }
 

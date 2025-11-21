@@ -16,6 +16,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,6 +42,10 @@ public class ChatBoxScreen extends Screen {
     //是否隐藏对话框，if true，则不渲染对话框、聊天选项、功能按钮，且屏蔽交互
     public boolean hideDialogBox = false;
     public String voice = "";
+    public String bgm = "";
+    // 用于限制立绘动画的参数，单位：毫秒
+    private long updateDuration = 16;
+    private long lastUpdateTime = 0;
 
     public List<ComponentEvent> events = new ArrayList<>();
 
@@ -115,6 +120,11 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
+    public ChatBoxScreen setAnimationFPS(float fps) {
+        if (fps > 0) updateDuration = (long) (1000 / fps);
+        return this;
+    }
+
     public ChatBoxScreen setKeyPromptRender(KeyPromptRender keyPromptRender) {
         if (keyPromptRender != null) this.keyPromptRender = keyPromptRender;
         return this;
@@ -143,17 +153,23 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
-    public void setComponentHidden(String values, boolean hidden) {
+    public void setComponentHidden(String values, boolean hidden, @Nullable AbstractComponent<?> component) {
         for (String value : values.split(";")) {
             if (value.isBlank()) continue;
-            value = value.trim().toLowerCase();
-            if (value.contains("@")) { // 包含@符号以及关键字即可，增加容错
-                if (value.contains("dialog")) dialogBox.setHidden(hidden);
-                if (value.contains("options")) chatOptions.forEach(option -> option.setHidden(hidden));
-                if (value.contains("portraits")) portraits.forEach(portrait -> portrait.setHidden(hidden));
-                if (value.contains("buttons")) functionalButtons.forEach(button -> button.setHidden(hidden));
-                if (value.contains("video") && video != null) video.setHidden(hidden);
-                if (value.contains("key")) keyPromptRender.setHidden(hidden);
+            value = value.trim();
+            String lower = value.toLowerCase();
+            // 如果为@s且组件不为空，则隐藏组件自身
+            if (component != null && lower.equals("@s")) {
+                component.setHidden(hidden);
+                continue;
+            }
+            if (lower.contains("@")) { // 包含@符号以及关键字即可，增加容错
+                if (lower.contains("dialog")) dialogBox.setHidden(hidden);
+                if (lower.contains("options")) chatOptions.forEach(option -> option.setHidden(hidden));
+                if (lower.contains("portraits")) portraits.forEach(portrait -> portrait.setHidden(hidden));
+                if (lower.contains("buttons")) functionalButtons.forEach(button -> button.setHidden(hidden));
+                if (lower.contains("video") && video != null) video.setHidden(hidden);
+                if (lower.contains("key")) keyPromptRender.setHidden(hidden);
             } else {
                 for (var portrait : portraits) {
                     if (portrait.id.equals(value)) portrait.setHidden(hidden);
@@ -190,6 +206,10 @@ public class ChatBoxScreen extends Screen {
     }
 
     public void renderInner(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
+        long currentTime = System.currentTimeMillis();
+        boolean shouldUpdatePortrait = Math.abs(currentTime - lastUpdateTime) >= updateDuration;
+        if (shouldUpdatePortrait) lastUpdateTime = currentTime;
+
         if (ChatBox.PLATFORM.postRenderEventPre(guiGraphics)) return;
 
         if (backgroundImage != null) {
@@ -197,7 +217,10 @@ public class ChatBoxScreen extends Screen {
         }
 
         getRenderList(isScreen).forEach(component -> {
-            if (!component.hidden) component.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+            if (!component.hidden) {
+                if (shouldUpdatePortrait && component instanceof Portrait portrait) portrait.updateAnimationTick();
+                component.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+            }
         });
 
         ChatBox.PLATFORM.postRenderEventPost(guiGraphics);

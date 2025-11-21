@@ -100,6 +100,10 @@ public class Portrait extends AbstractComponent<Portrait> {
         return this;
     }
 
+    public void updateAnimationTick() {
+        if (this.isAnimation) this.currentAnimationTick++;
+    }
+
     public void resetCurrentAnimationTick() {
         this.currentAnimationTick = 0;
     }
@@ -141,10 +145,7 @@ public class Portrait extends AbstractComponent<Portrait> {
             Vec2 position = getCurrentPosition();
             float x = position.x;
             float y = position.y;
-            if (this.isAnimation) {
-                this.currentAnimationTick++;
-                execCustomAnimation();
-            }
+            if (this.isAnimation) execCustomAnimation();
             switch (type) {
                 case TEXTURE -> renderImage(guiGraphics, new ResourceLocation(this.value), this.scale, this.attachments);
                 case PLAYER_HEAD -> RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), this.scale, this.angle));

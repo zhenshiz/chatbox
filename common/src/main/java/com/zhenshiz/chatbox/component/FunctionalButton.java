@@ -3,7 +3,6 @@ package com.zhenshiz.chatbox.component;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
-import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -90,7 +89,8 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
                 case AUTOPLAY -> Component.translatable("chatbox.button.autoplay");
             };
             Vec2 position = getCurrentPosition();
-            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, 0xFFFFFF);
+            // 在按钮的上方绘制文本，对齐右边缘
+            guiGraphics.drawString(minecraft.font, text, (int) getResponsiveWidth(position.x + this.width) - minecraft.font.width(text), (int) getResponsiveHeight(position.y) - 12, -1, false);
         }
     }
 

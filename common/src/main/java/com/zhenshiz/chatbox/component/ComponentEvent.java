@@ -7,6 +7,7 @@ import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
@@ -20,12 +21,17 @@ import java.util.List;
 import static com.zhenshiz.chatbox.api.EventExecutor.*;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
+/**
+ * 对话框组件渲染事件，并非只适用于组件，亦可在一句新的对话开始时触发，此时{@link #component}为null
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 public class ComponentEvent {
     public Trigger trigger = Trigger.NONE;
     public String type = "";
     public String value = "";
+    @Setter
+    @Nullable private AbstractComponent<?> component;
 
     /**
      * 根据提供的触发时机，执行组件事件
@@ -33,13 +39,13 @@ public class ComponentEvent {
      */
     public boolean fire(Trigger trigger) {
         if (this.trigger == Trigger.NONE || this.trigger != trigger) return false;
-        return executeEvent(this.type, this.value);
+        return executeEvent(this.component, this.type, this.value);
     }
 
-        /**
-         * 根据提供的触发时机，执行所有组件事件
-         * @return 成功执行的组件事件数量
-         */
+    /**
+     * 根据提供的触发时机，执行所有组件事件
+     * @return 成功执行的组件事件数量
+     */
     public static int fireAll(List<ComponentEvent> events, Trigger trigger) {
         if (CollUtil.isEmpty(events)) return 0;
         int count = 0;
@@ -76,7 +82,7 @@ public class ComponentEvent {
     }
 
     public static void registerDefaultEvents() {
-        registerEvent("COMMAND", s -> {}, () -> true, ((player, value) -> {
+        registerEvent("COMMAND", (c, s) -> {}, () -> true, ((player, value) -> {
             var commands = value.split(";");
             for (var command : commands) {
                 command = command.trim();
@@ -84,7 +90,7 @@ public class ComponentEvent {
             }
         }));
 
-        registerClientEvent("JUMP", next -> { //跳转到指定的对话或者其它模块的对话
+        registerClientEvent("JUMP", (c, next) -> { //跳转到指定的对话或者其它模块的对话
             if (StrUtil.isEmpty(next)) {            //跳转下一句话
                 skipDialogues(dialoguesResourceLocation, group, index + 1);
             } else if (StrUtil.isInteger(next)) {   //如果为数字跳转到指定序号的对话
@@ -95,16 +101,21 @@ public class ComponentEvent {
             }
         });
 
-        registerClientEvent("GOTO_NEXT", s -> chatBoxScreen.dialogBoxClick());
+        registerClientEvent("GOTO_NEXT", (c, s) -> chatBoxScreen.dialogBoxClick());
 
-        registerClientEvent("PLAY_VOICE", voice -> chatBoxScreen.playVoice(voice));
-        registerClientEvent("PLAY_SOUND", SoundUtil::playSound);
-        registerClientEvent("STOP_SOUND", SoundUtil::stopSound);
+        registerClientEvent("PLAY_VOICE", (c, voice) -> chatBoxScreen.playVoice(voice));
+        registerClientEvent("PLAY_SOUND", (c, s) -> SoundUtil.playSound(s));
+        registerClientEvent("STOP_SOUND", (c, s) -> SoundUtil.stopSound(s));
 
-        registerClientEvent("SHOW", values -> chatBoxScreen.setComponentHidden(values, false));
-        registerClientEvent("HIDE", values -> chatBoxScreen.setComponentHidden(values, true));
+        registerClientEvent("SHOW", (c, values) -> chatBoxScreen.setComponentHidden(values, false, c));
+        registerClientEvent("HIDE", (c, values) -> chatBoxScreen.setComponentHidden(values, true, c));
+        // 替换组件时，如果当前组件不为null，就隐藏当前组件，否则完全等价于SHOW事件
+        registerClientEvent("REPLACE", (c, values) -> {
+            if (c != null) c.setHidden(true);
+            chatBoxScreen.setComponentHidden(values, false, null);
+        });
 
-        registerClientEvent("SET_AUTOPLAY", s -> chatBoxScreen.autoPlay = Boolean.parseBoolean(s));
+        registerClientEvent("SET_AUTOPLAY", (c, s) -> chatBoxScreen.autoPlay = Boolean.parseBoolean(s));
     }
 
     public static int executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {

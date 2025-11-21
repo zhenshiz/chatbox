@@ -3,14 +3,12 @@ package com.zhenshiz.chatbox.component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
-import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
-
-import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.parseTargetPlaceholders;
 
 public class ChatOption extends AbstractComponent<ChatOption> {
     //默认材质
@@ -35,7 +33,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     //悬浮字体
     public Component optionTooltip;
     //文本对齐
-    public TextAlign textAlign;
+    public AlignX textAlign = AlignX.LEFT;
     //选项连接的下一个对话
     public String next;
     //记录选项原始y位置
@@ -52,7 +50,6 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         setClickEvent(() -> {});
         setIsLock(false);
         setOptionTooltip("");
-        setTextAlign(TextAlign.LEFT);
     }
 
     @Override
@@ -108,7 +105,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
 
     public ChatOption setClickEvent(String type, String value) {
         if (type != null) {
-            this.onClickEvent = () -> EventExecutor.executeEvent(type, value);
+            this.onClickEvent = () -> EventExecutor.executeEvent(this, type, value);
         }
         return this;
     }
@@ -121,7 +118,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     public ChatOption setUnlockCommand(String unlockCommand) {
         // 虽然execute也可以执行任意命令，但是为了不让玩家随意通过解锁命令执行任意命令，还是加个判断吧
         if (unlockCommand != null && unlockCommand.startsWith("execute"))
-            this.unlockCommand = parseTargetPlaceholders(unlockCommand);
+            this.unlockCommand = ChatBoxUtil.parseTargetPlaceholders(unlockCommand);
         return this;
     }
 
@@ -136,8 +133,8 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
-    public ChatOption setTextAlign(TextAlign textAlign) {
-        if (textAlign != null) this.textAlign = textAlign;
+    public ChatOption setTextAlign(String textAlign) {
+        if (textAlign != null) this.textAlign = AlignX.of(textAlign);
         return this;
     }
 
@@ -147,7 +144,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         if (!this.isLock && minecraft.player != null) {
             //触发自定义事件
             this.onClickEvent.run();
-            EventExecutor.executeEvent("JUMP", this.next);
+            EventExecutor.executeEvent(this, "JUMP", this.next);
             return true;
         }
         return false;
@@ -158,6 +155,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         if (this.renderIndex < 0) return;
         super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         this.y = this.originY + this.renderIndex * this.height;
+        int num = ChatBoxUtil.chatBoxScreen.getRenderOptionCount();
+        if (this.alignY == AlignY.CENTER) this.y -= (num - 1) * this.height / 2.0F;
+        if (this.alignY == AlignY.BOTTOM) this.y -= (num - 1) * this.height;
 
         Vec2 pos = getCurrentPosition();
         float x = pos.x;
@@ -179,13 +179,12 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
         Component component = Component.nullToEmpty(parseText(optionChat.getString()));
-        int responsiveX = (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX);
-        int responsiveY = (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY);
-        switch (this.textAlign) {
-            case LEFT -> RenderUtil.drawLeftScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
-            case CENTER -> RenderUtil.drawCenterScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
-            case RIGHT -> RenderUtil.drawRightScaleText(guiGraphics, component, responsiveX, responsiveY, 1, false, color);
-        }
+        int responsiveX = (int) getResponsiveWidth(x + this.optionChatX);
+        int responsiveY = (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY) - 4; // 减去文本高度的一半
+        int optionWidth = (int) getResponsiveWidth(this.width);
+        if (this.textAlign == AlignX.CENTER) responsiveX += (optionWidth - minecraft.font.width(component)) / 2;
+        if (this.textAlign == AlignX.RIGHT)  responsiveX +=  optionWidth - minecraft.font.width(component);
+        guiGraphics.drawString(minecraft.font, component, responsiveX, responsiveY, color, false);
         poseStack.popPose();
 
         //render tooltip

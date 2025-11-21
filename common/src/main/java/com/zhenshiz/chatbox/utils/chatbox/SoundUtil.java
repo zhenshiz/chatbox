@@ -26,6 +26,7 @@ public class SoundUtil {
     }
 
     public static void playSound(String sound, float volume, float pitch) {
+        if (StrUtil.isEmpty(sound)) return;
         if (minecraft.player != null) minecraft.player.playSound(fromString(sound), volume, pitch);
     }
 

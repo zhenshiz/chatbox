@@ -12,7 +12,7 @@ import org.confluence.terraentity.mixed.IPlayer;
 public class TerraEntityShop {
 
     public static void register() {
-        EventExecutor.registerEvent("TERRA_ENTITY_SHOP", v -> {}, () -> {
+        EventExecutor.registerEvent("TERRA_ENTITY_SHOP", (c, v) -> {}, () -> {
             //noinspection ConstantConditions
             ITradeHolder iTradeHolder = ((IPlayer) Minecraft.getInstance().player).terra_entity$getTradeHolder();
             return iTradeHolder instanceof AbstractTerraNPC;
