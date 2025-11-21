@@ -8,11 +8,9 @@ import com.mojang.blaze3d.vertex.*;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.PlayerSkin;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -422,45 +420,6 @@ public class RenderUtil {
 
     public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
         renderItem(guiGraphics, item, x, y, scale, angle, "");
-    }
-
-    // text
-    public static void drawLeftScaleText(GuiGraphics guiGraphics, Component component, int x, int y, float scale, boolean shadow, int color) {
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.scale(scale, scale, scale);
-
-        float rescale = 1 / scale;
-        x = (int) (x * rescale);
-        y = (int) (y * rescale);
-
-        guiGraphics.drawString(minecraft.font, component, x, y, color, shadow);
-        poseStack.scale(rescale, rescale, rescale);
-    }
-
-    public static void drawCenterScaleText(GuiGraphics guiGraphics, Component component, int centerX, int y, float scale, boolean shadow, int color) {
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.scale(scale, scale, scale);
-
-        float rescale = 1 / scale;
-        centerX = (int) (centerX * rescale);
-        centerX = centerX - (minecraft.font.width(component) / 2);
-        y = (int) (y * rescale);
-
-        guiGraphics.drawString(minecraft.font, component, centerX, y, color, shadow);
-        poseStack.scale(rescale, rescale, rescale);
-    }
-
-    public static void drawRightScaleText(GuiGraphics guiGraphics, Component component, int rightX, int y, float scale, boolean shadow, int color) {
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.scale(scale, scale, scale);
-
-        float rescale = 1 / scale;
-        rightX = (int) (rightX * rescale);
-        rightX = rightX - minecraft.font.width(component);
-        y = (int) (y * rescale);
-
-        guiGraphics.drawString(minecraft.font, component, rightX, y, color, shadow);
-        poseStack.scale(rescale, rescale, rescale);
     }
 
     //cursor

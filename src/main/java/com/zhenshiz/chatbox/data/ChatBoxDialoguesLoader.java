@@ -28,8 +28,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public class ChatBoxDialoguesLoader extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
-    private static final Gson GSON =
-            (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //记录所有的对话文件
     public static final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
     //记录对应对话文件里的组名
