@@ -1,15 +1,19 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 
+import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings({"unchecked", "UnusedReturnValue"})
 public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     protected static final Minecraft minecraft = Minecraft.getInstance();
     //水平对齐: LEFT CENTER RIGHT
@@ -30,6 +34,42 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
     public Integer renderOrder;
     //旋转角度
     public Float angle = 0F;
+
+    // 是否隐藏，被隐藏的组件不会被渲染，不会触发事件；选项被指令隐藏的逻辑不由这个值控制，右键隐藏部分组件也不由这个值控制
+    public boolean hidden = false;
+    // 是否被鼠标选中，用于触发被选中时的事件
+    public boolean isSelect = false;
+    // 是否渲染已开始，用于触发渲染开始时的事件
+    protected boolean renderStarted = false;
+    public List<ComponentEvent> events = new ArrayList<>();
+
+    public T setHidden(boolean hidden) {
+        this.hidden = hidden;
+        return (T) this;
+    }
+
+    public T setIsSelect(boolean isSelect) {
+        this.isSelect = isSelect;
+        return (T) this;
+    }
+
+    public T setEvents(List<ComponentEvent> events) {
+        this.events.clear();
+        for (ComponentEvent event : events) {
+            event.setComponent(this);
+            this.events.add(event);
+        }
+        return (T) this;
+    }
+
+    public int fireEvent(ComponentEvent.Trigger trigger) {
+        if (hidden) return 0;
+        return ComponentEvent.fireAll(events, trigger);
+    }
+
+    public int fireEvent(String trigger) {
+        return fireEvent(ComponentEvent.Trigger.of(trigger));
+    }
 
     public static float getResponsiveWidth(float value) {
         return minecraft.getWindow().getGuiScaledWidth() * value / 100;
@@ -92,10 +132,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return (T) this;
     }
 
-    public T build() {
-        return (T) this;
-    }
-
     protected boolean checkSize(float value) {
         return value >= 0;
     }
@@ -113,23 +149,41 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, opacity, angle, attachments);
     }
 
-    public boolean isSelect(float width, float height, float x, float y, double mouseX, double mouseY) {
-        return mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height;
-    }
-
     public boolean isSelect(double mouseX, double mouseY) {
-        Vec2 position = getCurrentPosition();
-        return isSelect(getResponsiveWidth(this.width), getResponsiveHeight(this.height), getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), mouseX, mouseY);
+        return mouseX >= getX1() && mouseX <= getX2() && mouseY >= getY1() && mouseY <= getY2();
     }
 
     protected String parseText(String input) {
         return ChatBoxUtil.parseText(input, false);
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {}
+    public int getX1() {return (int) getResponsiveWidth(getCurrentPosition().x);}
+    public int getX2() {return (int) getResponsiveWidth(getCurrentPosition().x + width);}
+    public int getY1() {return (int) getResponsiveHeight(getCurrentPosition().y);}
+    public int getY2() {return (int) getResponsiveHeight(getCurrentPosition().y + height);}
 
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
-        render(guiGraphics, 0, 0, pPartialTick);
+    public String getDebugInfo() {
+        return StrUtil.format("\"x\": {}, \"y\": {}, \"width\": {}, \"height\": {}, \"renderOrder\": {}", x, y, width, height, renderOrder);
+    }
+
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        if (!renderStarted) {
+            renderStarted = true;
+            fireEvent("ON_START");
+        }
+        if (!ChatBoxRender.isRenderChatBox()) {
+            if (isSelect(mouseX, mouseY)) {
+                if (!isSelect) {
+                    setIsSelect(true);
+                    fireEvent("ON_MOUSE_OVER");
+                }
+            } else {
+                if (isSelect) {
+                    setIsSelect(false);
+                    fireEvent("ON_MOUSE_OUT");
+                }
+            }
+        }
     }
 
     public enum AlignX {

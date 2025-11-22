@@ -1,12 +1,10 @@
 package com.zhenshiz.chatbox.render;
 
-import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
-import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
+import com.zhenshiz.chatbox.network.SimplePayload;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
-import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
-import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.DeltaTracker;
@@ -14,46 +12,33 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
 public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTick, InputEvent.Key, InputEvent.MouseButton.Post, InputEvent.MouseScrollingEvent {
-    //是否打开了对话框
-    public static Boolean isOpenChatBox = false;
+    //是否打开了对话框，包括对话框渲染层和对话框界面
+    public static boolean isOpenChatBox = false;
+    //上次同步对话目标实体时间
+    public static long lastSyncTime = 0;
+    //是否渲染对话框渲染层
+    public static boolean shouldRender = false;
     //当前选择的选项序号
     public static int selectIndex = 0;
-    private final static Minecraft minecraft = Minecraft.getInstance();
 
     @Override
     public void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
         float partialTick = deltaTracker.getGameTimeDeltaTicks();
         if (isRenderChatBox()) {
-            if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
-
-            if (chatBoxScreen.backgroundImage != null) {
-                RenderUtil.renderImage(guiGraphics, chatBoxScreen.backgroundImage, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 100, 0f);
-            }
-
-            List<AbstractComponent<?>> list = new ArrayList<>();
-            list.add(chatBoxScreen.dialogBox);
-            if (chatBoxScreen.video != null) list.add(chatBoxScreen.video);
-            if (chatBoxScreen.chatOptions != null) list.addAll(chatBoxScreen.chatOptions);
-            if (chatBoxScreen.portraits != null) list.addAll(chatBoxScreen.portraits);
-            if (chatBoxScreen.keyPromptRender != null) list.add(chatBoxScreen.keyPromptRender);
-
-            list.sort(Comparator.comparingInt(p -> p.renderOrder));
-
-            list.forEach(abstractComponent -> abstractComponent.render(guiGraphics, partialTick));
-
-            ChatBoxRenderEvent.POST.invoker().post(guiGraphics);
+            chatBoxScreen.renderInner(guiGraphics, 0, 0, partialTick, false);
         }
     }
 
     @Override
     public void onEndTick(Minecraft minecraft) {
+        if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
+        // 客户端每5 tick请求同步对话目标实体
+        if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
+            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_SYNC, "");
+        }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
         }
@@ -63,10 +48,6 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
     public void onKey(int key, int scancode, int action, int modifiers) {
         // System.out.println("key: " + key + " scancode: " + scancode + " action: " + action + " mod: " + modifiers);
         if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
-            //ctrl快进
-            if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
-                chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
-            }
             if (action == 1 && key == GLFW.GLFW_KEY_F6) {
                 //自动播放
                 chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
@@ -78,44 +59,44 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
     public void mousePost(int button, int action, int modifiers) {
         if (isRenderChatBox()) {
             if (action == 1 && button == 1) {
-                if (!CollUtil.isEmpty(chatBoxScreen.chatOptions) && chatBoxScreen.dialogBox.isAllOver) {
-                    ChatOption chatOption = chatBoxScreen.chatOptions.get(selectIndex);
-                    chatOption.click();
-                    selectIndex = 0;
+                if (chatBoxScreen.getRenderOptionCount() > 0 && chatBoxScreen.dialogBox.isAllOver) {
+                    for (ChatOption option : chatBoxScreen.chatOptions) {
+                        if (option.renderIndex == selectIndex && option.click()) {
+                            selectIndex = 0;
+                            return;
+                        }
+                    }
                 }
-
-                if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBox.click(chatBoxScreen.shouldGotoNext());
+                if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBoxClick();
             }
         }
     }
 
     @Override
     public boolean onMouseScroll(double scrollDeltaX, double scrollDeltaY, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY) {
-        if (isRenderChatBox() && !chatBoxScreen.chatOptions.isEmpty()) {
-            if (scrollDeltaY > 0) {
-                //向上
-                selectIndex = (selectIndex - 1 + chatBoxScreen.chatOptions.size()) % chatBoxScreen.chatOptions.size();
-            } else if (scrollDeltaY < 0) {
-                //向下
-                selectIndex = (selectIndex + 1) % (chatBoxScreen.chatOptions.size());
+        int optionCount = chatBoxScreen.getRenderOptionCount();
+        if (isRenderChatBox() && optionCount > 0) {
+            if (scrollDeltaY > 0) { //向上
+                selectIndex = (selectIndex - 1 + optionCount) % optionCount;
+            } else if (scrollDeltaY < 0) { //向下
+                selectIndex = (selectIndex + 1) % optionCount;
             }
-            for (int i = 0; i < chatBoxScreen.chatOptions.size(); i++) {
-                ChatOption chatOption = chatBoxScreen.chatOptions.get(i);
-                chatOption.isSelect = i == selectIndex;
+            for (var option : chatBoxScreen.chatOptions) {
+                option.setIsSelect(selectIndex == option.renderIndex);
             }
             return true;
         }
         return false;
     }
 
-    private static boolean isRenderChatBox() {
-        return !ChatBoxUtil.isScreen && isOpenChatBox && minecraft.screen == null && chatBoxScreen.dialogBox != null;
-    }
+    public static boolean isRenderChatBox() {return !ChatBoxUtil.isScreen && shouldRender;}
 
     public static void onClose() {
         isOpenChatBox = false;
+        shouldRender = false;
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false; // 这行没必要
         if (chatBoxScreen.video != null) chatBoxScreen.video.close();
+        ChatBoxUtil.onCloseDialogBox();
     }
 }

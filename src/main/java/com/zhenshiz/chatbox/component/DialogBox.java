@@ -2,17 +2,13 @@ package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.locale.Language;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
 import org.joml.Matrix3x2fStack;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
@@ -20,37 +16,33 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     //默认材质
     public ResourceLocation texture;
     //对话框文本
-    private String text;
+    private String text = "";
     //文本x位置
-    public float textX;
+    public float textX = 0;
     //文本y位置
-    public float textY;
+    public float textY = 0;
+    //文本对齐方式
+    public AlignX textAlign = AlignX.LEFT;
     //名称
-    public Component name;
+    public String name = "";
     //名称x位置
-    public float nameX;
+    public float nameX = 0;
     //名称y位置
-    public float nameY;
+    public float nameY = 0;
     //一行文本的宽度
-    public float lineWidth;
+    public float lineWidth = 100f;
 
     //全部文字是否全部显示
     public boolean isAllOver;
     public int tickCount;
-    private String[] textBuffer;
+    private int textLength = 0;
     private int charIndex;
 
     public DialogBox() {
         setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
-        setText("", false);
-        setTextPosition(0, 0);
-        setName("", false);
-        setNamePosition(0, 0);
-        setLineWidth(100f);
 
         setAllOver(false);
         resetTickCount();
-        this.textBuffer = new String[]{""};
     }
 
     public DialogBox setTexture(ResourceLocation texture) {
@@ -63,19 +55,24 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    public DialogBox setText(String text, boolean isTranslatable) {
+    public DialogBox setText(String text) {
         if (text != null) {
             // 获取翻译键的文本
-            text = isTranslatable ? Language.getInstance().getOrDefault(text) : text;
+            text = RenderUtil.translated(text);
             if (ChatBox.isModLoaded("textanimator")) text = text.replaceAll("<typewriter>", "");
             this.text = text;
-            textToTextBuffer();
+            this.textLength = getRealLength(parseText(text));
         }
         return this;
     }
 
-    public DialogBox setName(String name, boolean isTranslatable) {
-        if (name != null) this.name = isTranslatable ? Component.translatable(name) : Component.nullToEmpty(name);
+    public DialogBox setTextAlign(String textAlign) {
+        if (textAlign != null) this.textAlign = AlignX.of(textAlign);
+        return this;
+    }
+
+    public DialogBox setName(String name) {
+        if (name != null) this.name = RenderUtil.translated(name);
         return this;
     }
 
@@ -98,6 +95,11 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public DialogBox setAllOver(boolean allOver) {
         this.isAllOver = allOver;
+        // 全部文字显示完成时触发ON_END事件
+        if (allOver) {
+            fireEvent("ON_END");
+            charIndex = -1; // 防止字符串长度随动态解析而改变，也是为了减少计算次数
+        }
         return this;
     }
 
@@ -107,65 +109,78 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    private void textToTextBuffer() {
-        String input = this.text;
-        List<String> result = new ArrayList<>(input.length());
-        int index = 0;
-        StringBuilder stringBuilder = new StringBuilder();
-
-        while (index < input.length()) {
-            char c = input.charAt(index);
-            stringBuilder.append(c);
-            if (ChatBox.isModLoaded("textanimator") && c == '<') {
-                int closing = input.indexOf('>', index + 1);
+    public static String subString(String text, int endIndex) {
+        if (text == null || text.isEmpty()) return "";
+        if (text.length() <= endIndex || endIndex < 0) return text;
+        int current = -1;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\\' || c == '§') {
+                i++;
+                continue;
+            }
+            if (c == '<') {
+                int closing = text.indexOf('>', i + 1);
                 if (closing != -1) {
-                    stringBuilder.append(input, index + 1, closing + 1);
-                    index = closing;
+                    i = closing;
+                    continue;
                 }
             }
-            if (c == '\\' || c == '§') {
-                stringBuilder.append(input.charAt(index + 1));
-                index++;
-            }
-            result.add(stringBuilder.toString());
-            index++;
+            current++;
+            if (current >= endIndex + 1) return text.substring(0, i);
         }
+        return text;
+    }
 
-        this.textBuffer = result.toArray(new String[0]);
+    public static int getRealLength(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        int current = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\\' || c == '§') {
+                i++;
+                continue;
+            }
+            if (c == '<') {
+                int closing = text.indexOf('>', i + 1);
+                if (closing != -1) {
+                    i = closing;
+                    continue;
+                }
+            }
+            current++;
+        }
+        return current;
     }
 
     public void click(boolean gotoNext) {
         if (!this.isAllOver) {
             //未全部加载时，点击显示所有文本
-            this.charIndex = this.textBuffer.length - 1;
+            this.charIndex = this.textLength - 1;
             setAllOver(true);
-        } else {
-            //全部点击时触发
-            if (gotoNext && minecraft.player != null) {
-                //只有没有选项的时候才能通过点击空白处跳转到下一句话
-                skipDialogues(dialoguesResourceLocation, group, index + 1);
-                chatBoxScreen.tickAutoPlay = 20;
-            }
+        } else if (gotoNext) {
+            skipDialogues(dialoguesResourceLocation, group, index + 1);
         }
     }
 
     public void tick() {
         if (!this.isAllOver) {
             //未全部加载，开始加载
-            if (this.charIndex == this.textBuffer.length - 1) {
+            if (this.charIndex >= this.textLength - 1) {
                 setAllOver(true);
                 return;
             }
             this.tickCount++;
             float charPerTick = ChatBoxClient.conf.charPerSecond / 20f;
             if (tickCount * charPerTick >= charIndex + 1) {
-                charIndex = Math.min((int) (tickCount * charPerTick), this.textBuffer.length - 1);
+                charIndex = Math.min((int) (tickCount * charPerTick), this.textLength - 1);
             }
         }
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         //chatBox image
         if (texture != null) renderImage(guiGraphics, this.texture);
 
@@ -176,11 +191,12 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
         Matrix3x2fStack poseStack = guiGraphics.pose();
         poseStack.pushMatrix();
-        if (StrUtil.isNotEmpty(this.name.getString())) {
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(StrUtil.format("[{}]", name.getString()))), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+        int lineWidth = (int) getResponsiveWidth(this.lineWidth);
+        if (StrUtil.isNotEmpty(this.name)) {
+            RenderUtil.drawStringAlign(guiGraphics, parseText(StrUtil.format("[{}]", this.name)), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), lineWidth, this.textAlign, CommonColors.WHITE, false);
         }
         if (StrUtil.isNotEmpty(this.text)) {
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.charIndex])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+            RenderUtil.drawStringAlign(guiGraphics, subString(parseText(this.text), charIndex), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), lineWidth, this.textAlign, CommonColors.WHITE, true);
         }
         poseStack.popMatrix();
     }

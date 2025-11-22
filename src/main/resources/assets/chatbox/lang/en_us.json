@@ -2,7 +2,7 @@
   "command.target.player.only": "The target of this command should be the a player",
   "command.target.entity.only": "The target of this command should be the an entity",
   "commands.toggle.theme": "Successfully switched the theme style of the dialog box",
-  "commands.skip.dialogues": "Successfully jumped to the %s sentence of the %s group",
+  "commands.skip.dialogues": "Successfully jumped to %s group sentence %s",
   "commands.set.max.trigger.count": "Successfully set maximum trigger count of %s to %s",
   "commands.reset.max.trigger.count": "Successfully reset maximum trigger count for all dialogues",
 
@@ -38,13 +38,20 @@
   "chatbox.test.text.10": "Custom background images can be configured for the bottom layer.",
   "chatbox.test.text.11": "Additionally, the NeoForge version provides KubeJS integration. You can use the module's exposed interfaces to implement functions similar to the provided commands, and use the module's events for more flexible dialog configuration.",
   "chatbox.test.text.12": "For more detailed tutorials and JSON file generation for dialog data packs, please visit the module's Wiki page.",
-  "chatbox.test.option.1": "Locked Option",
-  "chatbox.test.option.2": "Unlocked Option, triggers command when selected",
+  "chatbox.test.option.1": "Option 1",
+  "chatbox.test.option.2": "Option 2",
   "chatbox.test.option.3": "Option 3",
   "chatbox.test.option.4": "Locked Option",
-  "chatbox.test.option.5": "Unlocked Option, triggers command when selected",
+  "chatbox.test.option.5": "Unlocked Option",
   "chatbox.test.option.6": "Set weather to rainy",
   "chatbox.test.option.7": "Set weather to clear",
   "chatbox.test.option.8": "Set weather to thunder",
-  "chatbox.test.tooltip.1": "It seems some mysterious ritual is required to unlock this option."
+  "chatbox.test.tooltip.1": "Unlocked when you have a netherite sword in your first slot",
+
+  "chatbox.debug.tip1": "Debug mode enabled. Hold Shift to display component borders and cursor position",
+  "chatbox.debug.tip2": "While holding %s:",
+  "chatbox.debug.tip3": "  ①Displays information for the hovered component",
+  "chatbox.debug.tip4": "  ②Left-click and drag to move components",
+  "chatbox.debug.tip5": "  ③Mouse wheel scroll to scale portrait components",
+  "chatbox.debug.tip6": "%s + C to copy current hovered component information"
 }

@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.component;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
+import com.zhenshiz.chatbox.utils.common.StrUtil;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.component.DataComponents;
@@ -16,6 +17,7 @@ import java.util.List;
 
 import static com.zhenshiz.chatbox.utils.math.EasingUtil.easingFunction;
 
+@SuppressWarnings("UnusedReturnValue")
 @NoArgsConstructor
 public class Portrait extends AbstractComponent<Portrait> {
     public Type type;
@@ -41,7 +43,7 @@ public class Portrait extends AbstractComponent<Portrait> {
     private int customAnimationIndex = 0;
 
     public Portrait(Type type, String animationType, List<ChatBoxTheme.Portrait.CustomAnimation> customAnimation, Float scale, Boolean loop) {
-        setType(type).setAnimationType(animationType).setCustomAnimation(customAnimation).setLoop(loop).setScale(scale).build();
+        setType(type).setAnimationType(animationType).setCustomAnimation(customAnimation).setLoop(loop).setScale(scale);
     }
 
     //texture
@@ -100,6 +102,10 @@ public class Portrait extends AbstractComponent<Portrait> {
         return this;
     }
 
+    public void updateAnimationTick() {
+        if (this.isAnimation) this.currentAnimationTick++;
+    }
+
     public void resetCurrentAnimationTick() {
         this.currentAnimationTick = 0;
     }
@@ -110,6 +116,11 @@ public class Portrait extends AbstractComponent<Portrait> {
 
     public Portrait setAttachment(List<ChatBoxTheme.Portrait.Attachment> attachments) {
         this.attachments = attachments;
+        return this;
+    }
+
+    public Portrait setId(String id) {
+        if (id != null) this.id = id;
         return this;
     }
 
@@ -129,16 +140,48 @@ public class Portrait extends AbstractComponent<Portrait> {
         this.startCustomAnimation.angle = angle;
     }
 
+    public int getX1() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveWidth(getCurrentPosition().x + (1 - scale) * width / 2);
+            case PLAYER_HEAD -> getResponsiveWidth(getCurrentPosition().x) + (1 - scale) * (getResponsiveWidth(width) + getResponsiveHeight(height)) / 2;
+            case ITEM -> getResponsiveWidth(getCurrentPosition().x) + (1 - scale) * 8;
+        };
+    }
+    public int getX2() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveWidth(getCurrentPosition().x + (1 + scale) * width / 2);
+            case PLAYER_HEAD -> getResponsiveWidth(getCurrentPosition().x) + (1 + scale) * (getResponsiveWidth(width) + getResponsiveHeight(height)) / 2;
+            case ITEM -> getResponsiveWidth(getCurrentPosition().x) + (1 + scale) * 8;
+        };
+    }
+    public int getY1() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveHeight(getCurrentPosition().y + (1 - scale) * height / 2);
+            case PLAYER_HEAD -> getResponsiveHeight(getCurrentPosition().y) + (1 - scale) * (getResponsiveHeight(height) + getResponsiveWidth(width)) / 2;
+            case ITEM -> getResponsiveHeight(getCurrentPosition().y) + (1 - scale) * 8;
+        };
+    }
+    public int getY2() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveHeight(getCurrentPosition().y + (1 + scale) * height / 2);
+            case PLAYER_HEAD -> getResponsiveHeight(getCurrentPosition().y) + (1 + scale) * (getResponsiveHeight(height) + getResponsiveWidth(width)) / 2;
+            case ITEM -> getResponsiveHeight(getCurrentPosition().y) + (1 + scale) * 8;
+        };
+    }
+
+    @Override
+    public String getDebugInfo() {
+        return super.getDebugInfo() + StrUtil.format(", \"scale\": {}", scale);
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (type != null && value != null) {
             Vec2 position = getCurrentPosition();
             float x = position.x;
             float y = position.y;
-            if (this.isAnimation) {
-                this.currentAnimationTick++;
-                execCustomAnimation();
-            }
+            if (this.isAnimation) execCustomAnimation();
             switch (type) {
                 case TEXTURE -> renderImage(guiGraphics, ResourceLocation.parse(this.value), this.scale, this.attachments);
                 case PLAYER_HEAD -> RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), this.scale, this.opacity, this.angle);
@@ -184,6 +227,8 @@ public class Portrait extends AbstractComponent<Portrait> {
                     setAngle(this.startCustomAnimation.angle);
                 } else {
                     setIsAnimation(false);
+                    // 立绘有动画且动画播放完成时触发ON_END事件
+                    fireEvent("ON_END");
                 }
             }
         }

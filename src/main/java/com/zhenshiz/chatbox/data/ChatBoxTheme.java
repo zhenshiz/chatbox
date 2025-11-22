@@ -49,9 +49,9 @@ public class ChatBoxTheme {
         public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
             com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.animation, this.customAnimation, this.scale, this.loop);
             switch (portrait.type) {
-                case TEXTURE -> portrait.createTexture(portrait, this.value, this.attachment).build();
-                case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value).build();
-                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData).build();
+                case TEXTURE -> portrait.createTexture(portrait, this.value, this.attachment);
+                case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value);
+                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData);
             }
             return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle);
         }
@@ -93,16 +93,15 @@ public class ChatBoxTheme {
         public String lockTexture;
         public Float optionChatX = DEFAULT_FLOAT;
         public Float optionChatY = DEFAULT_FLOAT;
-        public String textAlign = ChatOption.TextAlign.LEFT.name();
+        public String textAlign = "left";
 
-        public ChatOption setChatOptionTheme(ChatOption chatOption, int index) {
-            return chatOption.setDefaultOption(this.x, this.y + this.height * index, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
+        public ChatOption setChatOptionTheme(ChatOption chatOption) {
+            return chatOption.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
                     .setTextures(this.texture)
                     .setSelectTexture(this.selectTexture)
                     .setLockTexture(this.lockTexture)
                     .setOptionChatPosition(this.optionChatX, this.optionChatY)
-                    .setTextAlign(ChatOption.TextAlign.of(this.textAlign))
-                    .build();
+                    .setTextAlign(this.textAlign);
         }
     }
 
@@ -116,14 +115,15 @@ public class ChatBoxTheme {
         public Float nameY = DEFAULT_FLOAT;
         public Float textX = DEFAULT_FLOAT;
         public Float textY = DEFAULT_FLOAT;
+        public String textAlign = "left";
 
         public com.zhenshiz.chatbox.component.DialogBox setDialogBoxTheme(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
             return dialogBox.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
                     .setTexture(this.texture)
                     .setNamePosition(this.nameX, this.nameY)
                     .setTextPosition(this.textX, this.textY)
-                    .setLineWidth(this.lineWidth)
-                    .build();
+                    .setTextAlign(this.textAlign)
+                    .setLineWidth(this.lineWidth);
         }
     }
 
@@ -167,8 +167,7 @@ public class ChatBoxTheme {
                     .setVisible(this.visible)
                     .setMouseTextureSize(this.mouseTextureWidth, this.mouseTextureHeight)
                     .setRightClickTexture(this.rightClickTexture)
-                    .setScrollTexture(this.scrollTexture)
-                    .build();
+                    .setScrollTexture(this.scrollTexture);
         }
     }
 

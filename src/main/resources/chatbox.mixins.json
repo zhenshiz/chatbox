@@ -4,6 +4,7 @@
   "package": "com.zhenshiz.chatbox.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "EntityAccessor",
     "PlayerListMixin",
     "SimpleCriterionTriggerMixin"
   ],

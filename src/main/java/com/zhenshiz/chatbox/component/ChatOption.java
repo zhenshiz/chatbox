@@ -1,21 +1,15 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.api.ChatOptionClickEvent;
+import com.zhenshiz.chatbox.api.EventExecutor;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
-import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
-import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
 import org.joml.Matrix3x2fStack;
-
-import java.util.List;
-
-import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class ChatOption extends AbstractComponent<ChatOption> {
     //默认材质
@@ -25,47 +19,48 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     //上锁材质
     public ResourceLocation lockTexture;
     //选项文本
-    public Component optionChat;
+    public String optionChat = "";
     //选项x位置
-    public float optionChatX;
+    public float optionChatX = 0;
     //选项y位置
-    public float optionChatY;
+    public float optionChatY = 0;
     //点击后触发内容
-    public Runnable onClickEvent;
+    public Runnable onClickEvent = () -> {};
     //是否上锁
-    public boolean isLock;
+    public boolean isLock = false;
+    //解锁命令，若解锁命令不为null，则客户端设置完选项后会执行命令，若命令测试通过，选项会是正常可选状态
+    //若命令测试不通过，如果原本isLock为true，则选项锁定，否则隐藏选项
+    public String unlockCommand;
     //悬浮字体
-    public Component optionTooltip;
+    public String optionTooltip = "";
     //文本对齐
-    public TextAlign textAlign;
+    public AlignX textAlign = AlignX.LEFT;
     //选项连接的下一个对话
     public String next;
-    //是否选择，用于render对话框
-    public boolean isSelect;
+    //记录选项原始y位置
+    public float originY;
+    //选项在chatBoxScreen被渲染时的索引，小于0不渲染也不能点击（隐藏）
+    public int renderIndex = 0;
 
     public ChatOption() {
         setTextures(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
         setSelectTexture(ChatBox.ResourceLocationMod("textures/options/default_checked_option.png"));
         setLockTexture(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
-        setOptionChat("", false);
-        setOptionChatPosition(0, 0);
-        setClickEvent(() -> {});
-        setIsLock(false);
-        setOptionTooltip("", false);
-        setTextAlign(TextAlign.LEFT);
-        setNext("");
-        setIsSelect(false);
     }
 
-    public ChatOption setOptionChat(String optionChat, boolean isTranslatable) {
-        if (optionChat != null)
-            this.optionChat = isTranslatable ? Component.translatable(optionChat) : Component.nullToEmpty(optionChat);
+    @Override
+    public ChatOption setPosition(float x, float y) {
+        this.originY = y;
+        return super.setPosition(x, y);
+    }
+
+    public ChatOption setOptionChat(String optionChat) {
+        if (optionChat != null) this.optionChat = RenderUtil.translated(optionChat);
         return this;
     }
 
-    public ChatOption setOptionTooltip(String optionTooltip, boolean isTranslatable) {
-        if (optionTooltip != null)
-            this.optionTooltip = isTranslatable ? Component.translatable(optionTooltip) : Component.nullToEmpty(optionTooltip);
+    public ChatOption setOptionTooltip(String optionTooltip) {
+        if (optionTooltip != null) this.optionTooltip = RenderUtil.translated(optionTooltip);
         return this;
     }
 
@@ -99,26 +94,22 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
-    public ChatOption setClickEvent(Runnable onClickEvent) {
-        if (onClickEvent != null) this.onClickEvent = onClickEvent;
-        return this;
-    }
-
     public ChatOption setClickEvent(String type, String value) {
         if (type != null) {
-            this.onClickEvent = () -> {
-                if (minecraft.player != null) {
-                    if (ChatOptionClickEvent.CLICK_EVENTS.containsKey(type.toUpperCase())) {
-                        ChatOptionClickEvent.CLICK_EVENTS.get(type.toUpperCase()).execute(value == null ? "" : value);
-                    }
-                }
-            };
+            this.onClickEvent = () -> EventExecutor.executeEvent(this, type, value);
         }
         return this;
     }
 
     public ChatOption setIsLock(boolean isLock) {
         this.isLock = isLock;
+        return this;
+    }
+
+    public ChatOption setUnlockCommand(String unlockCommand) {
+        // 虽然execute也可以执行任意命令，但是为了不让玩家随意通过解锁命令执行任意命令，还是加个判断吧
+        if (unlockCommand != null && unlockCommand.startsWith("execute"))
+            this.unlockCommand = ChatBoxUtil.parseTargetPlaceholders(unlockCommand);
         return this;
     }
 
@@ -133,61 +124,32 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
-    public ChatOption setTextAlign(TextAlign textAlign) {
-        if (textAlign != null) this.textAlign = textAlign;
+    public ChatOption setTextAlign(String textAlign) {
+        if (textAlign != null) this.textAlign = AlignX.of(textAlign);
         return this;
     }
 
-    public ChatOption setIsSelect(boolean isSelect) {
-        this.isSelect = isSelect;
-        return this;
-    }
-
-    public void click() {
+    /**@return 是否成功点击*/
+    public boolean click() {
+        if (this.renderIndex < 0 || this.hidden) return false;
         if (!this.isLock && minecraft.player != null) {
             //触发自定义事件
             this.onClickEvent.run();
-            //跳转到指定的对话或者其它模块的对话
-            if (StrUtil.isEmpty(this.next)) {
-                //跳转下一句话
-                skipDialogues(dialoguesResourceLocation, group, index + 1);
-            } else if (StrUtil.isInteger(this.next)) {
-                //如果为数字跳转到指定序号的对话
-                int index = Integer.parseInt(this.next);
-                skipDialogues(dialoguesResourceLocation, group, index);
-            } else {
-                //如果是英文则跳转到指定模块的对话
-                skipDialogues(dialoguesResourceLocation, this.next);
-            }
-
+            EventExecutor.executeEvent(null, "JUMP", this.next);
+            return true;
         }
+        return false;
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        Vec2 pos = getCurrentPosition();
-        float x = pos.x;
-        float y = pos.y;
-        int color = CommonColors.WHITE;
-        ResourceLocation texture = this.texture;
-        if (this.isLock) {
-            texture = this.lockTexture;
-            color = CommonColors.GRAY;
-        } else if (isSelect(mouseX, mouseY)) {
-            texture = this.selectTexture;
-            color = CommonColors.YELLOW;
-        }
+        if (this.renderIndex < 0) return;
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
+        this.y = this.originY + this.renderIndex * this.height;
+        int num = ChatBoxUtil.chatBoxScreen.getRenderOptionCount();
+        if (this.alignY == AlignY.CENTER) this.y -= (num - 1) * this.height / 2.0F;
+        if (this.alignY == AlignY.BOTTOM) this.y -= (num - 1) * this.height;
 
-        renderInCommon(guiGraphics, texture, color, x, y);
-
-        //render tooltip
-        if (!this.optionTooltip.getString().isEmpty() && isSelect(mouseX, mouseY)) {
-            guiGraphics.renderTooltip(minecraft.font, List.of(new ClientTextTooltip(optionTooltip.getVisualOrderText())), mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
-        }
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {
         Vec2 pos = getCurrentPosition();
         float x = pos.x;
         float y = pos.y;
@@ -201,35 +163,21 @@ public class ChatOption extends AbstractComponent<ChatOption> {
             color = CommonColors.YELLOW;
         }
 
-        renderInCommon(guiGraphics, texture, color, x, y);
-    }
-
-    private void renderInCommon(GuiGraphics guiGraphics, ResourceLocation texture, int color, float x, float y) {
         //render image
         if (texture != null) renderImage(guiGraphics, texture);
 
         //render option text
         Matrix3x2fStack poseStack = guiGraphics.pose();
         poseStack.pushMatrix();
-        switch (this.textAlign) {
-            case LEFT ->
-                    RenderUtil.drawLeftScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-            case CENTER ->
-                    RenderUtil.drawCenterScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-            case RIGHT ->
-                    RenderUtil.drawRightScaleText(guiGraphics, Component.nullToEmpty(parseText(optionChat.getString())), (int) getResponsiveWidth(x + this.width / 2 + this.optionChatX), (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY), 1, false, color);
-        }
+        int responsiveX = (int) getResponsiveWidth(x + this.optionChatX);
+        int responsiveY = (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY) - 4; // 减去文本高度的一半
+        int optionWidth = (int) getResponsiveWidth(this.width);
+        RenderUtil.drawStringAlign(guiGraphics, parseText(this.optionChat), responsiveX, responsiveY, optionWidth, this.textAlign, color, false);
         poseStack.popMatrix();
-    }
 
-    public enum TextAlign {
-        LEFT,
-        CENTER,
-        RIGHT;
-
-        public static TextAlign of(String text) {
-            if (text == null) return TextAlign.LEFT;
-            return valueOf(text.toUpperCase());
+        //render tooltip
+        if (!this.optionTooltip.isEmpty() && isSelect) {
+            RenderUtil.renderTooltip(guiGraphics, Component.nullToEmpty(this.optionTooltip), responsiveX, responsiveY);
         }
     }
 }

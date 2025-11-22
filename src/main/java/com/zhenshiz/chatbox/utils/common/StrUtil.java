@@ -3,6 +3,9 @@ package com.zhenshiz.chatbox.utils.common;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class StrUtil {
     public static final String EMPTY = "";
@@ -289,5 +292,133 @@ public class StrUtil {
 
             return fromIndexInclude == toIndexExclude ? "" : str.toString().substring(fromIndexInclude, toIndexExclude);
         }
+    }
+
+    /**
+     * 字符串合并管理器
+     * 通过记录字符串长度+字符串内容的方式进行合并，支持按顺序读取
+     */
+    public static class StrMerger {
+        private StringBuilder dataBuilder;
+        private int currentPosition;
+
+        public StrMerger() {
+            this.dataBuilder = new StringBuilder();
+            this.currentPosition = 0;
+        }
+
+        public StrMerger(String data) {
+            this.dataBuilder = new StringBuilder(data != null ? data : "");
+            this.currentPosition = 0;
+        }
+
+        public StrMerger append(String str) {
+            if (str == null) str = "null";
+            // 先添加字符串的长度（使用4字节表示）
+            byte[] lengthBytes = intToBytes(str.length());
+            for (byte b : lengthBytes) {
+                dataBuilder.append((char) (b & 0xFF));
+            }
+            // 再添加字符串内容
+            dataBuilder.append(str);
+            return this;
+        }
+
+        public String next() {
+            if (currentPosition >= dataBuilder.length()) return null;
+            try {
+                // 读取前4个字节作为长度
+                byte[] lengthBytes = new byte[4];
+                for (int i = 0; i < 4; i++) {
+                    if (currentPosition >= dataBuilder.length()) {
+                        throw new IllegalStateException("数据格式错误：长度信息不完整");
+                    }
+                    lengthBytes[i] = (byte) dataBuilder.charAt(currentPosition++);
+                }
+
+                int length = bytesToInt(lengthBytes);
+                // 读取指定长度的字符串内容
+                if (currentPosition + length > dataBuilder.length()) {
+                    throw new IllegalStateException("数据格式错误：字符串内容不完整");
+                }
+
+                String result = dataBuilder.substring(currentPosition, currentPosition + length);
+                currentPosition += length;
+
+                return result;
+            } catch (Exception e) {
+                throw new RuntimeException("解析字符串失败", e);
+            }
+        }
+
+        // 传参null合并为字符串之后再拆分会返回字符串的"null"而不是null，用这个方法还原（什么你说你传的参数就是"null"？What can I say）
+        public String nextToNull() {
+            String str = next();
+            return Objects.equals(str, "null") ? null : str;
+        }
+
+        public boolean hasNext() {
+            return currentPosition < dataBuilder.length();
+        }
+
+        /**
+         * 截断已读取的数据，释放内存
+         */
+        public StrMerger truncate() {
+            if (currentPosition > 0 && currentPosition < dataBuilder.length()) {
+                dataBuilder = new StringBuilder(dataBuilder.substring(currentPosition));
+                return resetPosition();
+            } else if (currentPosition >= dataBuilder.length()) {
+                // 如果已经读取完所有数据，清空builder
+                dataBuilder.setLength(0);
+                return resetPosition();
+            }
+            return this;
+        }
+
+        public String getMergedString() {
+            return dataBuilder.toString();
+        }
+
+        public int remainingLength() {
+            return dataBuilder.length() - currentPosition;
+        }
+
+        public StrMerger resetPosition() {
+            currentPosition = 0;
+            return this;
+        }
+
+        private static byte[] intToBytes(int value) {
+            return new byte[]{
+                    (byte) (value >>> 24),
+                    (byte) (value >>> 16),
+                    (byte) (value >>> 8),
+                    (byte) value
+            };
+        }
+
+        private static int bytesToInt(byte[] bytes) {
+            if (bytes.length != 4) throw new IllegalArgumentException("字节数组长度必须为4");
+            return ((bytes[0] & 0xFF) << 24) |
+                    ((bytes[1] & 0xFF) << 16) |
+                    ((bytes[2] & 0xFF) << 8) |
+                    (bytes[3] & 0xFF);
+        }
+    }
+
+    public static String merge(String... strings) {
+        StrMerger merger = new StrMerger();
+        for (String str : strings) {
+            merger.append(str);
+        }
+        return merger.getMergedString();
+    }
+
+    public static String[] parse(String mergedString) {
+        StrMerger merger = new StrMerger(mergedString);
+        List<String> resultList = new ArrayList<>();
+        while (merger.hasNext()) resultList.add(merger.nextToNull());
+        return resultList.toArray(new String[0]);
     }
 }

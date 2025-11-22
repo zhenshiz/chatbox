@@ -4,6 +4,7 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -11,24 +12,16 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.*;
 
 public class ChatBoxPayload {
-    public record OpenScreenPayload(ResourceLocation dialogues, String group,
-                                    int index) implements CustomPacketPayload {
-        public static final Type<OpenScreenPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_screen"));
-        public static final StreamCodec<FriendlyByteBuf, OpenScreenPayload> CODEC = StreamCodec.composite(
-                ResourceLocation.STREAM_CODEC,
-                OpenScreenPayload::dialogues,
-                ByteBufCodecs.STRING_UTF8,
-                OpenScreenPayload::group,
-                ByteBufCodecs.INT,
-                OpenScreenPayload::index,
-                OpenScreenPayload::new
+    public record OpenScreen(ResourceLocation dialogues, String group, int index) implements CustomPacketPayload {
+        public static final Type<OpenScreen> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_screen"));
+        public static final StreamCodec<FriendlyByteBuf, OpenScreen> CODEC = StreamCodec.composite(
+                ResourceLocation.STREAM_CODEC,  OpenScreen::dialogues,
+                ByteBufCodecs.STRING_UTF8,      OpenScreen::group,
+                ByteBufCodecs.INT,              OpenScreen::index,
+                OpenScreen::new
         );
 
         @Override
@@ -36,7 +29,7 @@ public class ChatBoxPayload {
             return TYPE;
         }
 
-        public static void execute(OpenScreenPayload payload, ClientPlayNetworking.Context context) {
+        public static void execute(OpenScreen payload, ClientPlayNetworking.Context context) {
             ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index());
         }
     }
@@ -91,29 +84,25 @@ public class ChatBoxPayload {
         }
     }
 
-    public record SimplePayload(String name, String value) implements CustomPacketPayload {
-        public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("simple_payload"));
-        public static final StreamCodec<FriendlyByteBuf, SimplePayload> CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8, SimplePayload::name,
-                ByteBufCodecs.STRING_UTF8, SimplePayload::value,
-                SimplePayload::new
+    public record SyncEntityData(LinkedHashMap<Integer, CompoundTag> entities) implements CustomPacketPayload {
+        public static final Type<SyncEntityData> TYPE = new Type<>(ChatBox.ResourceLocationMod("sync_entity_data"));
+        public static final StreamCodec<FriendlyByteBuf, SyncEntityData> CODEC = StreamCodec.composite(
+                ByteBufCodecs.map(
+                        LinkedHashMap::new,
+                        ByteBufCodecs.INT,
+                        ByteBufCodecs.COMPOUND_TAG
+                ),
+                SyncEntityData::entities,
+                SyncEntityData::new
         );
-        private static final Map<String, Consumer<String>> handlers = new HashMap<>();
-        static {
-            handlers.put("open_dialog", s -> ChatBoxCommandUtil.clientOpenChatBox());
-            handlers.put("set_theme", ChatBoxCommandUtil::clientToggleTheme);
-            handlers.put("next_dialogue", s -> ChatBoxCommandUtil.clientNextDialogue());
-            handlers.put("auto_play", s -> ChatBoxCommandUtil.clientAutoPlay(Boolean.parseBoolean(s)));
-            handlers.put("set_is_screen", s -> ChatBoxCommandUtil.clientSetIsScreen(Boolean.parseBoolean(s)));
-        }
-
-        public static void execute(SimplePayload payload, ClientPlayNetworking.Context context) {
-            if (handlers.containsKey(payload.name())) handlers.get(payload.name()).accept(payload.value());
-        }
 
         @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        public @NotNull Type<? extends CustomPacketPayload> type() {
             return TYPE;
+        }
+
+        public static void execute(SyncEntityData payload, ClientPlayNetworking.Context context) {
+            ChatBoxUtil.setChatTargets(payload.entities());
         }
     }
 

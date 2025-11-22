@@ -5,9 +5,7 @@ import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
 
 public class FunctionalButton extends AbstractComponent<FunctionalButton> {
@@ -57,7 +55,8 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
         return this;
     }
 
-    public void click() {
+    /**@return 是否成功点击*/
+    public boolean click() {
         if (minecraft.player != null) {
             switch (type) {
                 case LOG -> minecraft.setScreen(ChatBoxUtil.historicalDialogue);
@@ -69,29 +68,30 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
                 //自动播放只在玩家手动点击这个按钮或快进按钮之后才停止
                 case AUTOPLAY -> chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
             }
+            return true;
         }
+        return false;
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         ResourceLocation texture = this.texture;
-        if (isSelect(mouseX, mouseY)) texture = hoverTexture;
+        if (isSelect) texture = hoverTexture;
         if (type == Type.AUTOPLAY && chatBoxScreen.autoPlay) texture = hoverTexture;
         if (type == Type.FASTFORWARD && chatBoxScreen.fastForward) texture = hoverTexture;
         if (texture != null) renderImage(guiGraphics, texture);
 
-        if (isSelect(mouseX, mouseY)) {
-            Component text = switch (type) {
-                case LOG -> Component.translatable("chatbox.button.log");
-                case FASTFORWARD -> Component.translatable("chatbox.button.fast_forward");
-                case AUTOPLAY -> Component.translatable("chatbox.button.autoplay");
+        if (isSelect) {
+            String key = switch (type) {
+                case LOG -> "chatbox.button.log";
+                case FASTFORWARD -> "chatbox.button.fast_forward";
+                case AUTOPLAY -> "chatbox.button.autoplay";
             };
             Vec2 position = getCurrentPosition();
-            RenderUtil.drawCenterScaleText(guiGraphics, text, (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, 1, false, CommonColors.WHITE);
+            RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(key), (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, (int) getResponsiveWidth(this.width), this.alignX, -1, false);
         }
     }
-
-    public void render(GuiGraphics guiGraphics, float pPartialTick) {}
 
     public enum Type {
         LOG,

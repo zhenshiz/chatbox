@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.client;
 
 import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -23,13 +24,15 @@ public class ChatBoxClient implements ClientModInitializer {
     }
 
     private static void registerReceiver() {
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreenPayload.TYPE, ChatBoxPayload.OpenScreenPayload::execute);
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreen.TYPE, ChatBoxPayload.OpenScreen::execute);
 
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.TYPE, ChatBoxPayload.AllChatBoxThemeToClient::execute);
 
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ChatBoxPayload.AllChatBoxDialoguesToClient::execute);
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SimplePayload.TYPE, ChatBoxPayload.SimplePayload::execute);
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.TYPE, ChatBoxPayload.SyncEntityData::execute);
+
+        ClientPlayNetworking.registerGlobalReceiver(SimplePayload.TYPE, SimplePayload::execute);
     }
 
     private void registerRenderEvents() {

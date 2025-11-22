@@ -4,21 +4,26 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
-import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
-import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+
+import java.util.*;
 
 public class ChatBoxCommand {
     public static final Component ERROR_ENTITY_ONLY = Component.translatable("command.target.entity.only");
@@ -36,12 +41,13 @@ public class ChatBoxCommand {
                                 .then(Commands.argument("Group", StringArgumentType.string())
                                         .suggests(((context, builder) -> {
                                             ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
-                                            ChatBoxDialoguesLoader.dialoguesGroupMap.get(dialogues).forEach(builder::suggest);
+                                            ChatBoxDialoguesLoader.dialoguesGroupMap.getOrDefault(dialogues, new HashSet<>()).forEach(builder::suggest);
                                             return builder.buildFuture();
                                         }))
                                         .executes(context -> ChatBoxCommand.skipDialogues(context, 0))
                                         .then(Commands.argument("Index", IntegerArgumentType.integer())
                                                 .executes(context -> ChatBoxCommand.skipDialogues(context, IntegerArgumentType.getInteger(context, "Index")))
+                                                .then(buildTargets(1, 100))
                                         )
                                 )
                         )
@@ -71,12 +77,32 @@ public class ChatBoxCommand {
         );
     }
 
+    private static RequiredArgumentBuilder<CommandSourceStack, EntitySelector> buildTargets(int i, int max) {
+        var builder = Commands.argument("Target" + i, EntityArgument.entity())
+                .executes(context -> skipDialogues(context, IntegerArgumentType.getInteger(context, "Index"), getTargets(context, i)));
+        if (i <= max) builder.then(buildTargets(i + 1, max));
+        return builder;
+    }
+
+    private static List<Entity> getTargets(CommandContext<CommandSourceStack> context, int num) {
+        List<Entity> entities = new ArrayList<>();
+        for (int i = 1; i <= num; i++) { // 注意这个是从1开始
+            Entity entity = null;
+            try {
+                entity = EntityArgument.getEntity(context, "Target" + i);
+            } catch (CommandSyntaxException ignored) {}
+            // 防止重复添加目标
+            if (entity != null && !entities.contains(entity)) entities.add(entity);
+        }
+        return entities;
+    }
+
     private static int setIsScreen(CommandContext<CommandSourceStack> context) {
         boolean isScreen = BoolArgumentType.getBool(context, "IsScreen");
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("set_is_screen", String.valueOf(isScreen)));
+            ChatBoxCommandUtil.serverSetIsScreen(player, isScreen);
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -89,7 +115,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("auto_play", String.valueOf(autoPlay)));
+            ChatBoxCommandUtil.serverAutoPlay(player, autoPlay);
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -101,7 +127,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("next_dialogue", ""));
+            ChatBoxCommandUtil.serverNextDialogue(player);
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);
@@ -114,7 +140,7 @@ public class ChatBoxCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("set_theme", theme.toString()));
+            ChatBoxCommandUtil.serverToggleTheme(player, theme);
             context.getSource().sendSuccess(() -> Component.translatable("commands.toggle.theme"), true);
             return 1;
         } else {
@@ -123,18 +149,23 @@ public class ChatBoxCommand {
         }
     }
 
+    public static final Map<UUID, List<Entity>> TARGETS_MAP = new HashMap<>();
+
     private static int skipDialogues(CommandContext<CommandSourceStack> context, int index) {
+        return skipDialogues(context, index, List.of());
+    }
+
+    private static int skipDialogues(CommandContext<CommandSourceStack> context, int index, List<Entity> targets) {
         ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
         String group = StringArgumentType.getString(context, "Group");
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
             //判断玩家的触发次数是否为0，为0则不触发对话
-            ChatBoxTriggerCount counts = ChatBox.getTriggerCounts();
-            int count = counts.getPlayerMaxTriggerCount(player, dialogues);
+            int count = ChatBoxCommandUtil.serverGetMaxTriggerCount(player, dialogues);
             if (count != 0) {
-                counts.setPlayerMaxTriggerCount(player, dialogues, count - 1);
-                ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreenPayload(dialogues, group, index));
+                ChatBoxCommandUtil.serverSetMaxTriggerCount(player, dialogues, count - 1);
+                ChatBoxCommandUtil.serverSkipDialogues(player, dialogues, group, index, targets);
                 context.getSource().sendSuccess(() -> Component.translatable("commands.skip.dialogues", group, index + 1), true);
             }
             return 1;
@@ -147,7 +178,7 @@ public class ChatBoxCommand {
     private static int openChatBox(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
-            ServerPlayNetworking.send(player, new ChatBoxPayload.SimplePayload("open_dialog", ""));
+            ChatBoxCommandUtil.serverOpenChatBox(player);
             return 1;
         } else {
             context.getSource().sendFailure(ERROR_PLAYER_ONLY);

@@ -92,8 +92,8 @@
     "height": 8,
     "alignX": "right",
     "alignY": "top",
-    "optionChatX": -12,
-    "optionChatY": -2,
+    "optionChatX": 6,
+    "optionChatY": 0,
     "textAlign": "left"
   },
   "dialogBox": {

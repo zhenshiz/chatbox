@@ -85,6 +85,7 @@ public class Video extends AbstractComponent<Video> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (!isPlaying()) return;
 
         if (!success && getState() == State.PLAYING) success = true;
@@ -245,6 +246,8 @@ public class Video extends AbstractComponent<Video> {
             player.start(uri);
             return;
         }
+        // 视频正常播放结束，触发ON_END事件
+        fireEvent("ON_END");
         close();
     }
 

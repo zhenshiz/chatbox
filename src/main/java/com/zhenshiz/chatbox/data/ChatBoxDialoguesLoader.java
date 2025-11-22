@@ -8,8 +8,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;
@@ -29,8 +28,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader implements IdentifiableResourceReloadListener {
-    private static final Gson GSON =
-            (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //记录所有的对话文件
     public static final Map<ResourceLocation, String> dialoguesMap = new HashMap<>();
     //记录对应对话文件里的组名
@@ -74,11 +72,10 @@ public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader implements Iden
                         T t = (T) instance;
                         if (testTrigger.test(t)) {
                             //判断玩家的触发次数是否为0，为0则不触发对话
-                            ChatBoxTriggerCount counts = ChatBox.getTriggerCounts();
-                            int count = counts.getPlayerMaxTriggerCount(player, rl);
+                            int count = ChatBoxCommandUtil.serverGetMaxTriggerCount(player, rl);
                             if (count != 0) {
-                                counts.setPlayerMaxTriggerCount(player, rl, count - 1);
-                                ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreenPayload(rl, group, 0));
+                                ChatBoxCommandUtil.serverSetMaxTriggerCount(player, rl, count - 1);
+                                ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
                             }
                         }
                     } catch (ClassCastException ignored) {}
