@@ -139,6 +139,7 @@ public class ChatBoxUtil {
                     .setIsPause(chatBoxDialogues.isPause)
                     .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip)
                     .setAnimationFPS(chatBoxDialogues.animationFPS)
+                    .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
                     .playVoice(dialog.sound)
                     // 一切就绪，再触发ON_START事件
                     .setEvents(ChatBoxDialogues.transform(dialog.renderEvents)).fireEvent("ON_START");

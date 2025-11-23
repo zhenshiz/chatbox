@@ -124,6 +124,11 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
+    public ChatBoxScreen setAutoPlayTick(int autoPlayTick) {
+        if (autoPlayTick > 0) this.tickAutoPlay = autoPlayTick;
+        return this;
+    }
+
     public ChatBoxScreen setKeyPromptRender(KeyPromptRender keyPromptRender) {
         if (keyPromptRender != null) this.keyPromptRender = keyPromptRender;
         return this;
@@ -319,7 +324,11 @@ public class ChatBoxScreen extends Screen {
         if (autoPlay) {
             // MC不在暂停游戏时tick声音，那我自己tick一下
             SoundUtil.tickWhenPaused();
-            if (SoundUtil.isSoundActive(voice)) return;
+            if (SoundUtil.isSoundActive(voice)) {
+                // 有语音播放时，自动播放间隔重置为20tick
+                if (tickAutoPlay > 20) setAutoPlayTick(20);
+                return;
+            }
             if (!dialogBox.isAllOver || video != null && video.isPlaying()) {
                 return;
             }

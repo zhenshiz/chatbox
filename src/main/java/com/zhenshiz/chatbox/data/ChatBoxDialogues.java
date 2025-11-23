@@ -28,6 +28,7 @@ public class ChatBoxDialogues {
     public String theme;
     public Boolean isScreen;
     public float animationFPS = 60F;
+    public int autoPlayTick = 20;
 
     public static List<ComponentEvent> transform(List<Dialogues.RenderEvent> renderEvents) {
         return renderEvents.stream().map(Dialogues.RenderEvent::transform).toList();

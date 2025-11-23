@@ -16,6 +16,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -373,11 +374,11 @@ public class RenderUtil {
 
     public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
         guiGraphics.pose().pushPose();
+        float centerX = x + width / 2;
+        float centerY = y + height / 2;
         // 应用旋转
-        guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + width / 2, y + height / 2, 0);
-        x = (x / scale);
-        y = (y / scale);
-        guiGraphics.pose().scale(scale, scale, scale);
+        guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
+        guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
         renderImageInner(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
         for (var attachment : attachments) {
             var a = attachment.mapParameter();
@@ -394,11 +395,11 @@ public class RenderUtil {
         PoseStack pose = guiGraphics.pose();
         ResourceLocation skin = getSkin(input).texture();
         pose.pushPose();
+        float centerX = x + (float) size / 2;
+        float centerY = y + (float) size / 2;
         // 应用旋转
-        guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + (float) size / 2, y + (float) size / 2, 0);
-        x = (int) (x / scale);
-        y = (int) (y / scale);
-        guiGraphics.pose().scale(scale, scale, scale);
+        guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
+        guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
         guiGraphics.blit(skin, x, y, size, size, 8, 8, 8, 8, 64, 64);
         RenderSystem.enableBlend();
         guiGraphics.blit(skin, x - 1, y - 1, size + 2, size + 2, 40, 8, 8, 8, 64, 64);
@@ -408,11 +409,11 @@ public class RenderUtil {
 
     public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
         guiGraphics.pose().pushPose();
+        float centerX = x + 8f;
+        float centerY = y + 8f;
         // 应用旋转
-        guiGraphics.pose().rotateAround(new org.joml.Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), x + 16f / 2, y + 16f / 2, 0);
-        x = (int) (x / scale);
-        y = (int) (y / scale);
-        guiGraphics.pose().scale(scale, scale, scale);
+        guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
+        guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
         guiGraphics.renderItem(item, x, y);
         guiGraphics.renderItemDecorations(minecraft.font, item, x, y, text);
         guiGraphics.pose().popPose();

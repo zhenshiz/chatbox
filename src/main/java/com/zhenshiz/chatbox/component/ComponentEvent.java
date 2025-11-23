@@ -116,6 +116,10 @@ public class ComponentEvent {
         });
 
         registerClientEvent("SET_AUTOPLAY", (c, s) -> chatBoxScreen.autoPlay = Boolean.parseBoolean(s));
+
+        registerClientEvent("SCALE", (c, s) -> {
+            if (c instanceof Portrait portrait) portrait.setScale(Float.parseFloat(s));
+        });
     }
 
     public static int executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {

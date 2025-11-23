@@ -148,13 +148,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             //未全部加载时，点击显示所有文本
             this.charIndex = this.textBuffer.length - 1;
             setAllOver(true);
-        } else {
-            //全部点击时触发
-            if (gotoNext && minecraft.player != null) {
-                //只有没有选项的时候才能通过点击空白处跳转到下一句话
-                skipDialogues(dialoguesResourceLocation, group, index + 1);
-                chatBoxScreen.tickAutoPlay = 20;
-            }
+        } else if (gotoNext) {
+            skipDialogues(dialoguesResourceLocation, group, index + 1);
         }
     }
 
