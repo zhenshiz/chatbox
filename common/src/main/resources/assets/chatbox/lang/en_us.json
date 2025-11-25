@@ -47,5 +47,12 @@
   "chatbox.test.option.6": "Set weather to rainy",
   "chatbox.test.option.7": "Set weather to clear",
   "chatbox.test.option.8": "Set weather to thunder",
-  "chatbox.test.tooltip.1": "Unlocked when you have a netherite sword in your first slot"
+  "chatbox.test.tooltip.1": "Unlocked when you have a netherite sword in your first slot",
+
+  "chatbox.debug.tip1": "Debug mode enabled. Hold Shift to display component borders and cursor position",
+  "chatbox.debug.tip2": "While holding Ctrl:",
+  "chatbox.debug.tip3": "  ①Displays information for the hovered component",
+  "chatbox.debug.tip4": "  ②Left-click and drag to move components",
+  "chatbox.debug.tip5": "  ③Mouse wheel scroll to scale portrait components",
+  "chatbox.debug.tip6": "Ctrl + C to copy current hovered component information"
 }

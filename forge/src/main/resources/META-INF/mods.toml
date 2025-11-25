@@ -7,7 +7,7 @@ license = "GPL-3.0 license"
 modId = "chatbox"
 version = "${version}"
 displayName = "ChatBox"
-authors = "zhenshiz"
+authors = "zhenshiz, Amotassic"
 description = '''GalGame DialogBox'''
 logoFile = "assets/chatbox/icon.png"
 
