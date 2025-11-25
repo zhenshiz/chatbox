@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.component;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
+import com.zhenshiz.chatbox.utils.common.StrUtil;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.component.DataComponents;
@@ -137,6 +138,40 @@ public class Portrait extends AbstractComponent<Portrait> {
         this.startCustomAnimation.scale = scale;
         this.startCustomAnimation.opacity = opacity;
         this.startCustomAnimation.angle = angle;
+    }
+
+    public int getX1() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveWidth(getCurrentPosition().x + (1 - scale) * width / 2);
+            case PLAYER_HEAD -> getResponsiveWidth(getCurrentPosition().x) + (1 - scale) * (getResponsiveWidth(width) + getResponsiveHeight(height)) / 2;
+            case ITEM -> getResponsiveWidth(getCurrentPosition().x) + (1 - scale) * 8;
+        };
+    }
+    public int getX2() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveWidth(getCurrentPosition().x + (1 + scale) * width / 2);
+            case PLAYER_HEAD -> getResponsiveWidth(getCurrentPosition().x) + (1 + scale) * (getResponsiveWidth(width) + getResponsiveHeight(height)) / 2;
+            case ITEM -> getResponsiveWidth(getCurrentPosition().x) + (1 + scale) * 8;
+        };
+    }
+    public int getY1() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveHeight(getCurrentPosition().y + (1 - scale) * height / 2);
+            case PLAYER_HEAD -> getResponsiveHeight(getCurrentPosition().y) + (1 - scale) * (getResponsiveHeight(height) + getResponsiveWidth(width)) / 2;
+            case ITEM -> getResponsiveHeight(getCurrentPosition().y) + (1 - scale) * 8;
+        };
+    }
+    public int getY2() {
+        return (int) switch (type) {
+            case TEXTURE -> getResponsiveHeight(getCurrentPosition().y + (1 + scale) * height / 2);
+            case PLAYER_HEAD -> getResponsiveHeight(getCurrentPosition().y) + (1 + scale) * (getResponsiveHeight(height) + getResponsiveWidth(width)) / 2;
+            case ITEM -> getResponsiveHeight(getCurrentPosition().y) + (1 + scale) * 8;
+        };
+    }
+
+    @Override
+    public String getDebugInfo() {
+        return super.getDebugInfo() + StrUtil.format(", \"scale\": {}", scale);
     }
 
     @Override

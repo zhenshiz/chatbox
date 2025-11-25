@@ -37,7 +37,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     //选项连接的下一个对话
     public String next;
     //记录选项原始y位置
-    private float originY;
+    public float originY;
     //选项在chatBoxScreen被渲染时的索引，小于0不渲染也不能点击（隐藏）
     public int renderIndex = 0;
 
