@@ -4,6 +4,7 @@ import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -150,17 +151,21 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         });
     }
 
-    public boolean isSelect(float width, float height, float x, float y, double mouseX, double mouseY) {
-        return mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height;
-    }
-
     public boolean isSelect(double mouseX, double mouseY) {
-        Vec2 position = getCurrentPosition();
-        return isSelect(getResponsiveWidth(this.width), getResponsiveHeight(this.height), getResponsiveWidth((int) position.x), getResponsiveHeight((int) position.y), mouseX, mouseY);
+        return mouseX >= getX1() && mouseX <= getX2() && mouseY >= getY1() && mouseY <= getY2();
     }
 
     protected String parseText(String input) {
         return ChatBoxUtil.parseText(input, false);
+    }
+
+    public int getX1() {return (int) getResponsiveWidth(getCurrentPosition().x);}
+    public int getX2() {return (int) getResponsiveWidth(getCurrentPosition().x + width);}
+    public int getY1() {return (int) getResponsiveHeight(getCurrentPosition().y);}
+    public int getY2() {return (int) getResponsiveHeight(getCurrentPosition().y + height);}
+
+    public String getDebugInfo() {
+        return StrUtil.format("\"x\": {}, \"y\": {}, \"width\": {}, \"height\": {}, \"renderOrder\": {}", x, y, width, height, renderOrder);
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {

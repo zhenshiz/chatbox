@@ -69,10 +69,13 @@ public class ChatBoxRender {
         if (isRenderChatBox()) {
             if (event.getAction() == 1 && event.getButton() == 1) {
                 if (chatBoxScreen.getRenderOptionCount() > 0 && chatBoxScreen.dialogBox.isAllOver) {
-                    chatBoxScreen.chatOptions.stream().filter(option -> option.renderIndex == selectIndex).findFirst().ifPresent(ChatOption::click);
-                    selectIndex = 0;
+                    for (ChatOption option : chatBoxScreen.chatOptions) {
+                        if (option.renderIndex == selectIndex && option.click()) {
+                            selectIndex = 0;
+                            return;
+                        }
+                    }
                 }
-
                 if (chatBoxScreen.keyPromptRender.visible) chatBoxScreen.dialogBoxClick();
             }
         }

@@ -5,11 +5,15 @@ import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import lombok.Setter;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -17,6 +21,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -48,6 +53,18 @@ public class ChatBoxScreen extends Screen {
     private long lastUpdateTime = 0;
 
     public List<ComponentEvent> events = new ArrayList<>();
+
+    @Setter private boolean debug = false;
+    @Setter private AbstractComponent<?> underCursor = null;
+    private static final Minecraft minecraft = Minecraft.getInstance();
+    private static final List<Component> debugTips = List.of(
+            Component.translatable("chatbox.debug.tip1").withStyle(ChatFormatting.BOLD),
+            Component.translatable("chatbox.debug.tip2").withStyle(ChatFormatting.BOLD, ChatFormatting.RED),
+            Component.translatable("chatbox.debug.tip3").withStyle(ChatFormatting.AQUA),
+            Component.translatable("chatbox.debug.tip4").withStyle(ChatFormatting.AQUA),
+            Component.translatable("chatbox.debug.tip5").withStyle(ChatFormatting.AQUA),
+            Component.translatable("chatbox.debug.tip6").withStyle(ChatFormatting.BOLD)
+    );
 
     public ChatBoxScreen() {
         super(Component.nullToEmpty("ChatBoxScreen"));
@@ -101,7 +118,7 @@ public class ChatBoxScreen extends Screen {
     public ChatBoxScreen setVideo(Video video) {
         if (!ChatBox.isWaterMediaLoaded()) return this;
         if (this.video != null) this.video.close();
-        if (video != null) this.video = video;
+        this.video = video;
         return this;
     }
 
@@ -127,6 +144,11 @@ public class ChatBoxScreen extends Screen {
 
     public ChatBoxScreen setAnimationFPS(float fps) {
         if (fps > 0) updateDuration = (long) (1000 / fps);
+        return this;
+    }
+
+    public ChatBoxScreen setAutoPlayTick(int autoPlayTick) {
+        if (autoPlayTick > 0) this.tickAutoPlay = autoPlayTick;
         return this;
     }
 
@@ -221,20 +243,58 @@ public class ChatBoxScreen extends Screen {
             RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
         }
 
-        getRenderList(isScreen).forEach(component -> {
+        List<AbstractComponent<?>> renderList = getRenderList(isScreen);
+        renderList.forEach(component -> {
             if (!component.hidden) {
                 if (shouldUpdatePortrait && component instanceof Portrait portrait) portrait.updateAnimationTick();
                 component.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
             }
+            if (debug && hasShiftDown()) {
+                int x1 = component.getX1(); int x2 = component.getX2();
+                int y1 = component.getY1(); int y2 = component.getY2();
+                RenderUtil.drawLine(guiGraphics, x1, y1, x2, y1, -65536);
+                RenderUtil.drawLine(guiGraphics, x1, y2, x2, y2, -65536);
+                RenderUtil.drawLine(guiGraphics, x1, y1, x1, y2, -65536);
+                RenderUtil.drawLine(guiGraphics, x2, y1, x2, y2, -65536);
+            }
         });
+        if (video != null && !video.isPlaying()) setVideo(null);
 
         NeoForge.EVENT_BUS.post(new ChatBoxRenderEvent.Post(guiGraphics));
+
+        if (debug) { // 设置鼠标下最上层的组件
+            for (int i = renderList.size() - 1; i >= 0; i--) {
+                AbstractComponent<?> component = renderList.get(i);
+                if (component.isSelect) {
+                    setUnderCursor(component);
+                    break;
+                }
+                setUnderCursor(null);
+            }
+        }
     }
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderInner(guiGraphics, pMouseX, pMouseY, pPartialTick, true);
         super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+        if (debug) {
+            var font = minecraft.font;
+            if (underCursor != null && hasControlDown()) {
+                guiGraphics.renderTooltip(font, Component.literal(underCursor.getDebugInfo()), pMouseX, pMouseY);
+            } else if (hasShiftDown()) {
+                guiGraphics.renderTooltip(font, Component.literal(StrUtil.format("\"x\": {}, \"y\": {}", pMouseX / (float) RenderUtil.screenWidth() * 100, pMouseY / (float) RenderUtil.screenHeight() * 100)), pMouseX, pMouseY);
+            }
+            if (!hasShiftDown() && !hasControlDown()) {
+                int y = 2;
+                for (Component debugTip : debugTips) {
+                    // 绘制文本背景
+                    guiGraphics.fill(1, y - 1, 1 + font.width(debugTip) + 2, y + font.lineHeight, 0xFF202020);
+                    guiGraphics.drawString(font, debugTip, 2, y, -1, false);
+                    y += 10;
+                }
+            }
+        }
     }
 
     public boolean shouldGotoNext() {
@@ -251,6 +311,7 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (debug && hasControlDown()) return true;
         if (hideDialogBox) {
             hideDialogBox = false;
             return true;
@@ -281,6 +342,14 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (debug && hasControlDown()) {
+            if (underCursor instanceof Portrait portrait) {
+                // 防止缩太小了就消失了
+                float toSet = portrait.scale + (scrollY > 0 ? 0.1f : -0.1f);
+                if (toSet >= 0.1f) portrait.setScale(toSet);
+            }
+            return true;
+        }
         fastForward = false;
         if (hideDialogBox) {
             hideDialogBox = false;
@@ -301,12 +370,36 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_F3) setDebug(!debug);
+        if (isCopy(keyCode) && underCursor != null) {
+            minecraft.keyboardHandler.setClipboard(underCursor.getDebugInfo());
+        }
         if (video != null && video.isPlaying()) video.keyPressed(keyCode, scanCode, modifiers);
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (debug && hasControlDown() && underCursor != null) {
+            float addX = (float) dragX * 100 / RenderUtil.screenWidth();
+            float addY = (float) dragY * 100 / RenderUtil.screenHeight();
+            if (underCursor instanceof ChatOption) { // 处理选项特殊情况
+                for (ChatOption chatOption : chatOptions) {
+                    chatOption.x += addX;
+                    chatOption.originY += addY;
+                }
+            } else {
+                underCursor.x += addX;
+                underCursor.y += addY;
+            }
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
     public void onClose() {
+        setDebug(false);
+        ChatBoxRender.isOpenChatBox = false;
         autoPlay = false;
         fastForward = false;
         hideDialogBox = false;
@@ -325,7 +418,11 @@ public class ChatBoxScreen extends Screen {
         if (autoPlay) {
             // MC不在暂停游戏时tick声音，那我自己tick一下
             SoundUtil.tickWhenPaused();
-            if (SoundUtil.isSoundActive(voice)) return;
+            if (SoundUtil.isSoundActive(voice)) {
+                // 有语音播放时，自动播放间隔重置为20tick
+                if (tickAutoPlay > 20) setAutoPlayTick(20);
+                return;
+            }
             if (!dialogBox.isAllOver || video != null && video.isPlaying()) {
                 return;
             }

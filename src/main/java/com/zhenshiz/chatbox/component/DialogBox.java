@@ -25,6 +25,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     public float textX;
     //文本y位置
     public float textY;
+    //文本对齐方式
+    public AlignX textAlign = AlignX.LEFT;
     //名称
     public Component name;
     //名称x位置
@@ -69,6 +71,11 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             if (ChatBox.isTextAnimatorLoaded()) this.text = this.text.replaceAll("<typewriter>", "");
             textToTextBuffer();
         }
+        return this;
+    }
+
+    public DialogBox setTextAlign(String textAlign) {
+        if (textAlign != null) this.textAlign = AlignX.of(textAlign);
         return this;
     }
 
@@ -179,11 +186,24 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
+        int lineWidth = (int) getResponsiveWidth(this.lineWidth);
         if (StrUtil.isNotEmpty(this.name.getString())) {
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(StrUtil.format("[{}]", name.getString()))), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(StrUtil.format("[{}]", name.getString()))), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), lineWidth, CommonColors.WHITE);
         }
         if (StrUtil.isNotEmpty(this.text)) {
-            guiGraphics.drawWordWrap(minecraft.font, Component.nullToEmpty(parseText(this.textBuffer[this.charIndex])), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), (int) getResponsiveWidth(this.lineWidth), CommonColors.WHITE);
+            Component component = Component.nullToEmpty(parseText(this.textBuffer[this.charIndex]));
+            int renderY = (int) getResponsiveHeight(y + this.textY);
+            int boxWidth = (int) getResponsiveWidth(this.width);
+            for (var part : minecraft.font.split(component, lineWidth)) {
+                int renderX = (int) getResponsiveWidth(x + this.textX);
+                switch (this.textAlign) {
+                    case LEFT -> {}
+                    case CENTER -> renderX += (boxWidth - minecraft.font.width(part)) / 2;
+                    case RIGHT  -> renderX +=  boxWidth - minecraft.font.width(part);
+                }
+                guiGraphics.drawString(minecraft.font, part, renderX, renderY, CommonColors.WHITE, false);
+                renderY += minecraft.font.lineHeight;
+            }
         }
         poseStack.popPose();
     }

@@ -44,5 +44,12 @@
   "chatbox.test.option.6": "天气调为雨天",
   "chatbox.test.option.7": "天气调为晴天",
   "chatbox.test.option.8": "天气调为雷雨",
-  "chatbox.test.tooltip.1": "需要物品栏第一格是下界合金剑才能解锁"
+  "chatbox.test.tooltip.1": "需要物品栏第一格是下界合金剑才能解锁",
+
+  "chatbox.debug.tip1": "已启用调试模式，按住Shift键显示组件边框和鼠标位置",
+  "chatbox.debug.tip2": "按住Ctrl键时：",
+  "chatbox.debug.tip3": "  ①显示当前鼠标悬停的组件信息",
+  "chatbox.debug.tip4": "  ②鼠标左键拖动组件可以移动组件",
+  "chatbox.debug.tip5": "  ③滚动鼠标滚轮可以缩放立绘组件",
+  "chatbox.debug.tip6": "Ctrl + C 复制当前鼠标悬停的组件信息"
 }
