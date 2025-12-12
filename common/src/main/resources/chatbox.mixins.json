@@ -6,6 +6,7 @@
   "client": [
     "client.MinecraftMixin",
     "client.MouseHandlerMixin",
+    "client.ScreenMixin",
     "client.SoundEngineAccessor",
     "client.SoundInstanceAccessor"
   ],

@@ -20,7 +20,6 @@ public class ChatBoxRenderCommon {
     public static boolean shouldRender = false;
     //当前选择的选项序号
     public static int selectIndex = 0;
-    private final static Minecraft minecraft = Minecraft.getInstance();
 
     public static void onHudRender(GuiGraphics guiGraphics, float partialTick) {
         if (isRenderChatBox()) {
@@ -85,9 +84,7 @@ public class ChatBoxRenderCommon {
         return false;
     }
 
-    public static boolean isRenderChatBox() {
-        return !ChatBoxUtil.isScreen && shouldRender && minecraft.screen == null && chatBoxScreen.dialogBox != null;
-    }
+    public static boolean isRenderChatBox() {return !ChatBoxUtil.isScreen && shouldRender;}
 
     public static void onClose() {
         isOpenChatBox = false;

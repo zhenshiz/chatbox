@@ -246,10 +246,7 @@ public class ChatBoxScreen extends Screen {
             if (debug && hasShiftDown()) {
                 int x1 = component.getX1(); int x2 = component.getX2();
                 int y1 = component.getY1(); int y2 = component.getY2();
-                RenderUtil.drawLine(guiGraphics, x1, y1, x2, y1, -65536);
-                RenderUtil.drawLine(guiGraphics, x1, y2, x2, y2, -65536);
-                RenderUtil.drawLine(guiGraphics, x1, y1, x1, y2, -65536);
-                RenderUtil.drawLine(guiGraphics, x2, y1, x2, y2, -65536);
+                RenderUtil.drawBox(guiGraphics, x1, y1, x2 - x1, y2 - y1, -65536);
             }
         });
         if (video != null && !video.isPlaying()) setVideo(null);

@@ -21,8 +21,8 @@ public class ChatBoxSettingLoader {
 
     @SubscribeEvent
     public static void chatBoxLoader(AddReloadListenerEvent event) {
-        event.addListener(ChatBoxThemeLoader.INSTANCE);
-        event.addListener(ChatBoxDialoguesLoader.INSTANCE);
+        event.addListener(new ChatBoxThemeLoader());
+        event.addListener(new ChatBoxDialoguesLoader());
     }
 
     @SubscribeEvent

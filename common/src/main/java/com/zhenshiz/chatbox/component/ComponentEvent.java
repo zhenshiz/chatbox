@@ -131,9 +131,11 @@ public class ComponentEvent {
         var dispatcher = server.getCommands().getDispatcher();
         try {
             return dispatcher.execute(dispatcher.parse(command, commandSource));
+        } catch (UnsupportedOperationException e) {
+            server.getCommands().performPrefixedCommand(commandSource, command);
         } catch (CommandSyntaxException e) {
             ChatBox.LOGGER.error("Error executing command on server: {}", command, e);
-            return 0;
         }
+        return 0;
     }
 }
