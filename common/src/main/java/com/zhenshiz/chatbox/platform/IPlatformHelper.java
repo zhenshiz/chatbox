@@ -1,8 +1,8 @@
 package com.zhenshiz.chatbox.platform;
 
-import com.zhenshiz.chatbox.network.CustomPacket;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -31,15 +31,13 @@ public interface IPlatformHelper {
 
     File getGameDirectory();
 
-    void runOnClient(Runnable runnable);
+    void sendToServer(CustomPacketPayload packet);
 
-    void sendToServer(CustomPacket packet);
-
-    void sendToClient(ServerPlayer player, CustomPacket packet);
+    void sendToClient(ServerPlayer player, CustomPacketPayload packet);
 
     boolean postRenderEventPre(GuiGraphics guiGraphics);
 
     void postRenderEventPost(GuiGraphics guiGraphics);
 
-    void postSkipChatEvent(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets);
+    void postSkipChatEvent(Player player, Identifier identifier, String group, Integer index, List<Entity> targets);
 }

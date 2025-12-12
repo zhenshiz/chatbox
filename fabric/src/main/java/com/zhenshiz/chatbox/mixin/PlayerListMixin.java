@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.mixin;
 import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerListMixin {
 
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
-    public void placeNewPlayer(Connection netManager, ServerPlayer player, CallbackInfo ci) {
+    public void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie commonListenerCookie, CallbackInfo ci) {
         ChatBoxSettingLoader.initializeChatBoxScreen(player);
     }
 }

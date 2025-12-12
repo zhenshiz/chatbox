@@ -9,8 +9,10 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,18 +88,18 @@ public class ComponentEvent {
             var commands = value.split(";");
             for (var command : commands) {
                 command = command.trim();
-                if (!command.isBlank()) executeCommand(player.server, player, command);
+                if (!command.isBlank()) executeCommand(player.level().getServer(), player, command);
             }
         }));
 
         registerClientEvent("JUMP", (c, next) -> { //跳转到指定的对话或者其它模块的对话
             if (StrUtil.isEmpty(next)) {            //跳转下一句话
-                skipDialogues(dialoguesResourceLocation, group, index + 1);
+                skipDialogues(dialoguesIdentifier, group, index + 1);
             } else if (StrUtil.isInteger(next)) {   //如果为数字跳转到指定序号的对话
                 int index = Integer.parseInt(next);
-                skipDialogues(dialoguesResourceLocation, group, index);
+                skipDialogues(dialoguesIdentifier, group, index);
             } else {                                //如果是英文则跳转到指定模块的对话
-                skipDialogues(dialoguesResourceLocation, next);
+                skipDialogues(dialoguesIdentifier, next);
             }
         });
 
@@ -125,9 +127,11 @@ public class ComponentEvent {
     public static int executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {
         // 创建命令源，并赋予2级权限，且禁止输出
         CommandSourceStack commandSource;
-        if (entity != null) commandSource = entity.createCommandSourceStack();
-        else commandSource = server.createCommandSourceStack();
-        commandSource = commandSource.withPermission(Commands.LEVEL_GAMEMASTERS).withSuppressedOutput();
+        if (entity != null) {
+            if (entity instanceof ServerPlayer player) commandSource = player.createCommandSourceStack();
+            else commandSource = entity.createCommandSourceStackForNameResolution((ServerLevel) entity.level());
+        } else commandSource = server.createCommandSourceStack();
+        commandSource = commandSource.withPermission(LevelBasedPermissionSet.GAMEMASTER).withSuppressedOutput();
         var dispatcher = server.getCommands().getDispatcher();
         try {
             return dispatcher.execute(dispatcher.parse(command, commandSource));

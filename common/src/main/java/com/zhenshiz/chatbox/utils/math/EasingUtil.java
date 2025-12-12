@@ -5,7 +5,6 @@ public class EasingUtil {
     public static float easingFunction(float min, float max, double currentTime, double duration, Easing easing) {
         double progress = currentTime / duration;
         progress = Math.min(1.0, Math.max(0.0, progress));
-        if (easing == null) return (float) (min + (max - min) * progress);
 
         double easedProgress = switch (easing) {
             case EASE_IN_SINE -> easeInSine(progress);
@@ -38,6 +37,7 @@ public class EasingUtil {
             case EASE_IN_BOUNCE -> easeInBounce(progress);
             case EASE_OUT_BOUNCE -> easeOutBounce(progress);
             case EASE_IN_OUT_BOUNCE -> easeInOutBounce(progress);
+            case null -> progress;
         };
         return (float) (min + (max - min) * easedProgress);
     }

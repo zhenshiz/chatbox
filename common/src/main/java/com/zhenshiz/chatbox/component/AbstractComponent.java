@@ -7,7 +7,7 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec2;
 
 import java.util.ArrayList;
@@ -140,15 +140,13 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return new Vec2(alignX.getPositionX(this), alignY.getPositionY(this));
     }
 
-    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture) {
+    protected void renderImage(GuiGraphics guiGraphics, Identifier texture) {
         renderImage(guiGraphics, texture, 1f, List.of());
     }
 
-    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale, List<ChatBoxTheme.Portrait.Attachment> attachments) {
-        RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> {
-            Vec2 position = getCurrentPosition();
-            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, angle, attachments);
-        });
+    protected void renderImage(GuiGraphics guiGraphics, Identifier texture, Float scale, List<ChatBoxTheme.Portrait.Attachment> attachments) {
+        Vec2 position = getCurrentPosition();
+        RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, opacity, angle, attachments);
     }
 
     public boolean isSelect(double mouseX, double mouseY) {
@@ -205,6 +203,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
                 case LEFT -> x;
                 case CENTER -> x + 50 - width / 2;
                 case RIGHT -> x + 100 - width;
+                case null -> x;
             };
         }
     }
@@ -226,6 +225,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
                 case TOP -> y;
                 case CENTER -> y + 50 - height / 2;
                 case BOTTOM -> y + 100 - height;
+                case null -> y;
             };
         }
     }

@@ -185,7 +185,6 @@ public class ChatBoxDialogues {
         public static class Option {
             public String text;
             public Boolean isLock = false;
-            public Boolean isHidden = false; // 实际上没有作用了，留在这里做纪念（？）
             public String unlockCommand;
             public String next;
             public Click click = new Click();

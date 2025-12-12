@@ -9,7 +9,7 @@ import net.minecraft.client.sounds.ChannelAccess;
 import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class SoundUtil {
 
     public static SoundEvent fromString(String sound) {
         if (StrUtil.isEmpty(sound)) sound = "";
-        return Holder.direct(SoundEvent.createVariableRangeEvent(new ResourceLocation(sound))).value();
+        return Holder.direct(SoundEvent.createVariableRangeEvent(Identifier.parse(sound))).value();
     }
 
     public static void playSound(String sound, float volume, float pitch) {
@@ -34,7 +34,7 @@ public class SoundUtil {
 
     public static void stopSound(String sound) {
         if (StrUtil.isEmpty(sound)) return;
-        getSoundManager().stop(new ResourceLocation(sound), null);
+        getSoundManager().stop(Identifier.parse(sound), null);
     }
 
     public static SoundManager getSoundManager() {return minecraft.getSoundManager();}
@@ -53,7 +53,7 @@ public class SoundUtil {
 
     public static boolean isSoundActive(String sound) {
         for (SoundInstance soundInstance : getInstanceToChannel().keySet()) {
-            if (soundInstance.getSound().getLocation().toString().equals(sound)) return true;
+            if (soundInstance.getIdentifier().toString().equals(sound)) return true;
         }
         return false;
     }
@@ -61,7 +61,7 @@ public class SoundUtil {
     public static List<SoundInstance> getPlayingSounds(String sound) {
         List<SoundInstance> list = new ArrayList<>();
         for (SoundInstance soundInstance : getInstanceToChannel().keySet()) {
-            if (soundInstance.getSound().getLocation().toString().equals(sound)) list.add(soundInstance);
+            if (soundInstance.getIdentifier().toString().equals(sound)) list.add(soundInstance);
         }
         return list;
     }

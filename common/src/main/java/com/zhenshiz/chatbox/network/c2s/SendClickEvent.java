@@ -2,29 +2,30 @@ package com.zhenshiz.chatbox.network.c2s;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
-import com.zhenshiz.chatbox.network.CustomPacket;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 
-public record SendClickEvent(String type, String value) implements CustomPacket {
-    public ResourceLocation id() {return ID;}
-    public static final ResourceLocation ID = ChatBox.ResourceLocationMod("execute_click_event");
+public record SendClickEvent(String typeId, String value) implements CustomPacketPayload {
+    public static final Type<SendClickEvent> TYPE = new Type<>(ChatBox.id("execute_click_event"));
+    public static final StreamCodec<FriendlyByteBuf, SendClickEvent> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SendClickEvent::typeId,
+            ByteBufCodecs.STRING_UTF8, SendClickEvent::getParsedValue,
+            SendClickEvent::new
+    );
 
-    public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-    public static void encode(SendClickEvent packet, FriendlyByteBuf buf) {
-        buf.writeUtf(packet.type);
-        // 解析目标实体占位符
-        buf.writeUtf(ChatBoxUtil.parseTargetPlaceholders(packet.value));
+    private String getParsedValue() {
+        return ChatBoxUtil.parseTargetPlaceholders(value);
     }
 
-    public static SendClickEvent decode(FriendlyByteBuf buf) {
-        return new SendClickEvent(buf.readUtf(), buf.readUtf());
-    }
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {return TYPE;}
 
-    public static void handleOnServer(ServerPlayer player, SendClickEvent packet) {
-        EventExecutor.EXECUTORS.get(packet.type()).executeOnServer(player, packet.value());
+    public static void handleOnServer(ServerPlayer player, SendClickEvent payload) {
+        EventExecutor.EXECUTORS.get(payload.typeId()).executeOnServer(player, payload.value());
     }
 }

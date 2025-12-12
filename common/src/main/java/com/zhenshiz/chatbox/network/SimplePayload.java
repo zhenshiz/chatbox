@@ -5,8 +5,12 @@ import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,20 +19,13 @@ import java.util.function.Consumer;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil.*;
 
-public record SimplePayload(String name, String value) implements CustomPacket {
-    public ResourceLocation id() {return ID;}
-    public static final ResourceLocation ID = ChatBox.ResourceLocationMod("simple_payload");
-
-    public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-    public static void encode(SimplePayload packet, FriendlyByteBuf buf) {
-        buf.writeUtf(packet.name);
-        buf.writeUtf(packet.value);
-    }
-
-    public static SimplePayload decode(FriendlyByteBuf buf) {
-        return new SimplePayload(buf.readUtf(), buf.readUtf());
-    }
+public record SimplePayload(String name, String value) implements CustomPacketPayload {
+    public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.id("simple_payload"));
+    public static final StreamCodec<FriendlyByteBuf, SimplePayload> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SimplePayload::name,
+            ByteBufCodecs.STRING_UTF8, SimplePayload::value,
+            SimplePayload::new
+    );
 
     private static final Map<String, Consumer<String>> handlersS2C = new HashMap<>();
 
@@ -50,15 +47,17 @@ public record SimplePayload(String name, String value) implements CustomPacket {
         handlersC2S.put(name, handler);
     }
 
-    public static void handleOnClient(SimplePayload packet) {
-        ChatBox.PLATFORM.runOnClient(() -> {
-            if (handlersS2C.containsKey(packet.name)) handlersS2C.get(packet.name).accept(packet.value);
-        });
+    public static void handleOnClient(SimplePayload payload) {
+        if (handlersS2C.containsKey(payload.name)) handlersS2C.get(payload.name).accept(payload.value);
     }
 
-    public static void handleOnServer(ServerPlayer player, SimplePayload packet) {
-        if (handlersC2S.containsKey(packet.name))
-            player.server.execute(() -> handlersC2S.get(packet.name).accept(player, packet.value));
+    public static void handleOnServer(ServerPlayer player, SimplePayload payload) {
+        if (handlersC2S.containsKey(payload.name)) handlersC2S.get(payload.name).accept(player, payload.value);
+    }
+
+    @Override
+    public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
     public static final String REQUEST_SYNC         = "request_sync";
@@ -81,13 +80,13 @@ public record SimplePayload(String name, String value) implements CustomPacket {
         addSimpleHandlerC2S(SKIP_CHAT_C2S, (player, s) -> {
             String[] parsed = StrUtil.parse(s);
             if (parsed.length != 3) return;
-            ChatBox.PLATFORM.postSkipChatEvent(player, new ResourceLocation(parsed[0]), parsed[1], Integer.parseInt(parsed[2]), serverGetChatTargets(player));
+            ChatBox.PLATFORM.postSkipChatEvent(player, Identifier.parse(parsed[0]), parsed[1], Integer.parseInt(parsed[2]), serverGetChatTargets(player));
         });
         addSimpleHandlerC2S(REQUEST_UNLOCK, (player, s) -> {
             String[] parsed = StrUtil.parse(s);
             if (parsed.length != 3) return;
             boolean isLock = Boolean.parseBoolean(parsed[0]);
-            int result = ComponentEvent.executeCommand(player.server, player, parsed[2]);
+            int result = ComponentEvent.executeCommand(player.level().getServer(), player, parsed[2]);
             // 如果命令测试通过且是锁定状态，则解锁聊天选项
             if (result == 1 && isLock) simplePayloadS2C(player, UNLOCK_CHAT_OPTION, parsed[1]);
             // 如果命令测试失败且不是锁定状态，则隐藏聊天选项

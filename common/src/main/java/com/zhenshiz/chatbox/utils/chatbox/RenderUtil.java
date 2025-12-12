@@ -1,32 +1,43 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.gui.render.state.GuiElementRenderState;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.SkinManager;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.phys.Vec2;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3x2f;
 import org.lwjgl.glfw.GLFW;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,42 +52,46 @@ public class RenderUtil {
         return minecraft.getWindow().getGuiScaledHeight();
     }
 
+    public static final RenderPipeline QUADS = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+            .withLocation("pipeline/global_fill_pipeline")
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withCull(false)
+            .withDepthWrite(false)
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .build();
+
+    private static void submitSimpleGuiElement(GuiGraphics guiGraphics, Consumer<VertexConsumer> builder, @Nullable ScreenRectangle bounds) {
+        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
+            public void buildVertices(@NotNull VertexConsumer consumer) {builder.accept(consumer);}
+            public @NotNull RenderPipeline pipeline() {return QUADS;}
+            public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
+            public @Nullable ScreenRectangle scissorArea() {return guiGraphics.scissorStack.peek();}
+            public @Nullable ScreenRectangle bounds() {return bounds;}
+        });
+    }
+
     //fill
 
     //矩形
     public static void fillRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        buf.vertex(mat, (float) x, (float) y, 0).color(color).endVertex();
-        buf.vertex(mat, (float) (x + w), (float) y, 0).color(color).endVertex();
-        buf.vertex(mat, (float) (x + w), (float) (y + h), 0).color(color).endVertex();
-        buf.vertex(mat, (float) x, (float) (y + h), 0).color(color).endVertex();
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+        guiGraphics.fill(x, y, x + w, y + h, color);
     }
 
+    //todo 凡是没有使用的方法，都是没有修好的，勿用（真用到了再修）
     //圆弧
     public static void fillArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
+            consumer.addVertexWith2DPose(pose, (float) cX, (float) cY).setColor(color);
 
-        buf.vertex(mat, (float) cX, (float) cY, 0).color(color).endVertex();
-
-        for (int i = start - 90; i <= end - 90; i++) {
-            double angle = Math.toRadians(i);
-            float x = (float) (Math.cos(angle) * radius) + cX;
-            float y = (float) (Math.sin(angle) * radius) + cY;
-            buf.vertex(mat, x, y, 0).color(color).endVertex();
-        }
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+            for (int i = start - 90; i <= end - 90; i++) {
+                double angle = Math.toRadians(i);
+                float x = (float) (Math.cos(angle) * radius) + cX;
+                float y = (float) (Math.sin(angle) * radius) + cY;
+                consumer.addVertexWith2DPose(pose, x, y).setColor(color);
+            }
+        }, new ScreenRectangle(cX - radius, cY - radius, 2 * radius, 2 * radius));
     }
 
     //圆
@@ -86,25 +101,20 @@ public class RenderUtil {
 
     //环形扇区
     public static void fillAnnulusArc(GuiGraphics guiGraphics, int cx, int cy, int radius, int start, int end, int thickness, int color) {
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        for (int i = start - 90; i <= end - 90; i++) {
-            float angle = (float) Math.toRadians(i);
-            float cos = (float) Math.cos(angle);
-            float sin = (float) Math.sin(angle);
-            float x1 = cx + cos * radius;
-            float y1 = cy + sin * radius;
-            float x2 = cx + cos * (radius + thickness);
-            float y2 = cy + sin * (radius + thickness);
-            buf.vertex(mat, x1, y1, 0).color(color).endVertex();
-            buf.vertex(mat, x2, y2, 0).color(color).endVertex();
-        }
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
+            for (int i = start - 90; i <= end - 90; i++) {
+                float angle = (float) Math.toRadians(i);
+                float cos = (float) Math.cos(angle);
+                float sin = (float) Math.sin(angle);
+                float x1 = cx + cos * radius;
+                float y1 = cy + sin * radius;
+                float x2 = cx + cos * (radius + thickness);
+                float y2 = cy + sin * (radius + thickness);
+                consumer.addVertexWith2DPose(pose, x1, y1).setColor(color);
+                consumer.addVertexWith2DPose(pose, x2, y2).setColor(color);
+            }
+        }, new ScreenRectangle(cx - radius, cy - radius, 2 * radius, 2 * radius));
     }
 
     //环形圆
@@ -115,143 +125,127 @@ public class RenderUtil {
     //实心圆角矩形
     public static void fillRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
+        int finalR = r;
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
 
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
+            consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F).setColor(color);
 
-        buf.vertex(mat, x + w / 2F, y + h / 2F, 0).color(color).endVertex();
+            int[][] corners = {
+                    {x + w - finalR, y + finalR},
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR},
+                    {x + finalR, y + finalR}
+            };
 
-        int[][] corners = {
-                {x + w - r, y + r},
-                {x + w - r, y + h - r},
-                {x + r, y + h - r},
-                {x + r, y + r}
-        };
-
-        for (int corner = 0; corner < 4; corner++) {
-            int cornerStart = (corner - 1) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.vertex(mat, rx, ry, 0).color(color).endVertex();
+            for (int corner = 0; corner < 4; corner++) {
+                int cornerStart = (corner - 1) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry).setColor(color);
+                }
             }
-        }
 
-        buf.vertex(mat, corners[0][0], y, 0).color(color).endVertex();
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+            consumer.addVertexWith2DPose(pose, corners[0][0], y).setColor(color);
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //圆角阴影边框
     public static void fillRoundShadow(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int thickness, int innerColor, int outerColor) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
+        int finalR = r;
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
 
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
+            int[][] corners = {
+                    {x + w - finalR, y + finalR},
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR},
+                    {x + finalR, y + finalR}
+            };
 
-        int[][] corners = {
-                {x + w - r, y + r},
-                {x + w - r, y + h - r},
-                {x + r, y + h - r},
-                {x + r, y + r}
-        };
-
-        for (int corner = 0; corner < 4; corner++) {
-            int cornerStart = (corner - 1) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx1 = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry1 = corners[corner][1] + (float) (Math.sin(angle) * r);
-                float rx2 = corners[corner][0] + (float) (Math.cos(angle) * (r + thickness));
-                float ry2 = corners[corner][1] + (float) (Math.sin(angle) * (r + thickness));
-                buf.vertex(mat, rx1, ry1, 0).color(innerColor).endVertex();
-                buf.vertex(mat, rx2, ry2, 0).color(outerColor).endVertex();
+            for (int corner = 0; corner < 4; corner++) {
+                int cornerStart = (corner - 1) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx1 = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry1 = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    float rx2 = corners[corner][0] + (float) (Math.cos(angle) * (finalR + thickness));
+                    float ry2 = corners[corner][1] + (float) (Math.sin(angle) * (finalR + thickness));
+                    consumer.addVertexWith2DPose(pose, rx1, ry1).setColor(innerColor);
+                    consumer.addVertexWith2DPose(pose, rx2, ry2).setColor(outerColor);
+                }
             }
-        }
 
-        buf.vertex(mat, corners[0][0], y, 0).color(innerColor).endVertex();
-        buf.vertex(mat, corners[0][0], y - thickness, 0).color(outerColor).endVertex();
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+            consumer.addVertexWith2DPose(pose, corners[0][0], y).setColor(innerColor);
+            consumer.addVertexWith2DPose(pose, corners[0][0], y - thickness).setColor(outerColor);
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //上圆角矩形
     public static void fillRoundTabTop(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
+        int finalR = r;
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
 
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
+            consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F).setColor(color);
 
-        buf.vertex(mat, x + w / 2F, y + h / 2F, 0).color(color).endVertex();
+            int[][] corners = {
+                    {x + finalR, y + finalR},
+                    {x + w - finalR, y + finalR}
+            };
 
-        int[][] corners = {
-                {x + r, y + r},
-                {x + w - r, y + r}
-        };
-
-        for (int corner = 0; corner < 2; corner++) {
-            int cornerStart = (corner - 2) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.vertex(mat, rx, ry, 0).color(color).endVertex();
+            for (int corner = 0; corner < 2; corner++) {
+                int cornerStart = (corner - 2) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry).setColor(color);
+                }
             }
-        }
 
-        buf.vertex(mat, x + w, y + h, 0).color(color).endVertex();
-        buf.vertex(mat, x, y + h, 0).color(color).endVertex();
-        buf.vertex(mat, x, corners[0][1], 0).color(color).endVertex(); // connect last to first vertex
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+            consumer.addVertexWith2DPose(pose, x + w, y + h).setColor(color);
+            consumer.addVertexWith2DPose(pose, x, y + h).setColor(color);
+            consumer.addVertexWith2DPose(pose, x, corners[0][1]).setColor(color); // connect last to first vertex
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //下圆角矩形
     public static void fillRoundTabBottom(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
+        int finalR = r;
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
 
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
+            consumer.addVertexWith2DPose(pose, x + w / 2F, y + h / 2F).setColor(color);
 
-        buf.vertex(mat, x + w / 2F, y + h / 2F, 0).color(color).endVertex();
+            int[][] corners = {
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR}
+            };
 
-        int[][] corners = {
-                {x + w - r, y + h - r},
-                {x + r, y + h - r}
-        };
-
-        for (int corner = 0; corner < 2; corner++) {
-            int cornerStart = corner * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.vertex(mat, rx, ry, 0).color(color).endVertex();
+            for (int corner = 0; corner < 2; corner++) {
+                int cornerStart = corner * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry).setColor(color);
+                }
             }
-        }
 
-        buf.vertex(mat, x, y, 0).color(color).endVertex();
-        buf.vertex(mat, x + w, y, 0).color(color).endVertex();
-        buf.vertex(mat, x + w, corners[0][1], 0).color(color).endVertex(); // connect last to first vertex
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+            consumer.addVertexWith2DPose(pose, x, y).setColor(color);
+            consumer.addVertexWith2DPose(pose, x + w, y).setColor(color);
+            consumer.addVertexWith2DPose(pose, x + w, corners[0][1]).setColor(color); // connect last to first vertex
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //水平方向的胶囊状线条
@@ -294,35 +288,36 @@ public class RenderUtil {
 
     //一条线
     public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        buf.vertex(mat, (float) x1, (float) y1, 0).color(color).endVertex();
-        buf.vertex(mat, (float) x2, (float) y2, 0).color(color).endVertex();
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+        drawLine(guiGraphics, x1, y1, x2, y2, 0.5F, color);
     }
 
+    public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, float thickness, int color) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float angle = (float) Math.atan2(dy, dx);
+        float t = thickness / 2.0F;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+
+        Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose()).rotateAbout(angle, x1, y1);
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            consumer.addVertexWith2DPose(pose, x1 - t, y1 - t           ).setColor(color);
+            consumer.addVertexWith2DPose(pose, x1 + length + t, y1 - t  ).setColor(color);
+            consumer.addVertexWith2DPose(pose, x1 + length + t, y1 + t  ).setColor(color);
+            consumer.addVertexWith2DPose(pose, x1 - t, y1 + t           ).setColor(color);
+        }, ScreenRectangle.empty());
+    }
 
     //扇形
     public static void drawArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        for (int i = start - 90; i <= end - 90; i++) {
-            double angle = Math.toRadians(i);
-            float x = (float) (Math.cos(angle) * radius) + cX;
-            float y = (float) (Math.sin(angle) * radius) + cY;
-            buf.vertex(mat, x, y, 0).color(color).endVertex();
-        }
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
+            for (int i = start - 90; i <= end - 90; i++) {
+                double angle = Math.toRadians(i);
+                float x = (float) (Math.cos(angle) * radius) + cX;
+                float y = (float) (Math.sin(angle) * radius) + cY;
+                consumer.addVertexWith2DPose(pose, x, y).setColor(color);
+            }
+        }, new ScreenRectangle(cX - radius, cY - radius, 2 * radius, 2 * radius));
     }
 
     //圆
@@ -333,34 +328,30 @@ public class RenderUtil {
     //圆角矩形
     public static void drawRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
+        int finalR = r;
+        submitSimpleGuiElement(guiGraphics, consumer -> {
+            Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
 
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
+            int[][] corners = {
+                    {x + w - finalR, y + finalR},
+                    {x + w - finalR, y + h - finalR},
+                    {x + finalR, y + h - finalR},
+                    {x + finalR, y + finalR}
+            };
 
-        int[][] corners = {
-                {x + w - r, y + r},
-                {x + w - r, y + h - r},
-                {x + r, y + h - r},
-                {x + r, y + r}
-        };
-
-        for (int corner = 0; corner < 4; corner++) {
-            int cornerStart = (corner - 1) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.vertex(mat, rx, ry, 0).color(color).endVertex();
+            for (int corner = 0; corner < 4; corner++) {
+                int cornerStart = (corner - 1) * 90;
+                int cornerEnd = cornerStart + 90;
+                for (int i = cornerStart; i <= cornerEnd; i += 10) {
+                    float angle = (float) Math.toRadians(i);
+                    float rx = corners[corner][0] + (float) (Math.cos(angle) * finalR);
+                    float ry = corners[corner][1] + (float) (Math.sin(angle) * finalR);
+                    consumer.addVertexWith2DPose(pose, rx, ry).setColor(color);
+                }
             }
-        }
 
-        buf.vertex(mat, corners[0][0], y, 0).color(color).endVertex(); // connect last to first vertex
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
+            consumer.addVertexWith2DPose(pose, corners[0][0], y).setColor(color); // connect last to first vertex
+        }, new ScreenRectangle(x, y, w, h));
     }
 
     //圆角横线
@@ -374,67 +365,40 @@ public class RenderUtil {
     }
 
     // image
-    public static void renderImageInner(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float uw, float uh, float width, float height) {
-        BufferBuilder buf = getBuffer();
-        buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        Matrix4f matrix4f = guiGraphics.pose().last().pose();
-        buf.vertex(matrix4f, x, y, z).uv(0, 0).endVertex();
-        buf.vertex(matrix4f, x, y + height, z).uv(0, uh).endVertex();
-        buf.vertex(matrix4f, x + width, y + height, z).uv(uw, uh).endVertex();
-        buf.vertex(matrix4f, x + width, y, z).uv(uw, 0).endVertex();
-
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, resourceLocation);
-        RenderSystem.enableBlend();
-        BufferUploader.drawWithShader(buf.end());
-        RenderSystem.disableBlend();
+    public static void renderImage(GuiGraphics guiGraphics, Matrix3x2f pose, Identifier identifier, float x, float y, float uw, float uh, float width, float height, float opacity) {
+        AbstractTexture texture = minecraft.getTextureManager().getTexture(identifier);
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), pose, x, y, width, height, uw, uh, getColor(opacity)));
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
-        guiGraphics.pose().pushPose();
-        float centerX = x + width / 2;
-        float centerY = y + height / 2;
-        // 应用旋转
-        guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
-        guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
-        renderImageInner(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
+    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
+        Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose()).rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2).scaleAround(scale, x + width / 2, y + height / 2);
+        renderImage(guiGraphics, pose, identifier, x, y, 1, 1, width, height, opacity);
         for (var attachment : attachments) {
             var a = attachment.mapParameter();
-            renderImageInner(guiGraphics, new ResourceLocation(a.value), x + a.x, y + a.y, z, 1, 1, a.width, a.height);
+            renderImage(guiGraphics, pose, Identifier.parse(a.value), x + a.x, y + a.y, 1, 1, a.width, a.height, opacity);
         }
-        guiGraphics.pose().popPose();
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle) {
-        renderImage(guiGraphics, resourceLocation, x, y, z, width, height, scale, angle, List.of());
+    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float angle) {
+        renderImage(guiGraphics, identifier, x, y, width, height, scale, opacity, angle, List.of());
     }
 
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float angle) {
-        PoseStack pose = guiGraphics.pose();
-        ResourceLocation skin = getSkin(input);
-        pose.pushPose();
-        float centerX = x + (float) size / 2;
-        float centerY = y + (float) size / 2;
-        // 应用旋转
-        guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
-        guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
-        guiGraphics.blit(skin, x, y, size, size, 8, 8, 8, 8, 64, 64);
-        RenderSystem.enableBlend();
-        guiGraphics.blit(skin, x - 1, y - 1, size + 2, size + 2, 40, 8, 8, 8, 64, 64);
-        RenderSystem.disableBlend();
-        pose.popPose();
+    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity, float angle) {
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + (float) size / 2, y + (float) size / 2).scaleAround(scale, x + (float) size / 2, y + (float) size / 2);
+        var skin = getSkin(input).body().texturePath();
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8, 8, size, size, 8, 8, 64, 64, getColor(opacity));
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x - 1, y - 1, 40, 8, size + 2, size + 2, 8, 8, 64, 64, getColor(opacity));
+        guiGraphics.pose().popMatrix();
     }
 
     public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
-        guiGraphics.pose().pushPose();
-        float centerX = x + 8f;
-        float centerY = y + 8f;
+        guiGraphics.pose().pushMatrix();
         // 应用旋转
-        guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
-        guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + 8f, y + 8f).scaleAround(scale, x + 8f, y + 8f);
         guiGraphics.renderItem(item, x, y);
         guiGraphics.renderItemDecorations(minecraft.font, item, x, y, text);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
     }
 
     public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
@@ -466,10 +430,10 @@ public class RenderUtil {
                 int scaleX = rubyX + subTextWidth / 2;
                 rubyX += (subTextWidth - font.width(rubyComponent.getVisualOrderText())) / 2;
                 var pose = guiGraphics.pose();
-                pose.pushPose();
-                pose.last().pose().scaleAround(0.7f, scaleX, renderY + 5, 0);
+                pose.pushMatrix();
+                pose.scaleAround(0.7f, 0.7f, scaleX, renderY + 5);
                 guiGraphics.drawString(font, rubyComponent, rubyX, renderY - 1, color, false);
-                pose.popPose();
+                pose.popMatrix();
             }
             renderY += 6;
         }
@@ -543,6 +507,10 @@ public class RenderUtil {
 
     public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
 
+    public static void renderTooltip(GuiGraphics guiGraphics, Component tooltip, int x, int y) {
+        guiGraphics.renderTooltip(minecraft.font, List.of(new ClientTextTooltip(tooltip.getVisualOrderText())), x, y, DefaultTooltipPositioner.INSTANCE, null);
+    }
+
     //cursor
 
     public static void setCursor(int x, int y) {
@@ -553,10 +521,10 @@ public class RenderUtil {
         int h2 = screenHeight();
         double ratW = (double) w2 / (double) w1;
         double ratH = (double) h2 / (double) h1;
-        GLFW.glfwSetCursorPos(window.getWindow(), x / ratW, y / ratH);
+        GLFW.glfwSetCursorPos(window.handle(), x / ratW, y / ratH);
     }
 
-    public static Point getCursor() {
+    public static Vec2 getCursor() {
         Window window = minecraft.getWindow();
         int w1 = window.getWidth();
         int w2 = screenWidth();
@@ -564,61 +532,45 @@ public class RenderUtil {
         int h2 = screenHeight();
         double rW = (double) w2 / (double) w1;
         double rH = (double) h2 / (double) h1;
-        return new Point((int) (rW * minecraft.mouseHandler.xpos()), (int) (rH * minecraft.mouseHandler.ypos()));
+        return new Vec2((int) (rW * minecraft.mouseHandler.xpos()), (int) (rH * minecraft.mouseHandler.ypos()));
     }
 
     //util
 
-    public static void renderOpacity(GuiGraphics guiGraphics, float opacity, Runnable runnable) {
-        RenderSystem.enableBlend();
-        guiGraphics.setColor(1f, 1f, 1f, opacity);
-        runnable.run();
-        RenderSystem.disableBlend();
+    public static int getColor(float opacity) {
+        return ARGB.color((int) (opacity / 100 * 255), 255, 255, 255);
     }
 
     //private
 
-    private static void drawBuffer(BufferBuilder buf) {
-        BufferUploader.drawWithShader(buf.end());
+    private static final Map<String, PlayerSkin> skins = new HashMap<>();
+
+    private static void handleGameProfileAsync(String input) {
+        ResolvableProfile component = createProfileComponent(input);
+        component.resolveProfile(minecraft.services().profileResolver())
+                .thenApplyAsync(profile -> {
+                    try {
+                        minecraft.getSkinManager().get(profile).get()
+                                .ifPresent(playerSkin -> skins.put(input, playerSkin));
+                    } catch (InterruptedException | ExecutionException ignored) {}
+                    return profile;
+                })
+                .exceptionally(ex -> null);
     }
 
-    public static void beginRendering() {
-        RenderSystem.disableCull();
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-    }
-
-    public static void finishRendering() {
-        RenderSystem.enableCull();
-        RenderSystem.disableBlend();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-    }
-
-    private static BufferBuilder getBuffer() {
-        return Tesselator.getInstance().getBuilder();
-    }
-
-    private static GameProfile createProfileComponent(String input) {
+    private static ResolvableProfile createProfileComponent(String input) {
         try {
-            return new GameProfile(UUID.fromString(input), null);
+            UUID uuid = UUID.fromString(input);
+            return ResolvableProfile.createUnresolved(uuid);
         } catch (IllegalArgumentException e) {
-            return new GameProfile(null, input);
+            return ResolvableProfile.createUnresolved(input);
         }
     }
 
-    private static final Map<String, ResourceLocation> skins = new HashMap<>();
-
-    private static ResourceLocation getSkin(String input) {
+    private static PlayerSkin getSkin(String input) {
         if (skins.containsKey(input)) return skins.get(input);
-        // 尝试获取皮肤，并缓存到map中
-        GameProfile profile = createProfileComponent(input);
-        SkullBlockEntity.updateGameprofile(profile, gameProfile -> {
-            SkinManager manager = minecraft.getSkinManager();
-            var map = manager.getInsecureSkinInformation(gameProfile);
-            if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) skins.put(input, manager.registerTexture(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
-        });
+        handleGameProfileAsync(input);
         if (skins.containsKey(input)) return skins.get(input);
-        return DefaultPlayerSkin.getDefaultSkin(Objects.requireNonNull(minecraft.getUser().getProfileId()));
+        return DefaultPlayerSkin.get(minecraft.getUser().getProfileId());
     }
 }

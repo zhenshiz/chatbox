@@ -31,15 +31,15 @@ public class InputEvent {
     }
 
     public static Event<MouseScrollingEvent> MOUSE_SCROLLING = EventFactory.createArrayBacked(MouseScrollingEvent.class,
-            (listeners) -> (scrollDelta, leftDown, middleDown, rightDown, mouseX, mouseY) -> {
+            (listeners) -> (scrollDeltaX, scrollDeltaY, leftDown, middleDown, rightDown, mouseX, mouseY) -> {
                 for (MouseScrollingEvent event : listeners) {
-                    if (event.onMouseScroll(scrollDelta, leftDown, middleDown, rightDown, mouseX, mouseY)) return true;
+                    if (event.onMouseScroll(scrollDeltaX, scrollDeltaY, leftDown, middleDown, rightDown, mouseX, mouseY)) return true;
                 }
                 return false;
             });
 
     public interface MouseScrollingEvent {
-        boolean onMouseScroll(double scrollDelta, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY);
+        boolean onMouseScroll(double scrollDeltaX, double scrollDeltaY, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY);
     }
 
     public static Event<Key> KEY = EventFactory.createArrayBacked(Key.class,

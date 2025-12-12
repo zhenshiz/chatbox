@@ -1,20 +1,20 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
+import org.joml.Matrix3x2fStack;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class DialogBox extends AbstractComponent<DialogBox> {
     //默认材质
-    public ResourceLocation texture;
+    public Identifier texture;
     //对话框文本
     private String text = "";
     //文本x位置
@@ -39,19 +39,19 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     private int charIndex;
 
     public DialogBox() {
-        setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
+        setTexture(ChatBox.id("textures/chatbox/default_dialog_box.png"));
 
         setAllOver(false);
         resetTickCount();
     }
 
-    public DialogBox setTexture(ResourceLocation texture) {
+    public DialogBox setTexture(Identifier texture) {
         if (texture != null) this.texture = texture;
         return this;
     }
 
     public DialogBox setTexture(String texture) {
-        if (texture != null) return setTexture(ResourceLocation.tryParse(texture));
+        if (texture != null) return setTexture(Identifier.tryParse(texture));
         return this;
     }
 
@@ -159,7 +159,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             this.charIndex = this.textLength - 1;
             setAllOver(true);
         } else if (gotoNext) {
-            skipDialogues(dialoguesResourceLocation, group, index + 1);
+            skipDialogues(dialoguesIdentifier, group, index + 1);
         }
     }
 
@@ -189,8 +189,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         float x = position.x;
         float y = position.y;
 
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
+        Matrix3x2fStack poseStack = guiGraphics.pose();
+        poseStack.pushMatrix();
         int lineWidth = (int) getResponsiveWidth(this.lineWidth);
         if (StrUtil.isNotEmpty(this.name)) {
             RenderUtil.drawStringAlign(guiGraphics, parseText(StrUtil.format("[{}]", this.name)), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), lineWidth, this.textAlign, CommonColors.WHITE, false);
@@ -198,6 +198,6 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         if (StrUtil.isNotEmpty(this.text)) {
             RenderUtil.drawStringAlign(guiGraphics, subString(parseText(this.text), charIndex), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), lineWidth, this.textAlign, CommonColors.WHITE, true);
         }
-        poseStack.popPose();
+        poseStack.popMatrix();
     }
 }

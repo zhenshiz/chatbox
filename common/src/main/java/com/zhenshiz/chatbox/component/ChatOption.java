@@ -1,23 +1,23 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.Vec2;
+import org.joml.Matrix3x2fStack;
 
 public class ChatOption extends AbstractComponent<ChatOption> {
     //默认材质
-    public ResourceLocation texture;
+    public Identifier texture;
     //鼠标悬浮材质
-    public ResourceLocation selectTexture;
+    public Identifier selectTexture;
     //上锁材质
-    public ResourceLocation lockTexture;
+    public Identifier lockTexture;
     //选项文本
     public String optionChat = "";
     //选项x位置
@@ -43,9 +43,9 @@ public class ChatOption extends AbstractComponent<ChatOption> {
     public int renderIndex = 0;
 
     public ChatOption() {
-        setTextures(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
-        setSelectTexture(ChatBox.ResourceLocationMod("textures/options/default_checked_option.png"));
-        setLockTexture(ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png"));
+        setTextures(ChatBox.id("textures/options/default_no_checked_option.png"));
+        setSelectTexture(ChatBox.id("textures/options/default_checked_option.png"));
+        setLockTexture(ChatBox.id("textures/options/default_no_checked_option.png"));
     }
 
     @Override
@@ -64,33 +64,33 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         return this;
     }
 
-    public ChatOption setTextures(ResourceLocation textures) {
+    public ChatOption setTextures(Identifier textures) {
         if (textures != null) this.texture = textures;
         return this;
     }
 
     public ChatOption setTextures(String textures) {
-        if (textures != null) return setTextures(ResourceLocation.tryParse(textures));
+        if (textures != null) return setTextures(Identifier.tryParse(textures));
         return this;
     }
 
-    public ChatOption setSelectTexture(ResourceLocation selectTexture) {
+    public ChatOption setSelectTexture(Identifier selectTexture) {
         if (selectTexture != null) this.selectTexture = selectTexture;
         return this;
     }
 
     public ChatOption setSelectTexture(String selectTexture) {
-        if (selectTexture != null) return setSelectTexture(ResourceLocation.tryParse(selectTexture));
+        if (selectTexture != null) return setSelectTexture(Identifier.tryParse(selectTexture));
         return this;
     }
 
-    public ChatOption setLockTexture(ResourceLocation lockTexture) {
+    public ChatOption setLockTexture(Identifier lockTexture) {
         if (lockTexture != null) this.lockTexture = lockTexture;
         return this;
     }
 
     public ChatOption setLockTexture(String lockTexture) {
-        if (lockTexture != null) return setLockTexture(ResourceLocation.tryParse(lockTexture));
+        if (lockTexture != null) return setLockTexture(Identifier.tryParse(lockTexture));
         return this;
     }
 
@@ -135,7 +135,7 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         if (!this.isLock && minecraft.player != null) {
             //触发自定义事件
             this.onClickEvent.run();
-            EventExecutor.executeEvent(this, "JUMP", this.next);
+            EventExecutor.executeEvent(null, "JUMP", this.next);
             return true;
         }
         return false;
@@ -154,30 +154,30 @@ public class ChatOption extends AbstractComponent<ChatOption> {
         float x = pos.x;
         float y = pos.y;
         int color = CommonColors.WHITE;
-        ResourceLocation texture = this.texture;
+        Identifier texture = this.texture;
         if (this.isLock) {
             texture = this.lockTexture;
             color = CommonColors.GRAY;
         } else if (isSelect) {
             texture = this.selectTexture;
-            color = -256; //CommonColors.YELLOW
+            color = CommonColors.YELLOW;
         }
 
         //render image
         if (texture != null) renderImage(guiGraphics, texture);
 
         //render option text
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
+        Matrix3x2fStack poseStack = guiGraphics.pose();
+        poseStack.pushMatrix();
         int responsiveX = (int) getResponsiveWidth(x + this.optionChatX);
         int responsiveY = (int) getResponsiveHeight(y + this.height / 2 + this.optionChatY) - 4; // 减去文本高度的一半
         int optionWidth = (int) getResponsiveWidth(this.width);
         RenderUtil.drawStringAlign(guiGraphics, parseText(this.optionChat), responsiveX, responsiveY, optionWidth, this.textAlign, color, false);
-        poseStack.popPose();
+        poseStack.popMatrix();
 
         //render tooltip
         if (!this.optionTooltip.isEmpty() && isSelect) {
-            guiGraphics.renderTooltip(minecraft.font, Component.nullToEmpty(this.optionTooltip), responsiveX, responsiveY);
+            RenderUtil.renderTooltip(guiGraphics, Component.nullToEmpty(this.optionTooltip), responsiveX, responsiveY);
         }
     }
 }

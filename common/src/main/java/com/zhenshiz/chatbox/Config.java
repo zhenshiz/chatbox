@@ -16,6 +16,4 @@ public class Config implements ConfigData {
     @ConfigEntry.BoundedDiscrete(min = 1, max = 721)
     public int charPerSecond = 20;
 
-    public boolean isStopTerraDialog = false;
-
 }

@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.mixin.client;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
+import net.minecraft.client.input.MouseButtonInfo;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,21 +22,21 @@ public class MouseMixin {
     @Shadow private double xpos;
     @Shadow private double ypos;
 
-    @Inject(method = "onPress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getOverlay()Lnet/minecraft/client/gui/screens/Overlay;", ordinal = 0), cancellable = true)
-    private void mousePre(long windowPointer, int button, int action, int modifiers, CallbackInfo ci) {
-        if (InputEvent.MouseButton.PRE.invoker().mousePre(button, action, modifiers)) {
+    @Inject(method = "onButton", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getOverlay()Lnet/minecraft/client/gui/screens/Overlay;", ordinal = 0), cancellable = true)
+    private void mousePre(long l, MouseButtonInfo mouseButtonInfo, int action, CallbackInfo ci) {
+        if (InputEvent.MouseButton.PRE.invoker().mousePre(mouseButtonInfo.button(), action, mouseButtonInfo.modifiers())) {
             ci.cancel();
         }
     }
 
-    @Inject(method = "onPress", at = @At(value = "TAIL"))
-    private void mousePost(long windowPointer, int button, int action, int modifiers, CallbackInfo ci) {
-        if (windowPointer == this.minecraft.getWindow().getWindow()) InputEvent.MouseButton.POST.invoker().mousePost(button, action, modifiers);
+    @Inject(method = "onButton", at = @At(value = "TAIL"))
+    private void mousePost(long windowPointer, MouseButtonInfo mouseButtonInfo, int action, CallbackInfo ci) {
+        if (windowPointer == this.minecraft.getWindow().handle()) InputEvent.MouseButton.POST.invoker().mousePost(mouseButtonInfo.button(), action, mouseButtonInfo.modifiers());
     }
 
     @Inject(method = "onScroll", at= @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSpectator()Z"), cancellable = true)
     private void onScroll(long windowPointer, double xOffset, double yOffset, CallbackInfo ci){
-        if (InputEvent.MOUSE_SCROLLING.invoker().onMouseScroll(yOffset, isLeftPressed, isMiddlePressed, isRightPressed, xpos, ypos)) {
+        if (InputEvent.MOUSE_SCROLLING.invoker().onMouseScroll(xOffset, yOffset, isLeftPressed, isMiddlePressed, isRightPressed, xpos, ypos)) {
             ci.cancel();
         }
     }

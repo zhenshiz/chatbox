@@ -8,15 +8,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec2;
 
 public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public Boolean visible;
     public Float mouseTextureWidth;
     public Float mouseTextureHeight;
-    public ResourceLocation rightClickTexture;
-    public ResourceLocation scrollTexture;
+    public Identifier rightClickTexture;
+    public Identifier scrollTexture;
 
     public KeyPromptRender setMouseTextureSize(Float width, Float height) {
         if (width != null) this.mouseTextureWidth = width;
@@ -30,12 +30,12 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     }
 
     public KeyPromptRender setRightClickTexture(String rightClickTexture) {
-        if (rightClickTexture != null) this.rightClickTexture = new ResourceLocation(rightClickTexture);
+        if (rightClickTexture != null) this.rightClickTexture = Identifier.parse(rightClickTexture);
         return this;
     }
 
     public KeyPromptRender setScrollTexture(String scrollTexture) {
-        if (scrollTexture != null) this.scrollTexture = new ResourceLocation(scrollTexture);
+        if (scrollTexture != null) this.scrollTexture = Identifier.parse(scrollTexture);
         return this;
     }
 
@@ -43,47 +43,45 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (this.visible) {
-            RenderUtil.renderOpacity(guiGraphics, this.opacity, () -> {
-                Font font = minecraft.font;
+            Font font = minecraft.font;
 
-                String keyRightClick = Component.translatable("chatbox.key.right_click").getString();
-                String keyScroll = Component.translatable("chatbox.key.scroll").getString();
-                String keyEsc = Component.translatable("chatbox.key.esc").getString();
-                String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
-                String keyF6 = Component.translatable("chatbox.key.f6").getString();
+            String keyRightClick = Component.translatable("chatbox.key.right_click").getString();
+            String keyScroll = Component.translatable("chatbox.key.scroll").getString();
+            String keyEsc = Component.translatable("chatbox.key.esc").getString();
+            String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
+            String keyF6 = Component.translatable("chatbox.key.f6").getString();
 
-                Vec2 vec2 = getCurrentPosition();
-                float x = vec2.x;
-                float y = vec2.y;
+            Vec2 vec2 = getCurrentPosition();
+            float x = vec2.x;
+            float y = vec2.y;
 
-                //right scroll
-                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, new ResourceLocation("chatbox:textures/key/right_mouse.png")), x, y + 2, 0, this.mouseTextureWidth, this.mouseTextureHeight, 1, 0);
-                drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
+            //right scroll
+            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, Identifier.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 0f);
+            drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
 
-                x += this.mouseTextureWidth + font.width(keyRightClick) + 4;
+            x += mouseTextureWidth + font.width(keyRightClick) + 4;
 
-                //mouse scroll
-                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, new ResourceLocation("chatbox:textures/key/scroll_mouse.png")), x, y + 2, 0, this.mouseTextureWidth, this.mouseTextureHeight, 1, 0);
-                drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
+            //mouse scroll
+            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, Identifier.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 0f);
+            drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
 
-                x += this.mouseTextureWidth + font.width(keyScroll) + 4;
+            x += mouseTextureWidth + font.width(keyScroll) + 4;
 
-                //esc
-                drawKeyBoardKey(guiGraphics, (int) x, (int) y + font.lineHeight / 2, "Esc", false);
-                drawText(guiGraphics, x + font.width("Esc") + 6, y + (float) font.lineHeight / 2, keyEsc);
+            //esc
+            drawKeyBoardKey(guiGraphics, (int) x, (int) y + font.lineHeight / 2, "Esc", false);
+            drawText(guiGraphics, x + font.width("Esc") + 6, y + (float) font.lineHeight / 2, keyEsc);
 
-                x += 10 + font.width("Esc") + font.width(keyEsc);
+            x += 10 + font.width("Esc") + font.width(keyEsc);
 
-                //ctrl
-                drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "Ctrl", false);
-                drawText(guiGraphics, x + font.width("Ctrl") + 6, y + (float) font.lineHeight / 2, keyCtrl);
+            //ctrl
+            drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "Ctrl", false);
+            drawText(guiGraphics, x + font.width("Ctrl") + 6, y + (float) font.lineHeight / 2, keyCtrl);
 
-                x += 10 + font.width("Ctrl") + font.width(keyCtrl);
+            x += 10 + font.width("Ctrl") + font.width(keyCtrl);
 
-                //f6
-                drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "F6", ChatBoxUtil.chatBoxScreen.autoPlay);
-                drawText(guiGraphics, x + font.width("F6") + 6, y + (float) font.lineHeight / 2, keyF6);
-            });
+            //f6
+            drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "F6", ChatBoxUtil.chatBoxScreen.autoPlay);
+            drawText(guiGraphics, x + font.width("F6") + 6, y + (float) font.lineHeight / 2, keyF6);
         }
     }
 

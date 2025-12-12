@@ -2,14 +2,12 @@ package com.zhenshiz.chatbox.platform;
 
 import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.fabric.SkipChatEvent;
-import com.zhenshiz.chatbox.network.CustomPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -31,24 +29,10 @@ public class FabricPlatformHelper implements IPlatformHelper {
     public File getGameDirectory() {return FabricLoader.getInstance().getGameDir().toFile();}
 
     @Override
-    public void runOnClient(Runnable runnable) {
-        Minecraft instance = Minecraft.getInstance();
-        instance.execute(runnable);
-    }
+    public void sendToServer(CustomPacketPayload packet) {ClientPlayNetworking.send(packet);}
 
     @Override
-    public void sendToServer(CustomPacket packet) {
-        var buf = PacketByteBufs.create();
-        packet.write(buf);
-        ClientPlayNetworking.send(packet.id(), buf);
-    }
-
-    @Override
-    public void sendToClient(ServerPlayer player, CustomPacket packet) {
-        var buf = PacketByteBufs.create();
-        packet.write(buf);
-        ServerPlayNetworking.send(player, packet.id(), buf);
-    }
+    public void sendToClient(ServerPlayer player, CustomPacketPayload packet) {ServerPlayNetworking.send(player, packet);}
 
     @Override
     public boolean postRenderEventPre(GuiGraphics guiGraphics) {
@@ -61,7 +45,7 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void postSkipChatEvent(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets) {
-        SkipChatEvent.EVENT.invoker().skipChat(player, resourceLocation, group, index, targets);
+    public void postSkipChatEvent(Player player, Identifier identifier, String group, Integer index, List<Entity> targets) {
+        SkipChatEvent.EVENT.invoker().skipChat(player, identifier, group, index, targets);
     }
 }

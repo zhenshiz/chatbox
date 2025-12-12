@@ -16,10 +16,10 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 
@@ -30,17 +30,17 @@ public class ChatBoxCommand {
     public static final Component ERROR_PLAYER_ONLY = Component.translatable("command.target.player.only");
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext buildContext, Commands.CommandSelection commandSelection) {
-        dispatcher.register(Commands.literal("chatbox").requires(commandSourceStack -> commandSourceStack.hasPermission(2))
+        dispatcher.register(Commands.literal("chatbox").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("theme")
-                        .then(Commands.argument("Theme", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxThemeLoader.themeMap.keySet(), builder))
+                        .then(Commands.argument("Theme", IdentifierArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxThemeLoader.themeMap.keySet(), builder))
                                 .executes(ChatBoxCommand::toggleTheme)
                         )
                 )
                 .then(Commands.literal("skip")
-                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
+                        .then(Commands.argument("Dialogues", IdentifierArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("Group", StringArgumentType.string())
                                         .suggests(((context, builder) -> {
-                                            ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
+                                            Identifier dialogues = IdentifierArgument.getId(context, "Dialogues");
                                             ChatBoxDialoguesLoader.dialoguesGroupMap.get(dialogues).forEach(builder::suggest);
                                             return builder.buildFuture();
                                         }))
@@ -56,7 +56,7 @@ public class ChatBoxCommand {
                         .executes(ChatBoxCommand::openChatBox)
                 )
                 .then(Commands.literal("maxTriggerCount")
-                        .then(Commands.argument("Dialogues", ResourceLocationArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
+                        .then(Commands.argument("Dialogues", IdentifierArgument.id()).suggests((context, builder) -> SharedSuggestionProvider.suggestResource(ChatBoxDialoguesLoader.dialoguesMap.keySet(), builder))
                                 .then(Commands.argument("MaxTriggerCount", IntegerArgumentType.integer())
                                         .executes(ChatBoxCommand::setMaxTriggerCount)
                                 )
@@ -136,7 +136,7 @@ public class ChatBoxCommand {
     }
 
     private static int toggleTheme(CommandContext<CommandSourceStack> context) {
-        ResourceLocation theme = ResourceLocationArgument.getId(context, "Theme");
+        Identifier theme = IdentifierArgument.getId(context, "Theme");
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player != null) {
@@ -156,7 +156,7 @@ public class ChatBoxCommand {
     }
 
     private static int skipDialogues(CommandContext<CommandSourceStack> context, int index, List<Entity> targets) {
-        ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
+        Identifier dialogues = IdentifierArgument.getId(context, "Dialogues");
         String group = StringArgumentType.getString(context, "Group");
         ServerPlayer player = context.getSource().getPlayer();
 
@@ -189,7 +189,7 @@ public class ChatBoxCommand {
     private static int setMaxTriggerCount(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null) {
-            ResourceLocation dialogues = ResourceLocationArgument.getId(context, "Dialogues");
+            Identifier dialogues = IdentifierArgument.getId(context, "Dialogues");
             int maxTriggerCount = IntegerArgumentType.getInteger(context, "MaxTriggerCount");
             ChatBox.getTriggerCounts().setPlayerMaxTriggerCount(player, dialogues, maxTriggerCount);
             context.getSource().sendSuccess(() -> Component.translatable("commands.set.max.trigger.count", dialogues.toString(), maxTriggerCount), true);

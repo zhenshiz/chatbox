@@ -6,7 +6,7 @@ import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.platform.IPlatformHelper;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
 import java.util.ServiceLoader;
@@ -31,7 +31,10 @@ public class ChatBox {
         return loadedService;
     }
 
-    public static ResourceLocation ResourceLocationMod(String path) {return new ResourceLocation(MOD_ID, path);}
+    //todo 修改所有元素透明度的渲染方式
+    public static boolean isWaterMediaLoaded() {return false /*PLATFORM.isModLoaded("watermedia")*/;}
 
-    public static boolean isWaterMediaLoaded() {return PLATFORM.isModLoaded("watermedia");}
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
+    }
 }

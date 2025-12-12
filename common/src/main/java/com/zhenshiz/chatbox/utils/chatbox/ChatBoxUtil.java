@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.mojang.serialization.Codec;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
@@ -19,10 +20,12 @@ import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import java.util.*;
 import java.util.function.Function;
@@ -33,9 +36,9 @@ public class ChatBoxUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //所有的对话框主题
-    public static final Map<ResourceLocation, ChatBoxTheme> themeMap = new HashMap<>();
+    public static final Map<Identifier, ChatBoxTheme> themeMap = new HashMap<>();
     //所有的对话信息
-    public static final Map<ResourceLocation, ChatBoxDialogues> dialoguesMap = new HashMap<>();
+    public static final Map<Identifier, ChatBoxDialogues> dialoguesMap = new HashMap<>();
     //所有的自定义动画，并不与某个主题绑定，而是全局通用
     public static final Map<String, List<ChatBoxTheme.Portrait.CustomAnimation>> animationMap = new HashMap<>();
     //玩家的对话框主题
@@ -45,9 +48,9 @@ public class ChatBoxUtil {
     //玩家的历史对话记录
     public static HistoricalDialogueScreen historicalDialogue = new HistoricalDialogueScreen();
     //当前使用的对话框主题
-    public static String themeResourceLocation = null;
+    public static String themeIdentifier = null;
     //文本路径
-    public static ResourceLocation dialoguesResourceLocation;
+    public static Identifier dialoguesIdentifier;
     //文本分组
     public static String group;
     //文本序号
@@ -65,35 +68,32 @@ public class ChatBoxUtil {
         tags.forEach((id, tag) -> {
             Entity entity = level.getEntity(id);
             if (entity != null) {
-                // 读取标签和额外数据应该够了，有需要再加（不能直接entity.load(tag)）
                 entity.getTags().clear();
-                if (tag.contains("Tags", 9)) {
-                    ListTag listTag4 = tag.getList("Tags", 8);
-                    int i = Math.min(listTag4.size(), 1024);
-                    for(int j = 0; j < i; ++j) {
-                        entity.getTags().add(listTag4.getString(j));
-                    }
+                try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(entity.problemPath(), ChatBox.LOGGER)) {
+                    ValueInput input = TagValueInput.create(scopedCollector, entity.registryAccess(), tag);
+                    // 读取标签和额外数据应该够了，有需要再加（不能直接entity.load(tag)）
+                    input.read("Tags", Codec.STRING.sizeLimitedListOf(1024)).ifPresent(t -> entity.getTags().addAll(t));
+                    ((EntityAccessor) entity).readAdditionalData(input);
                 }
-                ((EntityAccessor) entity).readAdditionalData(tag);
                 chatTargets.add(entity);
             }
         });
     }
 
-    public static void setDialoguesInfo(ResourceLocation resourceLocation, String group, Integer index) {
-        if (resourceLocation != null && group != null && index != null) {
-            dialoguesResourceLocation = resourceLocation;
+    public static void setDialoguesInfo(Identifier identifier, String group, Integer index) {
+        if (identifier != null && group != null && index != null) {
+            dialoguesIdentifier = identifier;
             ChatBoxUtil.group = group;
             ChatBoxUtil.index = index;
         }
     }
 
-    private static List<Portrait> bakePortrait(ResourceLocation newRl, String newGroup, Integer newIndex) {
+    private static List<Portrait> bakePortrait(Identifier newRl, String newGroup, Integer newIndex) {
         List<Portrait> portraits = chatBoxScreen.portraits;
         List<ChatBoxDialogues.Dialogues> dialogues = dialoguesMap.get(newRl).dialogues.get(newGroup);
         // 如果恰好是下一句对话，直接设置
-        if (dialoguesResourceLocation != null && group != null && index != null &&
-                newRl == dialoguesResourceLocation && Objects.equals(newGroup, group) && newIndex == index + 1) {
+        if (dialoguesIdentifier != null && group != null && index != null &&
+                newRl == dialoguesIdentifier && Objects.equals(newGroup, group) && newIndex == index + 1) {
             return dialogues.get(newIndex).setPortraitDialogues(portraits);
         }
         // 否则，从当前对话开始，往前找到第一个需要清除旧立绘的对话，记录下索引。（新索引等于旧索引也如此）
@@ -114,15 +114,15 @@ public class ChatBoxUtil {
     }
 
     //跳转对话
-    public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index) {
+    public static void skipDialogues(Identifier dialoguesIdentifier, String group, int index) {
         if (minecraft.player == null) return;
 
-        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesIdentifier);
         if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
         String theme = chatBoxDialogues.theme;
-        if (theme != null && !theme.equals(themeResourceLocation)) {
-            toggleTheme(new ResourceLocation(theme));
-            themeResourceLocation = theme;
+        if (theme != null && !theme.equals(themeIdentifier)) { //如果是同一个主题就不切换了
+            toggleTheme(Identifier.parse(theme));
+            themeIdentifier = theme;
         }
         List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
 
@@ -131,7 +131,7 @@ public class ChatBoxUtil {
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
             chatBoxScreen.setDialogBox(dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox))
                     .setVideo(dialog.video != null ? dialog.video.setVideo() : null)
-                    .setPortrait(bakePortrait(dialoguesResourceLocation, group, index))
+                    .setPortrait(bakePortrait(dialoguesIdentifier, group, index))
                     .setChatOptions(dialog.setChatOptionDialogues())
                     .setBackgroundImage(dialog.backgroundImage)
                     .setIsEsc(chatBoxDialogues.isEsc)
@@ -148,14 +148,14 @@ public class ChatBoxUtil {
                 historicalDialogue = new HistoricalDialogueScreen();
             }
             //添加历史聊天记录
-            historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesResourceLocation, group, index).setName(dialogBox.name).setText(dialogBox.text));
+            historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesIdentifier, group, index).setName(dialogBox.name).setText(dialogBox.text));
             //进入对话执行自定义指令
             if (dialog.command != null) ChatBox.PLATFORM.sendToServer(new SendClickEvent("COMMAND", dialog.command));
 
             //调试用
-            //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);
-            ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets);
-            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, String.valueOf(index)));
+            //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesIdentifier + " " + group + " " + index);
+            ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesIdentifier, group, index, chatTargets);
+            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesIdentifier.toString(), group, String.valueOf(index)));
 
             ChatBoxRenderCommon.isOpenChatBox = true;
             if (isScreen) {
@@ -164,7 +164,7 @@ public class ChatBoxUtil {
                 ChatBoxRenderCommon.shouldRender = true;
             }
             // 确认对话框加载完成后再设置客户端对话框信息
-            setDialoguesInfo(dialoguesResourceLocation, group, index);
+            setDialoguesInfo(dialoguesIdentifier, group, index);
         } else {
             if (isScreen) {
                 if (minecraft.screen != null) {
@@ -176,26 +176,26 @@ public class ChatBoxUtil {
         }
     }
 
-    public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String dialogBlock) {
-        skipDialogues(dialoguesResourceLocation, dialogBlock, 0);
+    public static void skipDialogues(Identifier dialoguesIdentifier, String dialogBlock) {
+        skipDialogues(dialoguesIdentifier, dialogBlock, 0);
     }
 
     public static void onCloseDialogBox() {
-        if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
-        ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets);
-        ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, "-1"));
+        if (dialoguesIdentifier == null || group == null || minecraft.player == null) return;
+        ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesIdentifier, group, -1, chatTargets);
+        ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesIdentifier.toString(), group, "-1"));
     }
 
     //切换对话框主题
-    public static void toggleTheme(ResourceLocation themeResourceLocation) {
-        chatBoxTheme = themeMap.get(themeResourceLocation);
+    public static void toggleTheme(Identifier themeIdentifier) {
+        chatBoxTheme = themeMap.get(themeIdentifier);
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
                 .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionButtons))
                 .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
     }
 
-    public static void setTheme(Map<ResourceLocation, String> map) {
-        map.forEach((resourceLocation, str) -> {
+    public static void setTheme(Map<Identifier, String> map) {
+        map.forEach((identifier, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
             if (jsonElement == null) return;
             JsonObject jsonObject = jsonElement.getAsJsonObject();
@@ -234,16 +234,17 @@ public class ChatBoxUtil {
             }
             animationMap.putAll(customAnimation);
 
-            themeMap.put(resourceLocation, new ChatBoxTheme(portrait, option, dialogBox, functionButton, keyPrompt).setDefaultValue());
+            themeMap.put(identifier, new ChatBoxTheme(portrait, option, dialogBox, functionButton, keyPrompt).setDefaultValue());
         });
     }
 
-    public static void setDialogues(Map<ResourceLocation, String> map) {
-        map.forEach((resourceLocation, str) -> {
+    public static void setDialogues(Map<Identifier, String> map) {
+        map.forEach((identifier, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
             if (jsonElement != null) {
-                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(jsonElement, new TypeToken<ChatBoxDialogues>() {}.getType());
-                dialoguesMap.put(resourceLocation, chatBoxDialogues);
+                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(jsonElement, new com.google.common.reflect.TypeToken<ChatBoxDialogues>() {
+                }.getType());
+                dialoguesMap.put(identifier, chatBoxDialogues);
             }
         });
     }

@@ -1,114 +1,115 @@
 package com.zhenshiz.chatbox.network.s2c;
 
-import com.google.common.collect.Maps;
-import com.zhenshiz.chatbox.network.CustomPacket;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.zhenshiz.chatbox.ChatBox.PLATFORM;
-import static com.zhenshiz.chatbox.ChatBox.ResourceLocationMod;
-
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 public class ChatBoxPayload {
+    public record OpenScreen(Identifier dialogues, String group, int index) implements CustomPacketPayload {
+        public static final Type<OpenScreen> TYPE = new Type<>(ChatBox.id("open_screen"));
+        public static final StreamCodec<FriendlyByteBuf, OpenScreen> CODEC = StreamCodec.composite(
+                Identifier.STREAM_CODEC,  OpenScreen::dialogues,
+                ByteBufCodecs.STRING_UTF8,      OpenScreen::group,
+                ByteBufCodecs.INT,              OpenScreen::index,
+                OpenScreen::new
+        );
 
-    public record OpenScreen(ResourceLocation dialogues, String group, int index) implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("open_screen");
-
-        public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-        public static void encode(OpenScreen packet, FriendlyByteBuf buf) {
-            buf.writeResourceLocation(packet.dialogues);
-            buf.writeUtf(packet.group);
-            buf.writeInt(packet.index);
+        @Override
+        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
 
-        public static OpenScreen decode(FriendlyByteBuf buf) {
-            return new OpenScreen(buf.readResourceLocation(), buf.readUtf(), buf.readInt());
-        }
-
-        public static void handleOnClient(OpenScreen packet) {
-            PLATFORM.runOnClient(() -> ChatBoxCommandUtil.clientSkipDialogues(packet.dialogues, packet.group, packet.index));
+        public static void handleOnClient(OpenScreen payload) {
+            ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index());
         }
     }
 
-    public record AllChatBoxThemeToClient(Map<ResourceLocation, List<String>> themeMap) implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("all_chat_box_theme_to_client");
+    public record AllChatBoxThemeToClient(Map<Identifier, List<String>> themeMap) implements CustomPacketPayload {
+        public static final Type<AllChatBoxThemeToClient> TYPE = new Type<>(ChatBox.id("all_chat_box_theme_to_client"));
+        public static final StreamCodec<FriendlyByteBuf, AllChatBoxThemeToClient> CODEC = StreamCodec.composite(
+                ByteBufCodecs.map(
+                        HashMap::new,
+                        Identifier.STREAM_CODEC,
+                        ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)
+                ),
+                AllChatBoxThemeToClient::themeMap,
+                AllChatBoxThemeToClient::new
+        );
 
-        public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-        public static void encode(AllChatBoxThemeToClient packet, FriendlyByteBuf buf) {
-            buf.writeMap(packet.themeMap, FriendlyByteBuf::writeResourceLocation, (vBuf, v) -> vBuf.writeCollection(v, FriendlyByteBuf::writeUtf));
+        @Override
+        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
 
-        public static AllChatBoxThemeToClient decode(FriendlyByteBuf buf) {
-            return new AllChatBoxThemeToClient(buf.readMap(FriendlyByteBuf::readResourceLocation, v -> v.readList(FriendlyByteBuf::readUtf)));
-        }
-
-        public static void handleOnClient(AllChatBoxThemeToClient packet) {
-            PLATFORM.runOnClient(() -> {
-                ChatBoxUtil.setTheme(mergeString(packet.themeMap));
-                if (ChatBoxUtil.themeResourceLocation != null) {
-                    ResourceLocation theme = ResourceLocation.tryParse(ChatBoxUtil.themeResourceLocation);
-                    if (theme != null) {
-                        ChatBoxUtil.toggleTheme(theme);
-                    }
+        public static void handleOnClient(AllChatBoxThemeToClient payload) {
+            ChatBoxUtil.setTheme(mergeString(payload.themeMap()));
+            if (ChatBoxUtil.themeIdentifier != null) {
+                Identifier theme = Identifier.tryParse(ChatBoxUtil.themeIdentifier);
+                if (theme != null) {
+                    ChatBoxUtil.toggleTheme(theme);
                 }
-            });
+            }
         }
     }
 
-    public record AllChatBoxDialoguesToClient(Map<ResourceLocation, List<String>> dialoguesMap) implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("all_chat_box_dialogues_to_client");
+    public record AllChatBoxDialoguesToClient(Map<Identifier, List<String>> dialoguesMap) implements CustomPacketPayload {
+        public static final Type<AllChatBoxDialoguesToClient> TYPE = new Type<>(ChatBox.id("all_chat_box_dialogues_to_client"));
+        public static final StreamCodec<FriendlyByteBuf, AllChatBoxDialoguesToClient> CODEC = StreamCodec.composite(
+                ByteBufCodecs.map(
+                        HashMap::new,
+                        Identifier.STREAM_CODEC,
+                        ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)
+                ),
+                AllChatBoxDialoguesToClient::dialoguesMap,
+                AllChatBoxDialoguesToClient::new
+        );
 
-        public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-        public static void encode(AllChatBoxDialoguesToClient packet, FriendlyByteBuf buf) {
-            buf.writeMap(packet.dialoguesMap, FriendlyByteBuf::writeResourceLocation, (vBuf, v) -> vBuf.writeCollection(v, FriendlyByteBuf::writeUtf));
+        @Override
+        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
 
-        public static AllChatBoxDialoguesToClient decode(FriendlyByteBuf buf) {
-            return new AllChatBoxDialoguesToClient(buf.readMap(FriendlyByteBuf::readResourceLocation, v -> v.readList(FriendlyByteBuf::readUtf)));
-        }
-
-        public static void handleOnClient(AllChatBoxDialoguesToClient packet) {
-            PLATFORM.runOnClient(() -> ChatBoxUtil.setDialogues(mergeString(packet.dialoguesMap)));
-        }
-    }
-
-    public record SyncEntityData(LinkedHashMap<Integer, CompoundTag> entities) implements CustomPacket {
-        public ResourceLocation id() {return ID;}
-        public static final ResourceLocation ID = ResourceLocationMod("sync_entity_data");
-
-        public void write(FriendlyByteBuf buf) {encode(this, buf);}
-
-        public static void encode(SyncEntityData packet, FriendlyByteBuf buf) {
-            buf.writeMap(packet.entities, FriendlyByteBuf::writeInt, FriendlyByteBuf::writeNbt);
-        }
-
-        public static SyncEntityData decode(FriendlyByteBuf buf) {
-            return new SyncEntityData(buf.readMap(Maps::newLinkedHashMapWithExpectedSize, FriendlyByteBuf::readInt, FriendlyByteBuf::readNbt));
-        }
-
-        public static void handleOnClient(SyncEntityData packet) {
-            PLATFORM.runOnClient(() -> ChatBoxUtil.setChatTargets(packet.entities));
+        public static void handleOnClient(AllChatBoxDialoguesToClient payload) {
+            ChatBoxUtil.setDialogues(mergeString(payload.dialoguesMap()));
         }
     }
 
-    private static Map<ResourceLocation, String> mergeString(Map<ResourceLocation, List<String>> map) {
-        Map<ResourceLocation, String> result = new HashMap<>();
+    public record SyncEntityData(LinkedHashMap<Integer, CompoundTag> entities) implements CustomPacketPayload {
+        public static final Type<SyncEntityData> TYPE = new Type<>(ChatBox.id("sync_entity_data"));
+        public static final StreamCodec<FriendlyByteBuf, SyncEntityData> CODEC = StreamCodec.composite(
+                ByteBufCodecs.map(
+                        LinkedHashMap::new,
+                        ByteBufCodecs.INT,
+                        ByteBufCodecs.COMPOUND_TAG
+                ),
+                SyncEntityData::entities,
+                SyncEntityData::new
+        );
+
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        public static void handleOnClient(SyncEntityData payload) {
+            ChatBoxUtil.setChatTargets(payload.entities());
+        }
+    }
+
+    private static Map<Identifier, String> mergeString(Map<Identifier, List<String>> map) {
+        Map<Identifier, String> result = new HashMap<>();
         for (var entry : map.entrySet()) {
-            ResourceLocation rl = entry.getKey();
+            Identifier rl = entry.getKey();
             List<String> parts = entry.getValue();
             StringBuilder builder = new StringBuilder();
             for (String part : parts) {

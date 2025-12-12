@@ -4,6 +4,7 @@ import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.lwjgl.glfw.GLFW;
@@ -21,7 +22,8 @@ public class ChatBoxRenderCommon {
     //当前选择的选项序号
     public static int selectIndex = 0;
 
-    public static void onHudRender(GuiGraphics guiGraphics, float partialTick) {
+    public static void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        float partialTick = deltaTracker.getGameTimeDeltaTicks();
         if (isRenderChatBox()) {
             chatBoxScreen.renderInner(guiGraphics, 0, 0, partialTick, false);
         }
@@ -68,12 +70,12 @@ public class ChatBoxRenderCommon {
         }
     }
 
-    public static boolean onMouseScroll(double scrollDelta, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY) {
+    public static boolean onMouseScroll(double scrollDeltaX, double scrollDeltaY, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY) {
         int optionCount = chatBoxScreen.getRenderOptionCount();
         if (isRenderChatBox() && optionCount > 0) {
-            if (scrollDelta > 0) { //向上
+            if (scrollDeltaY > 0) { //向上
                 selectIndex = (selectIndex - 1 + optionCount) % optionCount;
-            } else if (scrollDelta < 0) { //向下
+            } else if (scrollDeltaY < 0) { //向下
                 selectIndex = (selectIndex + 1) % optionCount;
             }
             for (var option : chatBoxScreen.chatOptions) {

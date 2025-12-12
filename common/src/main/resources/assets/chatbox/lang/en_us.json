@@ -14,7 +14,6 @@
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "sound interruption",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "Whether to interrupt currently playing sound when no new sound is available",
   "text.autoconfig.chatbox_config.option.charPerSecond":"Characters to display per second",
-  "text.autoconfig.chatbox_config.option.isStopTerraDialog":"Whether to block TerraNpc's dialogue system",
 
   "chatbox.key.right_click": "Confirm",
   "chatbox.key.scroll": "Toggle options",

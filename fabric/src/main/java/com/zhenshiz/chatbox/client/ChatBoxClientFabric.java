@@ -18,15 +18,15 @@ public class ChatBoxClientFabric implements ClientModInitializer {
     }
 
     public static void registerClientHandlers() {
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreen.ID, (client, h, buf, r) -> ChatBoxPayload.OpenScreen.handleOnClient(ChatBoxPayload.OpenScreen.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreen.TYPE, ((packet, context) -> ChatBoxPayload.OpenScreen.handleOnClient(packet)));
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxThemeToClient.handleOnClient(ChatBoxPayload.AllChatBoxThemeToClient.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.TYPE, ((packet, context) -> ChatBoxPayload.AllChatBoxThemeToClient.handleOnClient(packet)));
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.ID, (client, h, buf, r) -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(ChatBoxPayload.AllChatBoxDialoguesToClient.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ((packet, context) -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(packet)));
 
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.ID, (client, h, buf, r) -> ChatBoxPayload.SyncEntityData.handleOnClient(ChatBoxPayload.SyncEntityData.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.TYPE, ((packet, context) -> ChatBoxPayload.SyncEntityData.handleOnClient(packet)));
 
-        ClientPlayNetworking.registerGlobalReceiver(SimplePayload.ID, (client, h, buf, r) -> SimplePayload.handleOnClient(SimplePayload.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(SimplePayload.TYPE, ((packet, context) -> SimplePayload.handleOnClient(packet)));
     }
 
     private void registerRenderEvents() {

@@ -1,12 +1,12 @@
 package com.zhenshiz.chatbox.data;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,21 +15,37 @@ import java.util.UUID;
 import static com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader.defaultMaxTriggerCount;
 
 public class ChatBoxTriggerCount extends SavedData {
-    private final Map<UUID, Map<ResourceLocation, Integer>> maxTriggerCounts = new HashMap<>();
-    private final ServerLevel world;
+    private static final Codec<ChatBoxTriggerCount> CODEC = RecordCodecBuilder.create(
+            instance -> instance.group(
+                            Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.unboundedMap(Identifier.CODEC, Codec.INT))
+                                    .fieldOf("MaxTriggerCounts")
+                                    .forGetter(o -> o.maxTriggerCounts)
+                    )
+                    .apply(instance, ChatBoxTriggerCount::new)
+    );
+    private final Map<UUID, Map<Identifier, Integer>> maxTriggerCounts = new HashMap<>();
 
-    public ChatBoxTriggerCount(ServerLevel world) {
-        this.world = world;
+    public static SavedDataType<ChatBoxTriggerCount> getType() {
+        return new SavedDataType<>("chatbox_trigger_count", ChatBoxTriggerCount::new, CODEC, null);
     }
 
-    public int getPlayerMaxTriggerCount(ServerPlayer player, ResourceLocation rl) {
+    public ChatBoxTriggerCount() {setDirty();}
+    public ChatBoxTriggerCount(Map<UUID, Map<Identifier, Integer>> counts) {
+        // Codec解析出来的是不可修改的map，需要复制一下
+        for (Map.Entry<UUID, Map<Identifier, Integer>> entry : counts.entrySet()) {
+            maxTriggerCounts.put(entry.getKey(), new HashMap<>(entry.getValue()));
+        }
         setDirty();
-        Map<ResourceLocation, Integer> counts = maxTriggerCounts.computeIfAbsent(player.getUUID(), k -> defaultMaxTriggerCount);
+    }
+
+    public int getPlayerMaxTriggerCount(ServerPlayer player, Identifier rl) {
+        setDirty();
+        Map<Identifier, Integer> counts = maxTriggerCounts.computeIfAbsent(player.getUUID(), k -> defaultMaxTriggerCount);
         return counts.getOrDefault(rl, defaultMaxTriggerCount.getOrDefault(rl, 0));
     }
 
-    public void setPlayerMaxTriggerCount(ServerPlayer player, ResourceLocation rl, int count) {
-        Map<ResourceLocation, Integer> counts = maxTriggerCounts.computeIfAbsent(player.getUUID(), k -> defaultMaxTriggerCount);
+    public void setPlayerMaxTriggerCount(ServerPlayer player, Identifier rl, int count) {
+        Map<Identifier, Integer> counts = maxTriggerCounts.computeIfAbsent(player.getUUID(), k -> defaultMaxTriggerCount);
         counts.put(rl, count);
         maxTriggerCounts.put(player.getUUID(), counts);
         setDirty();
@@ -38,39 +54,5 @@ public class ChatBoxTriggerCount extends SavedData {
     public void resetPlayerMaxTriggerCount(ServerPlayer player) {
         maxTriggerCounts.remove(player.getUUID());
         setDirty();
-    }
-
-    public static ChatBoxTriggerCount fromNbt(ServerLevel world, CompoundTag nbt) {
-        ChatBoxTriggerCount count = new ChatBoxTriggerCount(world);
-        for (var player : nbt.getAllKeys()) {
-            UUID uuid = UUID.fromString(player);
-            Map<ResourceLocation, Integer> counts = new HashMap<>();
-            ListTag listTag = nbt.getList(player, 10);
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag compoundTag = listTag.getCompound(i);
-                ResourceLocation rl = ResourceLocation.tryParse(compoundTag.getString("Dialogue"));
-                int num = compoundTag.getInt("MaxTriggerCount");
-                counts.put(rl, num);
-            }
-            count.maxTriggerCounts.put(uuid, counts);
-        }
-        return count;
-    }
-
-    @Override
-    public @NotNull CompoundTag save(CompoundTag nbt) {
-        for (var entry : maxTriggerCounts.entrySet()) {
-            ListTag listTag = new ListTag();
-            UUID player = entry.getKey();
-            Map<ResourceLocation, Integer> playerCounts = entry.getValue();
-            for (var entry1 : playerCounts.entrySet()) {
-                CompoundTag compoundTag = new CompoundTag();
-                compoundTag.putString("Dialogue", entry1.getKey().toString());
-                compoundTag.putInt("MaxTriggerCount", entry1.getValue());
-                listTag.add(compoundTag);
-            }
-            nbt.put(player.toString(), listTag);
-        }
-        return nbt;
     }
 }

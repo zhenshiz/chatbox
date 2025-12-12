@@ -6,10 +6,11 @@ import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.phys.Vec2;
 
 import java.util.List;
@@ -182,16 +183,13 @@ public class Portrait extends AbstractComponent<Portrait> {
             float y = position.y;
             if (this.isAnimation) execCustomAnimation();
             switch (type) {
-                case TEXTURE -> renderImage(guiGraphics, new ResourceLocation(this.value), this.scale, this.attachments);
-                case PLAYER_HEAD -> RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), this.scale, this.angle));
+                case TEXTURE -> renderImage(guiGraphics, Identifier.parse(this.value), this.scale, this.attachments);
+                case PLAYER_HEAD -> RenderUtil.renderPlayerHead(guiGraphics, parseText(this.value), (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), (int) (getResponsiveWidth(this.width) + getResponsiveHeight(this.height)), this.scale, this.opacity, this.angle);
                 case ITEM -> {
-                    ItemStack itemStack = BuiltInRegistries.ITEM.get(new ResourceLocation(this.value)).getDefaultInstance();
+                    ItemStack itemStack = BuiltInRegistries.ITEM.getValue(Identifier.parse(this.value)).getDefaultInstance();
                     if (this.customItemData != null) {
-                        CompoundTag tag = itemStack.getOrCreateTag();
-                        tag.putInt("CustomModelData", this.customItemData);
-                        itemStack.setTag(tag);
-                    }
-                    RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> RenderUtil.renderItem(guiGraphics, itemStack, (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), this.scale, this.angle));
+                        itemStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), List.of(), List.of(), List.of(this.customItemData)));
+                    }RenderUtil.renderItem(guiGraphics, itemStack, (int) getResponsiveWidth(x), (int) getResponsiveHeight(y), this.scale, this.angle);
                 }
             }
         }
@@ -209,6 +207,7 @@ public class Portrait extends AbstractComponent<Portrait> {
         if (animation.xOffset != null) curX += easingFunction(0, animation.xOffset, this.currentAnimationTick, animation.time, animation.easing);
         if (animation.yOffset != null) curY += easingFunction(0, animation.yOffset, this.currentAnimationTick, animation.time, animation.easing);
         setPosition(curX, curY);
+        //MotionUtil.apply(this, "-(x/15)^2*(y/15+1)^3+((x/15)^2+(y/15+1)^2-1)^3", Point.ZERO, 0.494f, animation.time, this.currentAnimationTick);
         if (animation.scale != null) setScale(easingFunction(this.targetCustomAnimation.scale, animation.scale, this.currentAnimationTick, animation.time, animation.easing));
         if (animation.opacity != null) setOpacity(easingFunction(this.targetCustomAnimation.opacity, animation.opacity, this.currentAnimationTick, animation.time, animation.easing));
         if (animation.angle != null) setAngle(easingFunction(this.targetCustomAnimation.angle, animation.angle, this.currentAnimationTick, animation.time, animation.easing));

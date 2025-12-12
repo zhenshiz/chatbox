@@ -142,9 +142,9 @@ public class ChatBoxTheme {
 
         public static List<FunctionalButton> setFunctionalButtonTheme(List<FunctionButton> functionButtons) {
             return functionButtons.stream().map(b ->
-                            new FunctionalButton(FunctionalButton.Type.of(b.type))
-                                    .setDefaultOption(b.x, b.y, b.width, b.height, AbstractComponent.AlignX.of(b.alignX), AbstractComponent.AlignY.of(b.alignY), b.opacity, b.renderOrder, b.angle)
-                                    .setTexture(b.texture).setHoverTexture(b.hoverTexture))
+                    new FunctionalButton(FunctionalButton.Type.of(b.type))
+                            .setDefaultOption(b.x, b.y, b.width, b.height, AbstractComponent.AlignX.of(b.alignX), AbstractComponent.AlignY.of(b.alignY), b.opacity, b.renderOrder, b.angle)
+                            .setTexture(b.texture).setHoverTexture(b.hoverTexture))
                     .toList();
         }
     }

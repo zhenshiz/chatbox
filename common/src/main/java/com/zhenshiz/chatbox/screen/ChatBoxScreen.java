@@ -16,8 +16,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -26,13 +28,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.zhenshiz.chatbox.utils.chatbox.ScreenUtil.*;
+
 @SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
 public class ChatBoxScreen extends Screen {
     public List<ChatOption> chatOptions = new ArrayList<>();
     public List<Portrait> portraits = new ArrayList<>();
     public DialogBox dialogBox = new DialogBox();
     public List<FunctionalButton> functionalButtons = new ArrayList<>();
-    public ResourceLocation backgroundImage;
+    public Identifier backgroundImage;
     public Boolean isEsc;
     public Boolean isPause;
     public Boolean isHistoricalSkip;
@@ -46,7 +50,6 @@ public class ChatBoxScreen extends Screen {
     //是否隐藏对话框，if true，则不渲染对话框、聊天选项、功能按钮，且屏蔽交互
     public boolean hideDialogBox = false;
     public String voice = "";
-    public String bgm = "";
     // 用于限制立绘动画的参数，单位：毫秒
     private long updateDuration = 16;
     private long lastUpdateTime = 0;
@@ -100,14 +103,14 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
-    public ChatBoxScreen setBackgroundImage(ResourceLocation backgroundImage) {
+    public ChatBoxScreen setBackgroundImage(Identifier backgroundImage) {
         this.backgroundImage = backgroundImage;
         return this;
     }
 
     public ChatBoxScreen setBackgroundImage(String backgroundImage) {
         if (backgroundImage != null) {
-            return setBackgroundImage(ResourceLocation.tryParse(backgroundImage));
+            return setBackgroundImage(Identifier.parse(backgroundImage));
         } else {
             this.backgroundImage = null;
             return this;
@@ -234,7 +237,7 @@ public class ChatBoxScreen extends Screen {
         if (ChatBox.PLATFORM.postRenderEventPre(guiGraphics)) return;
 
         if (backgroundImage != null) {
-            RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
+            RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 100, 0);
         }
 
         List<AbstractComponent<?>> renderList = getRenderList(isScreen);
@@ -272,9 +275,9 @@ public class ChatBoxScreen extends Screen {
         if (debug) {
             var font = minecraft.font;
             if (underCursor != null && hasControlDown()) {
-                guiGraphics.renderTooltip(font, Component.literal(underCursor.getDebugInfo()), pMouseX, pMouseY);
+                RenderUtil.renderTooltip(guiGraphics, Component.literal(underCursor.getDebugInfo()), pMouseX, pMouseY);
             } else if (hasShiftDown()) {
-                guiGraphics.renderTooltip(font, Component.literal(StrUtil.format("\"x\": {}, \"y\": {}", pMouseX / (float) RenderUtil.screenWidth() * 100, pMouseY / (float) RenderUtil.screenHeight() * 100)), pMouseX, pMouseY);
+                RenderUtil.renderTooltip(guiGraphics, Component.literal(StrUtil.format("\"x\": {}, \"y\": {}", pMouseX / (float) RenderUtil.screenWidth() * 100, pMouseY / (float) RenderUtil.screenHeight() * 100)), pMouseX, pMouseY);
             }
             if (!hasShiftDown() && !hasControlDown()) {
                 int y = 2;
@@ -301,8 +304,9 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean bl) {
         if (debug && hasControlDown()) return true;
+        var pButton = mouseButtonEvent.button();
         if (hideDialogBox) {
             hideDialogBox = false;
             return true;
@@ -328,11 +332,11 @@ public class ChatBoxScreen extends Screen {
 
             dialogBoxClick();
         }
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
+        return super.mouseClicked(mouseButtonEvent, bl);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (debug && hasControlDown()) {
             if (underCursor instanceof Portrait portrait) {
                 // 防止缩太小了就消失了
@@ -356,21 +360,22 @@ public class ChatBoxScreen extends Screen {
             FunctionalButton logButton = getButton(FunctionalButton.Type.LOG);
             if (logButton != null && logButton.click()) return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent keyEvent) {
+        int keyCode = keyEvent.key();
         if (keyCode == GLFW.GLFW_KEY_F3) setDebug(!debug);
         if (isCopy(keyCode) && underCursor != null) {
             minecraft.keyboardHandler.setClipboard(underCursor.getDebugInfo());
         }
-        if (video != null && video.isPlaying()) video.keyPressed(keyCode, scanCode, modifiers);
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        if (video != null && video.isPlaying()) video.keyPressed(keyCode, keyEvent.scancode(), keyEvent.modifiers());
+        return super.keyPressed(keyEvent);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent mouseButtonEvent, double dragX, double dragY) {
         if (debug && hasControlDown() && underCursor != null) {
             float addX = (float) dragX * 100 / RenderUtil.screenWidth();
             float addY = (float) dragY * 100 / RenderUtil.screenHeight();
@@ -384,7 +389,7 @@ public class ChatBoxScreen extends Screen {
                 underCursor.y += addY;
             }
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(mouseButtonEvent, dragX, dragY);
     }
 
     @Override
@@ -407,7 +412,8 @@ public class ChatBoxScreen extends Screen {
         dialogBox.tick();
         if (fastForward) dialogBoxClick();
         if (autoPlay) {
-            SoundUtil.tickWhenPaused(); // MC不在暂停游戏时tick声音，那我自己tick一下
+            // MC不在暂停游戏时tick声音，那我自己tick一下
+            SoundUtil.tickWhenPaused();
             if (SoundUtil.isSoundActive(voice)) {
                 // 有语音播放时，自动播放间隔重置为20tick
                 if (tickAutoPlay > 20) setAutoPlayTick(20);
@@ -432,6 +438,6 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics) {
+    public void renderBackground(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
     }
 }
