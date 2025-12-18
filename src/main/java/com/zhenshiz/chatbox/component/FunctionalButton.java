@@ -3,8 +3,8 @@ package com.zhenshiz.chatbox.component;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 
@@ -83,14 +83,13 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
         if (texture != null) renderImage(guiGraphics, texture);
 
         if (isSelect) {
-            Component text = switch (type) {
-                case LOG -> Component.translatable("chatbox.button.log");
-                case FASTFORWARD -> Component.translatable("chatbox.button.fast_forward");
-                case AUTOPLAY -> Component.translatable("chatbox.button.autoplay");
+            String key = switch (type) {
+                case LOG -> "chatbox.button.log";
+                case FASTFORWARD -> "chatbox.button.fast_forward";
+                case AUTOPLAY -> "chatbox.button.autoplay";
             };
             Vec2 position = getCurrentPosition();
-            // 在按钮的上方绘制文本，对齐右边缘
-            guiGraphics.drawString(minecraft.font, text, (int) getResponsiveWidth(position.x + this.width) - minecraft.font.width(text), (int) getResponsiveHeight(position.y) - 12, -1, false);
+            RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(key), (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, (int) getResponsiveWidth(this.width), this.alignX, -1, false);
         }
     }
 

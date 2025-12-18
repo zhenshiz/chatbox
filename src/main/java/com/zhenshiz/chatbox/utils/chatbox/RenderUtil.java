@@ -5,12 +5,17 @@ import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +28,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RenderUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
@@ -423,6 +430,108 @@ public class RenderUtil {
     public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
         renderItem(guiGraphics, item, x, y, scale, angle, "");
     }
+
+    //text
+    public static void drawStringAlign(GuiGraphics guiGraphics, String text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, boolean lineBreak) {
+        var withRuby = new StringWithRuby(text);
+        if (lineBreak) withRuby.drawLineBreak(guiGraphics, startX, startY, lineWidth, alignX, color);
+        else drawStringAlign(guiGraphics, Component.nullToEmpty(withRuby.noRuby), startX, startY, lineWidth, alignX, color, withRuby.rubyPartArrays());
+    }
+
+    public static void drawStringAlign(GuiGraphics guiGraphics, FormattedText text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, RubyPart... rubyParts) {
+        var font = minecraft.font;
+        int renderX = startX; int renderY = startY;
+        switch (alignX) {
+            case CENTER -> renderX += (lineWidth - font.width(text)) / 2;
+            case RIGHT ->  renderX +=  lineWidth - font.width(text);
+        }
+        if (rubyParts.length > 0) {
+            String string = text.getString();
+            for (var part : rubyParts) {
+                int rubyStart = part.index();
+                if (rubyStart < 0 || rubyStart + part.chars() > string.length()) continue;
+                int rubyX = renderX + font.width(Component.nullToEmpty(string.substring(0, rubyStart)).getVisualOrderText());
+                int subTextWidth = font.width(Component.nullToEmpty(string.substring(rubyStart, rubyStart + part.chars())).getVisualOrderText());
+                Component rubyComponent = Component.nullToEmpty(part.ruby());
+                int scaleX = rubyX + subTextWidth / 2;
+                rubyX += (subTextWidth - font.width(rubyComponent.getVisualOrderText())) / 2;
+                var pose = guiGraphics.pose();
+                pose.pushPose();
+                pose.last().pose().scaleAround(0.7f, scaleX, renderY + 5, 0);
+                guiGraphics.drawString(font, rubyComponent, rubyX, renderY - 1, color, false);
+                pose.popPose();
+            }
+            renderY += 6;
+        }
+        guiGraphics.drawString(font, Language.getInstance().getVisualOrder(text), renderX, renderY, color, false);
+    }
+
+    public record RubyPart(int index, int chars, String ruby) {}
+
+    static class StringWithRuby {
+        static final Pattern RUBY_PATTERN = Pattern.compile("<ruby\\s+(\\d+)\\s+([^>]*)>");
+        final String raw;
+        final List<RubyPart> rubyParts = new ArrayList<>();
+        final boolean hasRuby;
+        final String noRuby;
+
+        public StringWithRuby(String raw) {
+            this.raw = raw;
+            if (raw.contains("<ruby ")) {
+                StringBuilder noRubyBuilder = new StringBuilder();
+                Matcher matcher = RUBY_PATTERN.matcher(raw);
+                int lastEnd = 0;
+                while (matcher.find()) {
+                    int num = Integer.parseInt(matcher.group(1));
+                    int end = matcher.end();
+                    // 添加标签前的文本
+                    noRubyBuilder.append(raw, lastEnd, matcher.start());
+                    // 检查是否有足够的字符用于ruby标注
+                    if (end + num > raw.length()) {lastEnd = end; break;}
+                    String ruby = matcher.group(2);
+                    rubyParts.add(new RubyPart(noRubyBuilder.length(), num, ruby));
+                    lastEnd = end;
+                }
+                // 添加剩余的文本
+                if (lastEnd < raw.length()) noRubyBuilder.append(raw.substring(lastEnd));
+                this.hasRuby = !rubyParts.isEmpty();
+                this.noRuby = noRubyBuilder.toString();
+            } else {
+                this.hasRuby = false;
+                this.noRuby = raw;
+            }
+        }
+
+        public RubyPart[] rubyPartArrays() {return rubyParts.toArray(new RubyPart[0]);}
+
+        /**
+         * 获取已移除标签文本{@link #noRuby}指定范围内的ruby标签，用于换行时绘制
+         * @param start 开始索引（包含）
+         * @param end 结束索引（不包含）
+         */
+        public RubyPart[] rubyFromTo(int start, int end) {
+            if (!hasRuby) return new RubyPart[0];
+            return rubyParts.stream().filter(part -> part.index >= start && part.index < end).map(p -> new RubyPart(p.index - start, p.chars, p.ruby)).toArray(RubyPart[]::new);
+        }
+
+        public void drawLineBreak(GuiGraphics guiGraphics, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color) {
+            var font = minecraft.font;
+            int renderY = startY;
+            int partStart = 0;
+            for (var part : font.getSplitter().splitLines(Component.nullToEmpty(noRuby), lineWidth, Style.EMPTY)) {
+                String textPart = part.getString();
+                // 换行符在第一个字符时，跳过
+                if (!noRuby.isEmpty() && noRuby.charAt(partStart) == '\n') partStart++;
+                RubyPart[] rubyFromTo = rubyFromTo(partStart, partStart + textPart.length());
+                drawStringAlign(guiGraphics, part, startX, renderY, lineWidth, alignX, color, rubyFromTo);
+                if (rubyFromTo.length > 0) renderY += 6;
+                renderY += font.lineHeight;
+                partStart += textPart.length();
+            }
+        }
+    }
+
+    public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
 
     //cursor
 

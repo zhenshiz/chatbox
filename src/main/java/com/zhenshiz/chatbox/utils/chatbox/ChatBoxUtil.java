@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -16,8 +17,8 @@ import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
+import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
-import com.zhenshiz.chatbox.utils.math.EasingUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -120,6 +121,10 @@ public class ChatBoxUtil {
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
         List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
+        if (CollUtil.isEmpty(dialogues)) {
+            ChatBox.LOGGER.warn("group \"{}\" not found or is empty!", group);
+            return;
+        }
 
         if (index >= 0 && index < dialogues.size()) {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
@@ -319,38 +324,5 @@ public class ChatBoxUtil {
         // 追加剩余文本
         sb.append(input.substring(lastIndex));
         return sb.toString();
-    }
-
-    static {
-        animationMap.put("FADE_IN", List.of(
-                ChatBoxTheme.Portrait.CustomAnimation.builder()
-                        .time(1)
-                        .opacity(0f)
-                        .build(),
-                ChatBoxTheme.Portrait.CustomAnimation.builder()
-                        .time(30)
-                        .opacity(100f)
-                        .easing(EasingUtil.Easing.EASE_OUT_SINE)
-                        .build()
-        ));
-        animationMap.put("SLIDE_IN_FROM_BOTTOM", List.of(
-                ChatBoxTheme.Portrait.CustomAnimation.builder()
-                        .time(30)
-                        .yOffset(-5f)
-                        .easing(EasingUtil.Easing.EASE_OUT_SINE)
-                        .build()
-        ));
-        animationMap.put("BOUNCE", List.of(
-                ChatBoxTheme.Portrait.CustomAnimation.builder()
-                        .time(15)
-                        .yOffset(-5f)
-                        .easing(EasingUtil.Easing.EASE_OUT_SINE)
-                        .build(),
-                ChatBoxTheme.Portrait.CustomAnimation.builder()
-                        .time(15)
-                        .yOffset(5f)
-                        .easing(EasingUtil.Easing.EASE_OUT_SINE)
-                        .build()
-        ));
     }
 }

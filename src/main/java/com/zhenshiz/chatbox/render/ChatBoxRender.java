@@ -7,6 +7,7 @@ import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -54,7 +55,7 @@ public class ChatBoxRender {
     public static void ChatBoxRenderKeyInput(InputEvent.Key event) {
         if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
             int key = event.getKey();
-            if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
+            if (Screen.hasControlDown()) {
                 //ctrl快进
                 chatBoxScreen.dialogBoxClick();
             } else if (event.getAction() == 1 && key == GLFW.GLFW_KEY_F6) {
@@ -100,9 +101,7 @@ public class ChatBoxRender {
         }
     }
 
-    public static boolean isRenderChatBox() {
-        return !ChatBoxUtil.isScreen && shouldRender && minecraft.screen == null && chatBoxScreen.dialogBox != null;
-    }
+    public static boolean isRenderChatBox() {return !ChatBoxUtil.isScreen && shouldRender;}
 
     //关闭对话框
     public static void onClose() {

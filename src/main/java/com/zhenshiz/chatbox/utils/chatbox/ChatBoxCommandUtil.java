@@ -225,7 +225,9 @@ public class ChatBoxCommandUtil {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return false;
         //判断该对话是否有触发的次数限制
-        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialogues);
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.getOrDefault(dialogues, null);
+        if (chatBoxDialogues == null) return false;
+
         ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);
         String resourceLocation = dialogues.toString();
         Map<String, Integer> triggerCounts = maxTriggerCount.getTriggerCounts();

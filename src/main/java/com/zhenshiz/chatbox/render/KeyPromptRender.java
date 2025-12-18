@@ -17,6 +17,7 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public Float mouseTextureHeight;
     public ResourceLocation rightClickTexture;
     public ResourceLocation scrollTexture;
+    public static final String ctrl = Minecraft.ON_OSX ? "Cmd" : "Ctrl";
 
     public KeyPromptRender setMouseTextureSize(Float width, Float height) {
         if (width != null) this.mouseTextureWidth = width;
@@ -75,10 +76,10 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
                 x += 10 + font.width("Esc") + font.width(keyEsc);
 
                 //ctrl
-                drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "Ctrl", false);
-                drawText(guiGraphics, x + font.width("Ctrl") + 6, y + (float) font.lineHeight / 2, keyCtrl);
+                drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, ctrl, false);
+                drawText(guiGraphics, x + font.width(ctrl) + 6, y + (float) font.lineHeight / 2, keyCtrl);
 
-                x += 10 + font.width("Ctrl") + font.width(keyCtrl);
+                x += 10 + font.width(ctrl) + font.width(keyCtrl);
 
                 //f6
                 drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "F6", ChatBoxUtil.chatBoxScreen.autoPlay);

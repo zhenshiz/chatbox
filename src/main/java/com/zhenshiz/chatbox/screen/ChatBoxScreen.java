@@ -59,11 +59,11 @@ public class ChatBoxScreen extends Screen {
     private static final Minecraft minecraft = Minecraft.getInstance();
     private static final List<Component> debugTips = List.of(
             Component.translatable("chatbox.debug.tip1").withStyle(ChatFormatting.BOLD),
-            Component.translatable("chatbox.debug.tip2").withStyle(ChatFormatting.BOLD, ChatFormatting.RED),
+            Component.translatable("chatbox.debug.tip2", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD, ChatFormatting.RED),
             Component.translatable("chatbox.debug.tip3").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip4").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip5").withStyle(ChatFormatting.AQUA),
-            Component.translatable("chatbox.debug.tip6").withStyle(ChatFormatting.BOLD)
+            Component.translatable("chatbox.debug.tip6", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD)
     );
 
     public ChatBoxScreen() {
@@ -252,10 +252,7 @@ public class ChatBoxScreen extends Screen {
             if (debug && hasShiftDown()) {
                 int x1 = component.getX1(); int x2 = component.getX2();
                 int y1 = component.getY1(); int y2 = component.getY2();
-                RenderUtil.drawLine(guiGraphics, x1, y1, x2, y1, -65536);
-                RenderUtil.drawLine(guiGraphics, x1, y2, x2, y2, -65536);
-                RenderUtil.drawLine(guiGraphics, x1, y1, x1, y2, -65536);
-                RenderUtil.drawLine(guiGraphics, x2, y1, x2, y2, -65536);
+                RenderUtil.drawBox(guiGraphics, x1, y1, x2 - x1, y2 - y1, -65536);
             }
         });
         if (video != null && !video.isPlaying()) setVideo(null);
@@ -375,6 +372,7 @@ public class ChatBoxScreen extends Screen {
             minecraft.keyboardHandler.setClipboard(underCursor.getDebugInfo());
         }
         if (video != null && video.isPlaying()) video.keyPressed(keyCode, scanCode, modifiers);
+        if (!debug && hasControlDown()) dialogBoxClick();
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
