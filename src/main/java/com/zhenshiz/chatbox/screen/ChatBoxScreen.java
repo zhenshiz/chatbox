@@ -58,11 +58,11 @@ public class ChatBoxScreen extends Screen {
     private static final Minecraft minecraft = Minecraft.getInstance();
     private static final List<Component> debugTips = List.of(
             Component.translatable("chatbox.debug.tip1").withStyle(ChatFormatting.BOLD),
-            Component.translatable("chatbox.debug.tip2").withStyle(ChatFormatting.BOLD, ChatFormatting.RED),
+            Component.translatable("chatbox.debug.tip2", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD, ChatFormatting.RED),
             Component.translatable("chatbox.debug.tip3").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip4").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip5").withStyle(ChatFormatting.AQUA),
-            Component.translatable("chatbox.debug.tip6").withStyle(ChatFormatting.BOLD)
+            Component.translatable("chatbox.debug.tip6", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD)
     );
 
     public ChatBoxScreen() {
@@ -405,7 +405,7 @@ public class ChatBoxScreen extends Screen {
         if (!shouldGotoNext()) fastForward = false;
 
         dialogBox.tick();
-        if (fastForward) dialogBoxClick();
+        if (shouldFastForward()) dialogBoxClick();
         if (autoPlay) {
             // MC不在暂停游戏时tick声音，那我自己tick一下
             SoundUtil.tickWhenPaused();
@@ -420,6 +420,15 @@ public class ChatBoxScreen extends Screen {
             tickAutoPlay--;
             if (tickAutoPlay <= 0) dialogBoxClick();
         }
+    }
+
+    private boolean shouldFastForward() {
+        if (fastForward) return true;
+        if (hasControlDown()) {
+            if (ChatBoxUtil.isScreen) return !debug && getButton(FunctionalButton.Type.FASTFORWARD) != null;
+            else return keyPromptRender.visible;
+        }
+        return false;
     }
 
     @Override

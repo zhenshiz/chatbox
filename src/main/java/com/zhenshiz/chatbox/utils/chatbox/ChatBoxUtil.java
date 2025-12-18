@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -16,6 +17,7 @@ import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
+import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
@@ -118,7 +120,9 @@ public class ChatBoxUtil {
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String group, int index) {
         if (minecraft.player == null) return;
 
-        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.getOrDefault(dialoguesResourceLocation, null);
+        if (chatBoxDialogues == null) return;
+
         if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
         String theme = chatBoxDialogues.theme;
         if (theme != null && !theme.equals(themeResourceLocation)) { //如果是同一个主题就不切换了
@@ -126,6 +130,10 @@ public class ChatBoxUtil {
             themeResourceLocation = theme;
         }
         List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
+        if (CollUtil.isEmpty(dialogues)) {
+            ChatBox.LOGGER.warn("group \"{}\" not found or is empty!", group);
+            return;
+        }
 
         if (index >= 0 && index < dialogues.size()) {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);

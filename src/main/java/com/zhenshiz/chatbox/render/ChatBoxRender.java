@@ -23,7 +23,6 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
     public static boolean shouldRender = false;
     //当前选择的选项序号
     public static int selectIndex = 0;
-    private final static Minecraft minecraft = Minecraft.getInstance();
 
     @Override
     public void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
@@ -49,10 +48,6 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
     public void onKey(int key, int scancode, int action, int modifiers) {
         // System.out.println("key: " + key + " scancode: " + scancode + " action: " + action + " mod: " + modifiers);
         if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
-            //ctrl快进
-            if (key == GLFW.GLFW_KEY_LEFT_CONTROL) {
-                chatBoxScreen.dialogBoxClick();
-            }
             if (action == 1 && key == GLFW.GLFW_KEY_F6) {
                 //自动播放
                 chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
@@ -94,9 +89,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
         return false;
     }
 
-    public static boolean isRenderChatBox() {
-        return !ChatBoxUtil.isScreen && shouldRender && minecraft.screen == null && chatBoxScreen.dialogBox != null;
-    }
+    public static boolean isRenderChatBox() {return !ChatBoxUtil.isScreen && shouldRender;}
 
     public static void onClose() {
         isOpenChatBox = false;
