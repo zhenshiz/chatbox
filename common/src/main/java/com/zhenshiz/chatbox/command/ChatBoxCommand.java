@@ -41,7 +41,7 @@ public class ChatBoxCommand {
                                 .then(Commands.argument("Group", StringArgumentType.string())
                                         .suggests(((context, builder) -> {
                                             Identifier dialogues = IdentifierArgument.getId(context, "Dialogues");
-                                            ChatBoxDialoguesLoader.dialoguesGroupMap.get(dialogues).forEach(builder::suggest);
+                                            ChatBoxDialoguesLoader.dialoguesGroupMap.getOrDefault(dialogues, new HashSet<>()).forEach(builder::suggest);
                                             return builder.buildFuture();
                                         }))
                                         .executes(context -> ChatBoxCommand.skipDialogues(context, 0))

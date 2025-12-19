@@ -3,7 +3,7 @@ package com.zhenshiz.chatbox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
-import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.AutoConfigClient;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -25,7 +25,7 @@ public class ChatBoxNeoForge {
 
         if (dist.isClient()) {
             ChatBoxClient.init();
-            modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parent) -> AutoConfig.getConfigScreen(Config.class, parent).get());
+            modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parent) -> AutoConfigClient.getConfigScreen(Config.class, parent).get());
         }
     }
 

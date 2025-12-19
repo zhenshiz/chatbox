@@ -17,6 +17,7 @@ import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
+import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -117,7 +118,9 @@ public class ChatBoxUtil {
     public static void skipDialogues(Identifier dialoguesIdentifier, String group, int index) {
         if (minecraft.player == null) return;
 
-        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesIdentifier);
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.getOrDefault(dialoguesIdentifier, null);
+        if (chatBoxDialogues == null) return;
+
         if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
         String theme = chatBoxDialogues.theme;
         if (theme != null && !theme.equals(themeIdentifier)) { //如果是同一个主题就不切换了
@@ -125,6 +128,10 @@ public class ChatBoxUtil {
             themeIdentifier = theme;
         }
         List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
+        if (CollUtil.isEmpty(dialogues)) {
+            ChatBox.LOGGER.warn("group \"{}\" not found or is empty!", group);
+            return;
+        }
 
         if (index >= 0 && index < dialogues.size()) {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);

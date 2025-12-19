@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation("me.shedaniel.cloth:cloth-config-neoforge:20.0.149")
+    implementation("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}")
 
     compileOnly("maven.modrinth:watermedia:2.1.25")
 }

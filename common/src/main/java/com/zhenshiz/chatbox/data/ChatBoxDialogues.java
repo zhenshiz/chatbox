@@ -141,6 +141,7 @@ public class ChatBoxDialogues {
                 angle = null;
                 scale = null;
                 loop = null;
+                attachment = null;
             }
             public String id;
             public List<RenderEvent> renderEvents = new ArrayList<>();
