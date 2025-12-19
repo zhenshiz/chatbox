@@ -372,7 +372,6 @@ public class ChatBoxScreen extends Screen {
             minecraft.keyboardHandler.setClipboard(underCursor.getDebugInfo());
         }
         if (video != null && video.isPlaying()) video.keyPressed(keyCode, scanCode, modifiers);
-        if (!debug && hasControlDown()) dialogBoxClick();
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
@@ -412,7 +411,7 @@ public class ChatBoxScreen extends Screen {
         if (!shouldGotoNext()) fastForward = false;
 
         dialogBox.tick();
-        if (fastForward) dialogBoxClick();
+        if (shouldFastForward()) dialogBoxClick();
         if (autoPlay) {
             // MC不在暂停游戏时tick声音，那我自己tick一下
             SoundUtil.tickWhenPaused();
@@ -427,6 +426,15 @@ public class ChatBoxScreen extends Screen {
             tickAutoPlay--;
             if (tickAutoPlay <= 0) dialogBoxClick();
         }
+    }
+
+    private boolean shouldFastForward() {
+        if (fastForward) return true;
+        if (hasControlDown()) {
+            if (ChatBoxUtil.isScreen && !debug) return getButton(FunctionalButton.Type.FASTFORWARD) != null;
+            else return keyPromptRender.visible;
+        }
+        return false;
     }
 
     @Override
