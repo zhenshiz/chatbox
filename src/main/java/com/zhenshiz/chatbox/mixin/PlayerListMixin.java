@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.mixin;
 
+import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,5 +17,6 @@ public class PlayerListMixin {
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
     public void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
         ChatBoxSettingLoader.initializeChatBoxScreen(player);
+        PluginHelper.setPapiLoaded(player);
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,6 +124,11 @@ public class ComponentEvent {
     }
 
     public static int executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {
+        if (ChatBox.pluginHelper != null && entity instanceof Player player) {
+            command = ChatBox.pluginHelper.parsePapiPlaceholders(player.getUUID(), command);
+            if (!command.startsWith("execute")) return ChatBox.pluginHelper.executeCommand(player.getUUID(), command);
+        }
+
         // 创建命令源，并赋予2级权限，且禁止输出
         CommandSourceStack commandSource;
         if (entity != null) commandSource = entity.createCommandSourceStack();

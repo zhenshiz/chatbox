@@ -3,6 +3,8 @@ package com.zhenshiz.chatbox.component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
+import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
@@ -55,11 +57,21 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         return this;
     }
 
-    public DialogBox setText(String text) {
+    public static boolean papiLoaded = false;
+
+    public DialogBox setText(String text) {return setText(text, false);}
+    public DialogBox setText(String text, boolean askForServer) {
         if (text != null) {
             // 获取翻译键的文本
             text = RenderUtil.translated(text);
             if (ChatBox.isModLoaded("textanimator")) text = text.replaceAll("<typewriter>", "");
+
+            if (papiLoaded && askForServer && text.contains("%")) {
+                // 包含PAPI占位符，需要请求服务器解析
+                ChatBoxCommandUtil.simplePayloadC2S(PluginHelper.RESOLVE_PAPI, StrUtil.merge(name, text));
+                text = "                                                                                                    ";
+            }
+
             this.text = text;
             this.textLength = getRealLength(parseText(text));
         }
@@ -193,7 +205,7 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         poseStack.pushPose();
         int lineWidth = (int) getResponsiveWidth(this.lineWidth);
         if (StrUtil.isNotEmpty(this.name)) {
-            RenderUtil.drawStringAlign(guiGraphics, parseText(StrUtil.format("[{}]", this.name)), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), lineWidth, this.textAlign, CommonColors.WHITE, false);
+            RenderUtil.drawStringAlign(guiGraphics, parseText(this.name), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), lineWidth, this.textAlign, CommonColors.WHITE, false);
         }
         if (StrUtil.isNotEmpty(this.text)) {
             RenderUtil.drawStringAlign(guiGraphics, subString(parseText(this.text), charIndex), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), lineWidth, this.textAlign, CommonColors.WHITE, true);

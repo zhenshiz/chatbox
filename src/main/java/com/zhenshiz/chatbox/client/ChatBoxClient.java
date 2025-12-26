@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.client;
 
 import com.zhenshiz.chatbox.Config;
+import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
@@ -21,6 +22,7 @@ public class ChatBoxClient implements ClientModInitializer {
         conf = AutoConfig.getConfigHolder(Config.class).getConfig();
         registerReceiver();
         registerRenderEvents();
+        PluginHelper.init();
     }
 
     private static void registerReceiver() {

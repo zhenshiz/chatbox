@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox;
 
 import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
+import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
@@ -15,6 +16,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -23,6 +25,8 @@ public class ChatBox implements ModInitializer {
     public static final Logger LOGGER = LogUtils.getLogger();
     @Getter
     private static ChatBoxTriggerCount triggerCounts;
+    @Nullable
+    public static PluginHelper pluginHelper;
 
     @Override
     public void onInitialize() {
