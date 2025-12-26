@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ICommand;
+import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.compat.terraentity.TerraEntityShop;
 import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
@@ -21,6 +22,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforgespi.language.ModFileScanData;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 
@@ -34,6 +36,8 @@ import java.util.Set;
 public class ChatBox {
     public static final String MOD_ID = "chatbox";
     public static final Logger LOGGER = LogUtils.getLogger();
+    @Nullable
+    public static PluginHelper pluginHelper;
 
     public ChatBox(IEventBus modEventBus, ModContainer modContainer, Dist dist) {
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
@@ -44,6 +48,7 @@ public class ChatBox {
         if (dist == Dist.CLIENT) {
             modContainer.registerConfig(ModConfig.Type.COMMON, Config.CONFIG_SPEC, StrUtil.format("{}_config.toml", MOD_ID));
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+            PluginHelper.init();
         }
     }
 

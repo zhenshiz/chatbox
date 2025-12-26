@@ -431,7 +431,7 @@ public class ChatBoxScreen extends Screen {
     private boolean shouldFastForward() {
         if (fastForward) return true;
         if (hasControlDown()) {
-            if (ChatBoxUtil.isScreen && !debug) return getButton(FunctionalButton.Type.FASTFORWARD) != null;
+            if (ChatBoxUtil.isScreen) return !debug && getButton(FunctionalButton.Type.FASTFORWARD) != null;
             else return keyPromptRender.visible;
         }
         return false;

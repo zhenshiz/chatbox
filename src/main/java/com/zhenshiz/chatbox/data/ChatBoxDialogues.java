@@ -124,7 +124,7 @@ public class ChatBoxDialogues {
             public List<RenderEvent> renderEvents = new ArrayList<>();
 
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
-                return dialogBox.setName(this.name).setText(this.text)
+                return dialogBox.setName(this.name).setText(this.text, true)
                         .resetTickCount().setAllOver(false)
                         .setEvents(transform(renderEvents));
             }
