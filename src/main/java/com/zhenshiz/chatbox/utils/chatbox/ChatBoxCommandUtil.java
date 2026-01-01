@@ -170,9 +170,10 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端设置对话框")
     public static void clientSetDialogBox(String name, String text) {
-        chatBoxScreen.dialogBox.setName(name).setText(text).resetTickCount().setAllOver(false);
-        var historicalInfos = historicalDialogue.historicalDialogue.historicalInfos;
-        historicalInfos.getLast().setName(name).setText(text);
+        chatBoxScreen.dialogBox.setName(name).setText(text).setAllOver(false);
+        var historicalInfo = historicalDialogue.historicalDialogue.historicalInfos.getLast();
+        historicalInfo.name = name;
+        historicalInfo.text = text;
     }
 
     @Info("服务端添加选项")
@@ -182,8 +183,8 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端添加选项")
     public static void clientAddChatOption(String text, String next, String tip, String clickType, String clickValue) {
-        ChatOption option = new ChatOption().setOptionChat(text).setNext(next).setOptionTooltip(tip).setClickEvent(clickType, clickValue);
-        chatBoxTheme.option.setChatOptionTheme(option);
+        ChatOption option = chatBoxTheme.option.newOption()
+                .setOptionChat(text).setNext(next).setOptionTooltip(tip).setClickEvent(clickType, clickValue);
         chatBoxScreen.addChatOptions(option);
     }
 

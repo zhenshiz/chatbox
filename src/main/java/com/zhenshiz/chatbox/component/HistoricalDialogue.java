@@ -3,13 +3,13 @@ package com.zhenshiz.chatbox.component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
@@ -29,14 +29,8 @@ public class HistoricalDialogue extends AbstractWidget {
         super(x, y, width, height, Component.empty());
     }
 
-    public HistoricalDialogue addHistoricalInfo(HistoricalInfo historicalInfo) {
-        if (historicalInfo != null) this.historicalInfos.add(historicalInfo);
-        return this;
-    }
-
-    public HistoricalDialogue setHistoricalInfo(List<HistoricalInfo> historicalInfos) {
-        if (historicalInfos != null) this.historicalInfos = historicalInfos;
-        return this;
+    public void addHistoricalInfo(ResourceLocation resourceLocation, String group, int index, String name, String text) {
+        this.historicalInfos.add(new HistoricalInfo(resourceLocation, group, index, name, text));
     }
 
     @Override
@@ -87,8 +81,8 @@ public class HistoricalDialogue extends AbstractWidget {
     }
 
     public static class HistoricalInfo {
-        public Component name;
-        public Component text;
+        public String name;
+        public String text;
         public ResourceLocation resourceLocation;
         public String group;
         public int index;
@@ -96,22 +90,12 @@ public class HistoricalDialogue extends AbstractWidget {
         private Vector4i vector4i;
         private float progress;
 
-        public HistoricalInfo(ResourceLocation resourceLocation, String group, int index) {
-            this.name = CommonComponents.EMPTY;
-            this.text = CommonComponents.EMPTY;
+        public HistoricalInfo(ResourceLocation resourceLocation, String group, int index, String name, String text) {
+            this.name = RenderUtil.translated(name);
+            this.text = RenderUtil.translated(text);
             this.resourceLocation = resourceLocation;
             this.group = group;
             this.index = index;
-        }
-
-        public HistoricalInfo setName(String name) {
-            if (name != null) this.name = Component.translatable(name);
-            return this;
-        }
-
-        public HistoricalInfo setText(String text) {
-            if (text != null) this.text = Component.translatable(text);
-            return this;
         }
 
         private void render(HistoricalDialogue historicalDialogue, GuiGraphics guiGraphics, double mouseX, double mouseY, float delta) {
@@ -126,8 +110,8 @@ public class HistoricalDialogue extends AbstractWidget {
             this.progress = Math.clamp(progress + (inRect ? delta * 0.5F : -delta * 0.5F), 0, 1);
             guiGraphics.fill(relativelyRect.x, relativelyRect.y, relativelyRect.z, relativelyRect.w, getBackgroundColor());
             int lineBreak = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 7 * 5;
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name.getString(), true), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text.getString(), true), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
+            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name, false), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
+            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text, false), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
 
             poseStack.popPose();
         }

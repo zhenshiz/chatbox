@@ -9,7 +9,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec2;
 
 public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public Boolean visible;
@@ -42,9 +41,8 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (this.visible) {
-            RenderUtil.renderOpacity(guiGraphics, this.opacity, () -> {
+            RenderUtil.renderOpacity(guiGraphics, 100, this.opacity, () -> {
                 Font font = minecraft.font;
 
                 String keyRightClick = Component.translatable("chatbox.key.right_click").getString();
@@ -53,18 +51,17 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
                 String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
                 String keyF6 = Component.translatable("chatbox.key.f6").getString();
 
-                Vec2 vec2 = getCurrentPosition();
-                float x = vec2.x;
-                float y = vec2.y;
+                float x = xPos();
+                float y = yPos();
 
                 //right scroll
-                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, ResourceLocation.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, 0, this.mouseTextureWidth, this.mouseTextureHeight, 1,0);
+                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, ResourceLocation.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, this.mouseTextureWidth, this.mouseTextureHeight, 1,0);
                 drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
 
                 x += this.mouseTextureWidth + font.width(keyRightClick) + 4;
 
                 //mouse scroll
-                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, ResourceLocation.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, 0, this.mouseTextureWidth, this.mouseTextureHeight, 1,0);
+                RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, ResourceLocation.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, this.mouseTextureWidth, this.mouseTextureHeight, 1,0);
                 drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
 
                 x += this.mouseTextureWidth + font.width(keyScroll) + 4;

@@ -1,39 +1,54 @@
 package com.zhenshiz.chatbox.component;
 
+import com.zhenshiz.chatbox.data.Attachment;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec2;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings({"unchecked", "UnusedReturnValue"})
-public abstract class AbstractComponent<T extends AbstractComponent<T>> {
+public abstract class AbstractComponent<T extends AbstractComponent<T>> implements IPosition {
     protected static final Minecraft minecraft = Minecraft.getInstance();
     //水平对齐: LEFT CENTER RIGHT
-    public AlignX alignX;
+    public AlignX alignX = AlignX.LEFT;
     //垂直对齐 TOP CENTER BOTTOM
-    public AlignY alignY;
-    //水平偏移 百分比 -100-100
-    public float x;
-    //垂直偏移 百分比 -100-100
-    public float y;
-    //宽度 百分比 >=0
-    public float width;
-    //高度 百分比 >=0
-    public float height;
-    //透明度
-    public Float opacity;
+    public AlignY alignY = AlignY.TOP;
+    //水平偏移 百分比
+    public float x = 0;
+    //垂直偏移 百分比
+    public float y = 0;
+    @Getter //宽度 百分比 >=100
+    public float width = 10;
+    @Getter //高度 百分比 >=100
+    public float height = 10;
+    @Getter //缩放比例
+    public float scale = 1;
+    //亮度 百分比 >=0
+    public float brightness = 100;
+    //透明度 百分比 >=0
+    public float opacity = 100;
     //渲染顺序
-    public Integer renderOrder;
+    public int renderOrder;
     //旋转角度
-    public Float angle;
+    public float angle = 0;
+    //组件的纹理集
+    public static final String ROOT = "root";
+    public static final String HOVER = "hover";
+    public Map<String, ResourceLocation> textures = new HashMap<>();
+    public String value = ""; //防止解析ResourceLocation出错，存储原始字符串
+    // 组件id，即主题文件中定义的组件标识，用于移除组件等操作
+    public String id = "";
 
     // 是否隐藏，被隐藏的组件不会被渲染，不会触发事件；选项被指令隐藏的逻辑不由这个值控制，右键隐藏部分组件也不由这个值控制
     public boolean hidden = false;
@@ -71,104 +86,113 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         return fireEvent(ComponentEvent.Trigger.of(trigger));
     }
 
+    public T addEvent(String trigger, String type, String target) {
+        this.events.add(ComponentEvent.of(trigger, type, target, this));
+        return (T) this;
+    }
+
     public static float getResponsiveWidth(float value) {
-        return minecraft.getWindow().getGuiScaledWidth() * value / 100;
+        return RenderUtil.screenWidth() * value / 100;
     }
 
     public static float getResponsiveHeight(float value) {
-        return minecraft.getWindow().getGuiScaledHeight() * value / 100;
+        return RenderUtil.screenHeight() * value / 100;
     }
 
-    public T setDefaultOption(float x, float y, float width, float height, AlignX alignX, AlignY alignY, Float opacity, Integer renderOrder, Float angle) {
-        setPosition(x, y);
-        setSize(width, height);
-        setAlign(alignX, alignY);
-        setOpacity(opacity);
-        setRenderOrder(renderOrder);
-        setAngle(angle);
+    public T of(ChatBoxTheme.Component c) {
+        return setPosition(c.x, c.y).setSize(c.width, c.height).setScale(c.scale).setAlign(c.alignX, c.alignY)
+                .setBrightness(c.brightness).setOpacity(c.opacity).setRenderOrder(c.renderOrder).setAngle(c.angle);
+    }
+
+    public T setPosition(Float x, Float y) {
+        if (notNull(x)) this.x = x;
+        if (notNull(y)) this.y = y;
         return (T) this;
     }
 
-    public T setPosition(float x, float y) {
-        this.x = x;
-        this.y = y;
+    public T setSize(Float width, Float height) {
+        if (checkSize(width)) this.width = width;
+        if (checkSize(height)) this.height = height;
         return (T) this;
     }
 
-    public T setSize(float width, float height) {
-        if (checkSize(width) && checkSize(height)) {
-            this.width = width;
-            this.height = height;
-        }
+    public T setAlign(String alignX, String alignY) {
+        if (notNull(alignX)) this.alignX = AlignX.of(alignX);
+        if (notNull(alignY)) this.alignY = AlignY.of(alignY);
         return (T) this;
     }
 
-    public T setAlign(AlignX alignX, AlignY alignY) {
-        return setAlignX(alignX).setAlignY(alignY);
-    }
+    public float xPos() {return alignX.getPositionX(this);}
+    public float yPos() {return alignY.getPositionY(this);}
 
-    public T setAlignX(AlignX alignX) {
-        if (alignX != null) this.alignX = alignX;
-        return (T) this;
-    }
-
-    public T setAlignY(AlignY alignY) {
-        if (alignY != null) this.alignY = alignY;
+    public T setBrightness(Float brightness) {
+        if (checkSize(brightness)) this.brightness = brightness;
         return (T) this;
     }
 
     public T setOpacity(Float opacity) {
-        if (opacity != null && checkSize(opacity)) this.opacity = opacity;
+        if (checkSize(opacity)) this.opacity = opacity;
         return (T) this;
     }
 
     public T setRenderOrder(Integer renderOrder) {
-        if (renderOrder != null) this.renderOrder = renderOrder;
+        if (notNull(renderOrder)) this.renderOrder = renderOrder;
+        return (T) this;
+    }
+
+    public T setScale(Float scale) {
+        if (checkSize(scale)) this.scale = scale;
         return (T) this;
     }
 
     public T setAngle(Float angle) {
-        if (angle != null) this.angle = angle;
+        if (notNull(angle)) this.angle = angle;
         return (T) this;
     }
 
-    protected boolean checkSize(float value) {
-        return value > 0;
+    public T setTexture(String name, String texture) {
+        if (notNull(name) && notNull(texture)) {
+            try {
+                this.textures.put(name, ResourceLocation.parse(texture));
+            } catch (Exception e) {
+                this.value = texture;
+            }
+        }
+        return (T) this;
+    }
+    @Nullable
+    public ResourceLocation getTexture(String name) {return textures.get(name);}
+
+    public T setTexture(String texture) {return setTexture(ROOT, texture);}
+    @Nullable
+    public ResourceLocation getTexture() {return getTexture(ROOT);}
+
+    public T setHoverTexture(String texture) {return setTexture(HOVER, texture);}
+    @Nullable
+    public ResourceLocation getHoverTexture() {return textures.getOrDefault(HOVER, getTexture());}
+
+    public T setId(String id) {
+        if (notNull(id)) this.id = id;
+        return (T) this;
     }
 
-    protected Vec2 getCurrentPosition() {
-        return new Vec2(alignX.getPositionX(this), alignY.getPositionY(this));
-    }
+    public static boolean notNull(Object value) {return value != null;}
 
-    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture) {
-        renderImage(guiGraphics, texture, 1f, List.of());
-    }
+    protected boolean checkSize(Float value) {return notNull(value) && value >= 0;}
 
-    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Float scale, List<ChatBoxTheme.Portrait.Attachment> attachments) {
-        RenderUtil.renderOpacity(guiGraphics, this.opacity / 100, () -> {
-            Vec2 position = getCurrentPosition();
-            RenderUtil.renderImage(guiGraphics, texture, getResponsiveWidth(position.x), getResponsiveHeight(position.y), 0, getResponsiveWidth(this.width), getResponsiveHeight(this.height), scale, angle, attachments);
-        });
-    }
-
-    public boolean isSelect(double mouseX, double mouseY) {
-        return mouseX >= getX1() && mouseX <= getX2() && mouseY >= getY1() && mouseY <= getY2();
+    protected void renderImage(GuiGraphics guiGraphics, ResourceLocation texture, Attachment... attachments) {
+        RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderImage(guiGraphics, texture, realX(), realY(), realWidth(), realHeight(), scale, angle, attachments));
     }
 
     protected String parseText(String input) {
-        return ChatBoxUtil.parseText(input, false);
+        return ChatBoxUtil.parseText(input, true);
     }
-
-    public int getX1() {return (int) getResponsiveWidth(getCurrentPosition().x);}
-    public int getX2() {return (int) getResponsiveWidth(getCurrentPosition().x + width);}
-    public int getY1() {return (int) getResponsiveHeight(getCurrentPosition().y);}
-    public int getY2() {return (int) getResponsiveHeight(getCurrentPosition().y + height);}
 
     public String getDebugInfo() {
-        return StrUtil.format("\"x\": {}, \"y\": {}, \"width\": {}, \"height\": {}, \"renderOrder\": {}", x, y, width, height, renderOrder);
+        return StrUtil.format("\"x\": {}, \"y\": {}, \"width\": {}, \"height\": {}, \"renderOrder\": {}, \"scale\": {}, \"id\": {}", x, y, width, height, renderOrder, scale, id);
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+    protected void renderInner(int mouseX, int mouseY) {
         if (!renderStarted) {
             renderStarted = true;
             fireEvent("ON_START");
@@ -186,7 +210,10 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
                 }
             }
         }
+        if (this instanceof Portrait<?> portrait) portrait.execCustomAnimation();
     }
+
+    public abstract void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick);
 
     public enum AlignX {
         LEFT,
@@ -194,7 +221,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         RIGHT;
 
         public static AlignX of(String value) {
-            if (value == null) return AlignX.LEFT;
             return valueOf(value.toUpperCase());
         }
 
@@ -205,7 +231,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
                 case LEFT -> x;
                 case CENTER -> x + 50 - width / 2;
                 case RIGHT -> x + 100 - width;
-                case null -> x;
             };
         }
     }
@@ -216,7 +241,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
         BOTTOM;
 
         public static AlignY of(String value) {
-            if (value == null) return AlignY.TOP;
             return valueOf(value.toUpperCase());
         }
 
@@ -227,7 +251,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> {
                 case TOP -> y;
                 case CENTER -> y + 50 - height / 2;
                 case BOTTOM -> y + 100 - height;
-                case null -> y;
             };
         }
     }

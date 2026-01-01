@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.phys.Vec2;
 import net.neoforged.fml.loading.FMLLoader;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -41,7 +40,6 @@ public class Video extends AbstractComponent<Video> {
     private final boolean loop;
     // 是否成功播放，只要视频进入PLAYING状态，就为true，如果出现异常导致视频播放失败，就会在关闭视频时重新开始
     private boolean success;
-
 
     // CONTROL
     private final boolean canControl;
@@ -88,7 +86,7 @@ public class Video extends AbstractComponent<Video> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
+        renderInner(mouseX, mouseY);
         if (!isPlaying()) return;
 
         if (!success && getState() == State.PLAYING) success = true;
@@ -102,11 +100,10 @@ public class Video extends AbstractComponent<Video> {
             return;
         }
 
-        Vec2 pos = getCurrentPosition();
-        actualX = getResponsiveWidth(pos.x);
-        actualY = getResponsiveHeight(pos.y);
-        actualWidth = getResponsiveWidth(width);
-        actualHeight = getResponsiveHeight(height);
+        actualX = realX();
+        actualY = realY();
+        actualWidth = realWidth();
+        actualHeight = realHeight();
 
         videoTexture = player.preRender();
 
@@ -221,8 +218,7 @@ public class Video extends AbstractComponent<Video> {
             else {
                 volume = 100;
                 float masterVolume = minecraft.options.getSoundSourceVolume(SoundSource.MASTER);
-                if (masterVolume <= 0.95)
-                    minecraft.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(masterVolume + 0.05);
+                if (masterVolume <= 0.95) minecraft.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(masterVolume + 0.05);
                 else minecraft.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(1.0);
             }
 

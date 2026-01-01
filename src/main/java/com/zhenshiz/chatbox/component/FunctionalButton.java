@@ -1,58 +1,49 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec2;
 
-public class FunctionalButton extends AbstractComponent<FunctionalButton> {
-    //默认材质
-    public ResourceLocation texture;
-    //鼠标悬浮时材质
-    public ResourceLocation hoverTexture;
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
+
+public class FunctionalButton extends Portrait<FunctionalButton> {
     //按钮类型
     public final Type type;
-    private final ChatBoxScreen chatBoxScreen = ChatBoxUtil.chatBoxScreen;
 
-    public FunctionalButton(Type type) {
-        this.type = type;
-        switch (type) {
-            case LOG -> {
-                setTexture(ChatBox.ResourceLocationMod("textures/button/default_log.png"));
-                setHoverTexture(ChatBox.ResourceLocationMod("textures/button/default_hover_log.png"));
-            }
-            case FASTFORWARD -> {
-                setTexture(ChatBox.ResourceLocationMod("textures/button/default_fastforward.png"));
-                setHoverTexture(ChatBox.ResourceLocationMod("textures/button/default_hover_fastforward.png"));
-            }
-            case AUTOPLAY -> {
-                setTexture(ChatBox.ResourceLocationMod("textures/button/default_autoplay.png"));
-                setHoverTexture(ChatBox.ResourceLocationMod("textures/button/default_hover_autoplay.png"));
-            }
-        }
+    public static final ResourceLocation
+    log         = ChatBox.ResourceLocationMod("textures/button/default_log.png"),
+    fast        = ChatBox.ResourceLocationMod("textures/button/default_fastforward.png"),
+    auto        = ChatBox.ResourceLocationMod("textures/button/default_autoplay.png"),
+    log_hover   = ChatBox.ResourceLocationMod("textures/button/default_hover_log.png"),
+    fast_hover  = ChatBox.ResourceLocationMod("textures/button/default_hover_fastforward.png"),
+    auto_hover  = ChatBox.ResourceLocationMod("textures/button/default_hover_autoplay.png");
+
+    public FunctionalButton(String type) {
+        this.type = Type.of(type);
     }
 
-    public FunctionalButton setTexture(ResourceLocation texture) {
-        if (texture != null) this.texture = texture;
-        return this;
+    @Override
+    public ResourceLocation getTexture() {
+        var texture = super.getTexture();
+        if (notNull(texture)) return texture;
+        return switch (type) {
+            case LOG -> log;
+            case FASTFORWARD -> fast;
+            case AUTOPLAY -> auto;
+        };
     }
 
-    public FunctionalButton setTexture(String texture) {
-        if (texture != null) setTexture(ResourceLocation.tryParse(texture));
-        return this;
-    }
-
-    public FunctionalButton setHoverTexture(ResourceLocation hoverTexture) {
-        if (hoverTexture != null) this.hoverTexture = hoverTexture;
-        return this;
-    }
-
-    public FunctionalButton setHoverTexture(String hoverTexture) {
-        if (hoverTexture != null) setHoverTexture(ResourceLocation.tryParse(hoverTexture));
-        return this;
+    @Override
+    public ResourceLocation getHoverTexture() {
+        var texture = getTexture(HOVER);
+        if (notNull(texture)) return texture;
+        return switch (type) {
+            case LOG -> log_hover;
+            case FASTFORWARD -> fast_hover;
+            case AUTOPLAY -> auto_hover;
+        };
     }
 
     /**@return 是否成功点击*/
@@ -75,12 +66,11 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
-        ResourceLocation texture = this.texture;
-        if (isSelect) texture = hoverTexture;
-        if (type == Type.AUTOPLAY && chatBoxScreen.autoPlay) texture = hoverTexture;
-        if (type == Type.FASTFORWARD && chatBoxScreen.fastForward) texture = hoverTexture;
-        if (texture != null) renderImage(guiGraphics, texture);
+        renderInner(mouseX, mouseY);
+        ResourceLocation texture = getTexture();
+        if (isSelect || type == Type.AUTOPLAY && chatBoxScreen.autoPlay
+                || type == Type.FASTFORWARD && chatBoxScreen.fastForward) texture = getHoverTexture();
+        renderImage(guiGraphics, texture, attachments);
 
         if (isSelect) {
             String key = switch (type) {
@@ -88,8 +78,7 @@ public class FunctionalButton extends AbstractComponent<FunctionalButton> {
                 case FASTFORWARD -> "chatbox.button.fast_forward";
                 case AUTOPLAY -> "chatbox.button.autoplay";
             };
-            Vec2 position = getCurrentPosition();
-            RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(key), (int) getResponsiveWidth(position.x), (int) getResponsiveHeight(position.y) - 12, (int) getResponsiveWidth(this.width), this.alignX, -1, false);
+            RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(key), (int) realX(), (int) realY() - 12, (int) realWidth(), this.alignX, -1, false);
         }
     }
 

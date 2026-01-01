@@ -1,37 +1,27 @@
 package com.zhenshiz.chatbox.data;
 
-import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.FunctionalButton;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
-import com.zhenshiz.chatbox.utils.math.EasingUtil;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-@AllArgsConstructor
 public class ChatBoxTheme {
     private final static Float DEFAULT_FLOAT = 0F;
 
-    public Map<String, Portrait> portrait;
-    public Option option;
-    public DialogBox dialogBox;
-    public List<FunctionButton> functionalButton;
-    public KeyPrompt keyPrompt;
+    public Map<String, Portrait> portrait = new HashMap<>();
+    public Option option = new Option();
+    public DialogBox dialogBox = new DialogBox();
+    public List<FunctionButton> functionalButton = new ArrayList<>();
+    public KeyPrompt keyPrompt = new KeyPrompt();
 
     public ChatBoxTheme setDefaultValue() {
         for (FunctionButton button : this.functionalButton) {
             // 设置默认按钮位置
             int i = functionalButton.indexOf(button);
-            button.x = BeanUtil.getValueOrDefault(button.x, (float) ((Objects.equals(button.alignX, AbstractComponent.AlignX.LEFT.name()) ? 5 : -5) * i));
+            button.x = BeanUtil.getValueOrDefault(button.x, (float) ((Objects.equals(button.alignX, "left") ? 5 : -5) * i));
         }
-
         return this;
     }
 
@@ -39,85 +29,43 @@ public class ChatBoxTheme {
         {
             this.renderOrder = 20;
         }
-
         public String type;
         public String value;
-        public Integer customItemData;
+        public String texture; // 与value作用相同，填一个就行，如果你非要两个都写……What can I say
+        public String hoverTexture;
+        public String selectTexture; // 与hoverTexture作用相同，填一个就行
+        public Integer itemCount;
         public String animation;
-        public Float scale = 1f;
-        public List<CustomAnimation> customAnimation;
-        public Boolean loop = false;
-        public List<Attachment> attachment = new ArrayList<>();
+        public List<Keyframe> customAnimation;
+        public Boolean loop;
+        public Attachment[] attachment;
 
-        public com.zhenshiz.chatbox.component.Portrait setPortraitTheme() {
-            com.zhenshiz.chatbox.component.Portrait portrait = new com.zhenshiz.chatbox.component.Portrait(com.zhenshiz.chatbox.component.Portrait.Type.of(this.type), this.animation, this.customAnimation, this.scale, this.loop);
-            switch (portrait.type) {
-                case TEXTURE -> portrait.createTexture(portrait, this.value, this.attachment);
-                case PLAYER_HEAD -> portrait.createPlayerHead(portrait, this.value);
-                case ITEM -> portrait.createItem(portrait, this.value, this.customItemData);
-            }
-            return portrait.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle);
-        }
-
-        @Builder
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public static class CustomAnimation {
-            public String texture;
-            public Integer time;
-            public Float x;
-            public Float y;
-            public Float xOffset;
-            public Float yOffset;
-            public Float scale;
-            public Float opacity;
-            public Float angle;
-            public EasingUtil.Easing easing;
-        }
-
-        @AllArgsConstructor
-        @NoArgsConstructor
-        public static class Attachment {
-            public String value;
-            public Float x = DEFAULT_FLOAT;
-            public Float y = DEFAULT_FLOAT;
-            public Float width = DEFAULT_FLOAT;
-            public Float height = DEFAULT_FLOAT;
-
-            public Attachment mapParameter() {
-                return new Attachment(this.value, AbstractComponent.getResponsiveWidth(this.x), AbstractComponent.getResponsiveHeight(this.y), AbstractComponent.getResponsiveWidth(this.width), AbstractComponent.getResponsiveHeight(this.height));
-            }
+        public com.zhenshiz.chatbox.component.Portrait<?> setPortraitTheme() {
+            return new com.zhenshiz.chatbox.component.Portrait<>().ofPortrait(this);
         }
     }
 
-    public static class Option extends Component {
+    public static class Option extends Portrait {
         {
             this.renderOrder = 10;
         }
-
-        public String texture;
-        public String selectTexture;
         public String lockTexture;
         public Float optionChatX = DEFAULT_FLOAT;
         public Float optionChatY = DEFAULT_FLOAT;
         public String textAlign = "left";
 
-        public ChatOption setChatOptionTheme(ChatOption chatOption) {
-            return chatOption.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
-                    .setTextures(this.texture)
-                    .setSelectTexture(this.selectTexture)
+        public ChatOption newOption() {
+            return new ChatOption().ofPortrait(this)
                     .setLockTexture(this.lockTexture)
                     .setOptionChatPosition(this.optionChatX, this.optionChatY)
                     .setTextAlign(this.textAlign);
         }
     }
 
-    public static class DialogBox extends Component {
+    public static class DialogBox extends Portrait {
         {
             this.renderOrder = 0;
         }
-
-        public String texture;
         public Float lineWidth;
         public Float nameX = DEFAULT_FLOAT;
         public Float nameY = DEFAULT_FLOAT;
@@ -126,8 +74,7 @@ public class ChatBoxTheme {
         public String textAlign = "left";
 
         public com.zhenshiz.chatbox.component.DialogBox setDialogBoxTheme(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
-            return dialogBox.setDefaultOption(this.x, this.y, this.width, this.height, AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY), this.opacity, this.renderOrder, this.angle)
-                    .setTexture(this.texture)
+            return dialogBox.ofPortrait(this)
                     .setNamePosition(this.nameX, this.nameY)
                     .setTextPosition(this.textX, this.textY)
                     .setTextAlign(this.textAlign)
@@ -135,34 +82,24 @@ public class ChatBoxTheme {
         }
     }
 
-    public static class FunctionButton extends Component {
+    public static class FunctionButton extends Portrait {
         {
-            this.x = null; // 必须重置x的位置
             this.width = 5f;
             this.height = 8f;
-            this.alignX = AbstractComponent.AlignX.RIGHT.name();
-            this.alignY = AbstractComponent.AlignY.BOTTOM.name();
+            this.alignX = "right";
+            this.alignY = "bottom";
             this.renderOrder = 30;
         }
+    }
 
-        public String type;
-        public String texture;
-        public String hoverTexture;
-
-        public static List<FunctionalButton> setFunctionalButtonTheme(List<FunctionButton> functionButtons) {
-            return functionButtons.stream().map(b ->
-                            new FunctionalButton(FunctionalButton.Type.of(b.type))
-                                    .setDefaultOption(b.x, b.y, b.width, b.height, AbstractComponent.AlignX.of(b.alignX), AbstractComponent.AlignY.of(b.alignY), b.opacity, b.renderOrder, b.angle)
-                                    .setTexture(b.texture).setHoverTexture(b.hoverTexture))
-                    .toList();
-        }
+    public static List<FunctionalButton> setButtonTheme(List<FunctionButton> functionButtons) {
+        return functionButtons.stream().map(b -> new FunctionalButton(b.type).ofPortrait(b)).toList();
     }
 
     public static class KeyPrompt extends Component {
         {
             this.renderOrder = 40;
         }
-
         public Boolean visible = true;
         public Float mouseTextureWidth = 16f;
         public Float mouseTextureHeight = 16f;
@@ -170,10 +107,7 @@ public class ChatBoxTheme {
         public String scrollTexture;
 
         public KeyPromptRender setKeyPromptTheme(KeyPromptRender keyPromptRender) {
-            return keyPromptRender.setPosition(this.x, this.y)
-                    .setAlign(AbstractComponent.AlignX.of(this.alignX), AbstractComponent.AlignY.of(this.alignY))
-                    .setOpacity(this.opacity)
-                    .setRenderOrder(this.renderOrder)
+            return keyPromptRender.of(this)
                     .setVisible(this.visible)
                     .setMouseTextureSize(this.mouseTextureWidth, this.mouseTextureHeight)
                     .setRightClickTexture(this.rightClickTexture)
@@ -182,14 +116,16 @@ public class ChatBoxTheme {
     }
 
     public static class Component {
-        public Float x = DEFAULT_FLOAT;
-        public Float y = DEFAULT_FLOAT;
-        public Float width = 10f;
-        public Float height = 10f;
-        public String alignX = AbstractComponent.AlignX.LEFT.name();
-        public String alignY = AbstractComponent.AlignY.TOP.name();
-        public Float opacity = 100f;
+        public Float x;
+        public Float y;
+        public Float width;
+        public Float height;
+        public Float scale;
+        public String alignX;
+        public String alignY;
         public Integer renderOrder;
-        public Float angle = DEFAULT_FLOAT;
+        public Float brightness;
+        public Float opacity;
+        public Float angle;
     }
 }
