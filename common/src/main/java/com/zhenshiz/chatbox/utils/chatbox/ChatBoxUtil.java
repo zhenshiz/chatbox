@@ -69,11 +69,11 @@ public class ChatBoxUtil {
         tags.forEach((id, tag) -> {
             Entity entity = level.getEntity(id);
             if (entity != null) {
-                entity.getTags().clear();
+                entity.entityTags().clear();
                 try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(entity.problemPath(), ChatBox.LOGGER)) {
                     ValueInput input = TagValueInput.create(scopedCollector, entity.registryAccess(), tag);
                     // 读取标签和额外数据应该够了，有需要再加（不能直接entity.load(tag)）
-                    input.read("Tags", Codec.STRING.sizeLimitedListOf(1024)).ifPresent(t -> entity.getTags().addAll(t));
+                    input.read("Tags", Codec.STRING.sizeLimitedListOf(1024)).ifPresent(t -> entity.entityTags().addAll(t));
                     ((EntityAccessor) entity).readAdditionalData(input);
                 }
                 chatTargets.add(entity);
@@ -266,7 +266,7 @@ public class ChatBoxUtil {
     static {
         addPropertyResolver("name", entity -> entity.getDisplayName().getString());
         addPropertyResolver("uuid", entity -> entity.getUUID().toString());
-        addPropertyResolver("tags", entity -> String.join(", ", entity.getTags()));
+        addPropertyResolver("tags", entity -> String.join(", ", entity.entityTags()));
         addPropertyResolver("health", entity -> {
             if (entity instanceof LivingEntity livingEntity) return String.valueOf(livingEntity.getHealth());
             return "0";

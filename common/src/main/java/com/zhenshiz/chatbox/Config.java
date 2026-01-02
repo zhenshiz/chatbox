@@ -1,10 +1,8 @@
 package com.zhenshiz.chatbox;
 
-import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
-@me.shedaniel.autoconfig.annotation.Config(name = "chatbox_config")
-public class Config implements ConfigData {
+public class Config {
 
     //历史记录界面鼠标滚动的速度
     @ConfigEntry.BoundedDiscrete(min = 1, max = 200)

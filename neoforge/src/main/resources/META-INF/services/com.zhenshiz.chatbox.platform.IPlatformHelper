@@ -1,1 +1,2 @@
-com.zhenshiz.chatbox.platform.NeoForgePlatformHelper
+com.zhenshiz.chatbox.fabric.platform.FabricPlatformHelper
+com.zhenshiz.chatbox.neoforge.platform.NeoForgePlatformHelper

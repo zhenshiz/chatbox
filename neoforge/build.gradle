@@ -4,8 +4,25 @@ plugins {
     id 'io.freefair.lombok'
 }
 
+lombok {
+    version = "1.18.40"
+}
+
+repositories {
+    maven {
+        name = 'Fabric'
+        url = uri('https://maven.fabricmc.net')
+    }
+    maven { url "https://maven.terraformersmc.com/releases/" }
+}
+
 dependencies {
-    implementation("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}")
+    compileOnly "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    compileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    compileOnly("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}")
+
+    compileOnly("com.terraformersmc:modmenu:18.0.0-alpha.3")
 
     compileOnly("maven.modrinth:watermedia:2.1.25")
 }

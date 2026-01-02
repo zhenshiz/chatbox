@@ -4,6 +4,10 @@ plugins {
     id 'io.freefair.lombok'
 }
 
+lombok {
+    version = "1.18.40" // 手动指定支持 Java 25 的版本
+}
+
 neoForge {
     neoFormVersion = neo_form_version
     // Automatically enable AccessTransformers if the file exists

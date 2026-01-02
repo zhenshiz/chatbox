@@ -21,6 +21,7 @@
       "com.zhenshiz.chatbox.fabric.client.Client"
     ],
     "modmenu": [
+      "com.zhenshiz.chatbox.ModMenuIntegration"
     ]
   },
   "mixins": [

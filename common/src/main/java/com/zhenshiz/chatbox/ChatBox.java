@@ -17,18 +17,33 @@ public class ChatBox {
     public static final Logger LOGGER = LogUtils.getLogger();
     @Getter @Setter
     private static ChatBoxTriggerCount triggerCounts;
+    public static IPlatformHelper PLATFORM;
 
     public static void init() {
         LOGGER.info("Ciallo～(∠·ω< )⌒★");
+        PLATFORM = load();
         ComponentEvent.registerDefaultEvents();
     }
 
-    public static final IPlatformHelper PLATFORM = load(IPlatformHelper.class);
+    private static IPlatformHelper load() {
+        boolean isFabric;
+        try {
+            Class.forName("net.neoforged.neoforge.common.NeoForge");
+            isFabric = false;
+        } catch (ClassNotFoundException e) {
+            isFabric = true;
+        }
+        var loaded = ServiceLoader.load(IPlatformHelper.class);
+        for (var service : loaded) {
+            if (isFabric) {
+                if (service.getPlatformName().equals("Fabric")) return service;
+            } else if (service.getPlatformName().equals("NeoForge")) return service;
+        }
+        throw new NullPointerException("Failed to load service for " + IPlatformHelper.class.getName());
+    }
 
-    private static <T> T load(Class<T> clazz) {
-        final T loadedService = ServiceLoader.load(clazz).findFirst().orElseThrow(() -> new NullPointerException("Failed to load service for " + clazz.getName()));
-        LOGGER.debug("Loaded {} for service {}", loadedService, clazz);
-        return loadedService;
+    public static boolean isClothConfigLoaded() {
+        return PLATFORM.isModLoaded("cloth_config") || PLATFORM.isModLoaded("cloth-config");
     }
 
     //todo 修改所有元素透明度的渲染方式

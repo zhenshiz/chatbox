@@ -30,9 +30,9 @@ versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies."${mod_id}"]]
-modId = "cloth_config"
-type = "required"
-versionRange = "*"
-ordering = "NONE"
-side = "BOTH"
+#[[dependencies."${mod_id}"]]
+#modId = "cloth_config"
+#type = "required"
+#versionRange = "*"
+#ordering = "NONE"
+#side = "BOTH"

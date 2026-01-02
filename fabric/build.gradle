@@ -1,16 +1,20 @@
 plugins {
     id 'multiloader-loader'
-    id 'fabric-loom'
+    id 'net.fabricmc.fabric-loom'
     id 'io.freefair.lombok'
 }
+
+lombok {
+    version = "1.18.40" // 手动指定支持 Java 25 的版本
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    modApi "com.terraformersmc:modmenu:17.0.0-alpha.1"
-    modApi("me.shedaniel.cloth:cloth-config-fabric:${cloth_config_version}") {
+    //implementation "com.terraformersmc:modmenu:17.0.0-alpha.1"
+    implementation("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
