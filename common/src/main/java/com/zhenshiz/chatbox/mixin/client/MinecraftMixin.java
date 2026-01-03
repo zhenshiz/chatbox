@@ -1,6 +1,6 @@
 package com.zhenshiz.chatbox.mixin.client;
 
-import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,8 +13,8 @@ public class MinecraftMixin {
 
     @Inject(method = "pauseGame", at = @At(value = "HEAD"), cancellable = true)
     private void pauseGame(CallbackInfo ci) {
-        if (ChatBoxRenderCommon.isRenderChatBox() && ChatBoxUtil.chatBoxScreen.isEsc) {
-            ChatBoxRenderCommon.onClose();
+        if (ChatBoxRender.isRenderChatBox() && ChatBoxUtil.chatBoxScreen.isEsc) {
+            ChatBoxRender.onClose();
             ci.cancel();
         }
     }

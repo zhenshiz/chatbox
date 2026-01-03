@@ -2,19 +2,16 @@ package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
+import com.zhenshiz.chatbox.data.Attachment;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
-import com.zhenshiz.chatbox.utils.common.StrUtil;
+import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.CommonColors;
-import net.minecraft.world.phys.Vec2;
-import org.joml.Matrix3x2fStack;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
-public class DialogBox extends AbstractComponent<DialogBox> {
-    //默认材质
-    public Identifier texture;
+public class DialogBox extends Portrait<DialogBox> {
+    public static final Identifier dialog_box = ChatBox.id("textures/chatbox/default_dialog_box.png");
     //对话框文本
     private String text = "";
     //文本x位置
@@ -38,22 +35,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     private int textLength = 0;
     private int charIndex;
 
-    public DialogBox() {
-        setTexture(ChatBox.id("textures/chatbox/default_dialog_box.png"));
-
-        setAllOver(false);
-        resetTickCount();
-    }
-
-    public DialogBox setTexture(Identifier texture) {
-        if (texture != null) this.texture = texture;
-        return this;
-    }
-
-    public DialogBox setTexture(String texture) {
-        if (texture != null) return setTexture(Identifier.tryParse(texture));
-        return this;
-    }
+    @Override
+    public Identifier getTexture() {return BeanUtil.getValueOrDefault(super.getTexture(), dialog_box);}
 
     public DialogBox setText(String text) {
         if (text != null) {
@@ -99,13 +82,10 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         if (allOver) {
             fireEvent("ON_END");
             charIndex = -1; // 防止字符串长度随动态解析而改变，也是为了减少计算次数
+        } else { // 原来的resetTickCount方法在这里了。
+            this.tickCount = 0;
+            this.charIndex = 0;
         }
-        return this;
-    }
-
-    public DialogBox resetTickCount() {
-        this.tickCount = 0;
-        this.charIndex = 0;
         return this;
     }
 
@@ -121,6 +101,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
             }
             if (c == '<') {
                 int closing = text.indexOf('>', i + 1);
+                int another = text.indexOf('<', i + 1);
+                if (another != -1 && another < closing) continue;
                 if (closing != -1) {
                     i = closing;
                     continue;
@@ -134,23 +116,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     public static int getRealLength(String text) {
         if (text == null || text.isEmpty()) return 0;
-        int current = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c == '\\' || c == '§') {
-                i++;
-                continue;
-            }
-            if (c == '<') {
-                int closing = text.indexOf('>', i + 1);
-                if (closing != -1) {
-                    i = closing;
-                    continue;
-                }
-            }
-            current++;
-        }
-        return current;
+        return text.replaceAll("<[^<]*>", "")
+                .replace("\\", "").replace("§", "").length();
     }
 
     public void click(boolean gotoNext) {
@@ -180,24 +147,11 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
+        renderInner(mouseX, mouseY);
         //chatBox image
-        if (texture != null) renderImage(guiGraphics, this.texture);
-
-        //name and text
-        Vec2 position = getCurrentPosition();
-        float x = position.x;
-        float y = position.y;
-
-        Matrix3x2fStack poseStack = guiGraphics.pose();
-        poseStack.pushMatrix();
-        int lineWidth = (int) getResponsiveWidth(this.lineWidth);
-        if (StrUtil.isNotEmpty(this.name)) {
-            RenderUtil.drawStringAlign(guiGraphics, parseText(StrUtil.format("[{}]", this.name)), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), lineWidth, this.textAlign, CommonColors.WHITE, false);
-        }
-        if (StrUtil.isNotEmpty(this.text)) {
-            RenderUtil.drawStringAlign(guiGraphics, subString(parseText(this.text), charIndex), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), lineWidth, this.textAlign, CommonColors.WHITE, true);
-        }
-        poseStack.popMatrix();
+        renderImage(guiGraphics, isSelect ? getHoverTexture() : getTexture(), addTempAttachment(
+                Attachment.ofText(parseText(this.name), this.nameX, this.nameY, this.lineWidth, this.textAlign.name(), -1, false),
+                Attachment.ofText(subString(parseText(this.text), charIndex), this.textX, this.textY, this.lineWidth, this.textAlign.name(), -1, true)
+        ));
     }
 }

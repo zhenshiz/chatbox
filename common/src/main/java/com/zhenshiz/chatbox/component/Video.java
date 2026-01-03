@@ -1,17 +1,20 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.TextureFormat;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.chatbox.FloatBlitRenderState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.phys.Vec2;
-import org.watermedia.api.image.ImageAPI;
-import org.watermedia.api.image.ImageRenderer;
-import org.watermedia.api.player.videolan.VideoPlayer;
-import org.watermedia.core.tools.JarTool;
-import org.watermedia.videolan4j.player.base.State;
+import org.watermedia.api.media.MRL;
+import org.watermedia.api.media.players.MediaPlayer;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -42,15 +45,10 @@ public class Video extends AbstractComponent<Video> {
 
     // TOOLS
     private final Minecraft minecraft = Minecraft.getInstance();
-    private final VideoPlayer player;
+    private final MediaPlayer player;
 
     // VIDEO INFO
-    private final URI uri;
-    int videoTexture = -1;
-
-    ImageRenderer IMG_PAUSED = ImageAPI.renderer(JarTool.readImage("/pictures/paused.png"), true);
-    ImageRenderer IMG_STEP30 = ImageAPI.renderer(JarTool.readImage("/pictures/step30.png"), true);
-    ImageRenderer IMG_STEP10 = ImageAPI.renderer(JarTool.readImage("/pictures/step10.png"), true);
+    WatermediaTexture videoTexture;
 
     public Video(URI uri, boolean canControl, boolean canSkip, boolean loop) {
         //minecraft.getSoundManager().pause();
@@ -58,57 +56,48 @@ public class Video extends AbstractComponent<Video> {
         this.canControl = canControl;
         this.canSkip = canSkip;
         this.loop = loop;
-        this.uri = uri;
 
-        this.player = new VideoPlayer(minecraft);
+        this.player = MRL.get(uri.toString()).createPlayer(Thread.currentThread(), minecraft, null, null, true, true);
         ChatBox.LOGGER.info("Playing video ({}blocked) ({} with volume: {}", canControl ? "not " : "", uri, (int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
 
-        player.setVolume((int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
+        player.volume((int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
         started = true;
-        player.start(uri);
+        player.start();
         success = false;
+        videoTexture = new WatermediaTexture(player);
     }
 
     public boolean isPlaying() {return started;}
 
-    public State getState() {
-        var raw = player.raw();
-        if (raw == null) return null;
-        return raw.mediaPlayer().status().state();
-    }
-
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
+        renderInner(mouseX, mouseY);
         if (!isPlaying()) return;
 
-        if (!success && getState() == State.PLAYING) success = true;
+        if (!success && player.playing()) success = true;
         tick++;
-        if (player.isEnded() || player.isStopped()) {
+        if (player.ended() || player.stopped()) {
             if (loop) {
-                player.start(uri);
+                player.start();
                 return;
             }
             stop();
             return;
         }
 
-        Vec2 pos = getCurrentPosition();
-        actualX = getResponsiveWidth(pos.x);
-        actualY = getResponsiveHeight(pos.y);
-        actualWidth = getResponsiveWidth(width);
-        actualHeight = getResponsiveHeight(height);
-
-        videoTexture = player.preRender();
+        actualX = realX();
+        actualY = realY();
+        actualWidth = realWidth();
+        actualHeight = realHeight();
 
         // RENDER VIDEO
-        if (player.isPlaying() || player.isPaused()) {
-            renderTexture(guiGraphics, videoTexture);
+        if (player.playing() || player.paused()) {
+            drawTexture(guiGraphics, videoTexture, actualX, actualY, actualWidth, actualHeight, -1);
         }
 
         // RENDER GIF
-        if (!player.isPlaying()) {
-            if (player.isPaused()) {
+/*        if (!player.playing()) {
+            if (player.paused()) {
                 renderIcon(guiGraphics, IMG_PAUSED);
             } else {
                 renderIcon(guiGraphics, ImageAPI.loadingGif());
@@ -116,26 +105,21 @@ public class Video extends AbstractComponent<Video> {
         }
 
         renderStep10(guiGraphics, pPartialTick);
-        renderStep30(guiGraphics, pPartialTick);
+        renderStep30(guiGraphics, pPartialTick);*/
 
         // DEBUG RENDERING
         // if (!FMLLoader.isProduction()) {
         if (ChatBox.PLATFORM.isDevelopmentEnvironment()) {
-            draw(guiGraphics, String.format("State: %s", player.getStateName()), getHeightCenter(-12));
-            draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(player.getTime())), player.getTime(), FORMAT.format(new Date(player.getDuration())), player.getDuration()), getHeightCenter(0));
+            draw(guiGraphics, String.format("State: %s", player.status()), getHeightCenter(-12));
+            draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(player.time())), player.time(), FORMAT.format(new Date(player.duration())), player.duration()), getHeightCenter(0));
         }
-    }
-
-    private void renderTexture(GuiGraphics guiGraphics, int texture) {
-        if (player.dimension() == null) return; // Checking if video available
-        drawTexture(guiGraphics, texture, actualX, actualY, actualWidth, actualHeight, -1);
     }
 
     private int getHeightCenter(int offset) {
         return (int) ((actualHeight / 2) + offset);
     }
 
-    private void renderIcon(GuiGraphics guiGraphics, ImageRenderer image) {
+/*    private void renderIcon(GuiGraphics guiGraphics, ImageRenderer image) {
         int iconSize = 36;
         float xOffset = actualWidth - iconSize + actualX;
         float yOffset = actualHeight - iconSize + actualY;
@@ -151,7 +135,7 @@ public class Video extends AbstractComponent<Video> {
         float y = (actualHeight / 2 - 32 + actualY);
         int size = 64;
 
-        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(alpha));
+        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(-1, alpha, 100));
         fadeStep30 = Math.max(fadeStep30 - (pPartialTicks / 8), 0.0f);
     }
 
@@ -163,14 +147,13 @@ public class Video extends AbstractComponent<Video> {
         float y = (actualHeight / 2 - 32 + actualY);
         int size = 64;
 
-        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(alpha));
+        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(-1, alpha, 100));
         fadeStep10 = Math.max(fadeStep10 - (pPartialTicks / 8), 0.0f);
-    }
+    }*/
 
-    private void drawTexture(GuiGraphics guiGraphics, int texture, float x, float y, float width, float height, int color) {
+    private void drawTexture(GuiGraphics guiGraphics, AbstractTexture texture, float x, float y, float width, float height, int color) {
         // todo 1.21.8还没修好
-/*        GpuTextureView shaderTexture = RenderSystem.getShaderTexture(texture);
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(shaderTexture), guiGraphics.pose(), x, y, width, height, 1, 1, color));*/
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), guiGraphics.pose(), x, y, width, height, 1, 1, color));
     }
 
     private void draw(GuiGraphics guiGraphics, String text, int height) {
@@ -191,7 +174,7 @@ public class Video extends AbstractComponent<Video> {
             float actualVolume = minecraft.options.getSoundSourceVolume(SoundSource.MASTER);
             float newVolume = volume * actualVolume;
             ChatBox.LOGGER.info("Volume UP to: {}", newVolume);
-            player.setVolume((int) newVolume);
+            player.volume((int) newVolume);
         }
 
         // Down arrow key (Volume)
@@ -202,13 +185,12 @@ public class Video extends AbstractComponent<Video> {
             float actualVolume = minecraft.options.getSoundSourceVolume(SoundSource.MASTER);
             float newVolume = volume * actualVolume;
             ChatBox.LOGGER.info("Volume DOWN to: {}", newVolume);
-            player.setVolume((int) newVolume);
+            player.volume((int) newVolume);
         }
 
         // M to mute
         if (pKeyCode == 77) {
-            if (!player.isMuted()) player.mute();
-            else player.unmute();
+            player.mute(!player.mute());
         }
 
         // If control blocked can't modify the video time
@@ -217,41 +199,105 @@ public class Video extends AbstractComponent<Video> {
         // Right arrow key (Forwards)
         if (pKeyCode == 262) {
             // 如果设置循环且超出时长就跳到开头
-            long time = loop && player.getTime() + 30000 > player.getDuration() ? 0 : player.getTime() + 30000;
-            player.seekTo(time);
+            long time = loop && player.time() + 30000 > player.duration() ? 0 : player.time() + 30000;
+            player.seek(time);
             fadeStep30 = 1;
         }
 
         // Left arrow key (Backwards)
         if (pKeyCode == 263) {
-            player.seekTo(player.getTime() - 10000);
+            player.seek(player.time() - 10000);
             fadeStep10 = 1;
         }
 
         // Space (Pause / Play)
         if (pKeyCode == 32) {
-            if (!player.isPaused()) player.pause();
-            else player.play();
+            player.pause(!player.pause());
         }
     }
 
     private void stop() {
         if (!success) { // 如果视频播放失败，就重新开始
-            player.start(uri);
+            player.start();
             return;
         }
-        // 视频正常播放结束，触发ON_END事件
-        fireEvent("ON_END");
         close();
     }
 
     public void close() {
         if (started) {
+            // 视频正常播放结束，触发ON_END事件
+            fireEvent("ON_END");
             started = false;
             player.stop();
             //minecraft.getSoundManager().resume();
-            GlStateManager._deleteTexture(videoTexture);
             player.release();
+        }
+    }
+
+    public static class WatermediaTexture extends AbstractTexture {
+        private final MediaPlayer player;
+        private NativeImage cachedImage; // 用于中转的像素缓存
+        private int lastKnownTextureId = -1; // 用于检测Watermedia纹理是否已更新
+
+        public WatermediaTexture(MediaPlayer player) {
+            this.player = player;
+            // 初始化时创建一个空的NativeImage占位，尺寸后续调整
+            this.cachedImage = new NativeImage(1, 1, false);
+            this.createTexture();
+        }
+
+        private void createTexture() {
+            GpuDevice device = RenderSystem.getDevice();
+            this.texture = device.createTexture(() -> "watermedia_texture", 5,
+                    TextureFormat.RGBA8, cachedImage.getWidth(), cachedImage.getHeight(), 1, 1
+            );
+            this.sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
+            this.textureView = device.createTextureView(this.texture);
+        }
+
+        // **核心方法：从Watermedia的OpenGL纹理同步数据**
+        public void updateFromPlayer() {
+            int currentGlTexture = player.texture();
+            if (currentGlTexture != this.lastKnownTextureId) {
+                this.lastKnownTextureId = currentGlTexture;
+
+                // 1. 从OpenGL纹理读取数据到NativeImage
+                updateNativeImageFromGL(currentGlTexture);
+
+                // 2. 上传到GpuTexture
+                if (this.texture != null) {
+                    RenderSystem.getDevice().createCommandEncoder().writeToTexture(this.texture, this.cachedImage);
+                }
+            }
+        }
+
+        private void updateNativeImageFromGL(int glTextureId) {
+            // **这是技术关键点，需要你实现**
+            int width = player.width();
+            int height = player.height();
+
+            // 如果尺寸变化，重新创建NativeImage
+            if (cachedImage == null || cachedImage.getWidth() != width || cachedImage.getHeight() != height) {
+                if (cachedImage != null) cachedImage.close();
+                this.cachedImage = new NativeImage(width, height, false);
+            }
+
+            // 方案1：使用glGetTexImage（标准OpenGL，但可能较慢）
+            // RenderSystem.bindTexture(glTextureId);
+            // glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cachedImage.getPointer());
+
+            // 方案2：使用更高效的PBO（Pixel Buffer Object）进行异步读取
+            // 推荐方案2以提升性能，但实现更复杂
+        }
+
+        @Override
+        public void close() {
+            if (cachedImage != null) {
+                cachedImage.close();
+                cachedImage = null;
+            }
+            super.close(); // 释放GpuTexture和GpuTextureView
         }
     }
 }

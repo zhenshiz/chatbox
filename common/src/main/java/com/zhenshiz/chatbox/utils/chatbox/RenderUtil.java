@@ -8,13 +8,14 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.zhenshiz.chatbox.component.AbstractComponent;
-import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.data.Attachment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.AbstractTexture;
@@ -365,44 +366,38 @@ public class RenderUtil {
     }
 
     // image
-    public static void renderImage(GuiGraphics guiGraphics, Matrix3x2f pose, Identifier identifier, float x, float y, float uw, float uh, float width, float height, float opacity) {
+    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float uw, float uh, float width, float height, int color) {
         AbstractTexture texture = minecraft.getTextureManager().getTexture(identifier);
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), pose, x, y, width, height, uw, uh, getColor(opacity)));
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), new Matrix3x2f(guiGraphics.pose()), x, y, width, height, uw, uh, color));
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
-        Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose()).rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2).scaleAround(scale, x + width / 2, y + height / 2);
-        renderImage(guiGraphics, pose, identifier, x, y, 1, 1, width, height, opacity);
-        for (var attachment : attachments) {
-            var a = attachment.mapParameter();
-            renderImage(guiGraphics, pose, Identifier.parse(a.value), x + a.x, y + a.y, 1, 1, a.width, a.height, opacity);
-        }
-    }
-
-    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float angle) {
-        renderImage(guiGraphics, identifier, x, y, width, height, scale, opacity, angle, List.of());
-    }
-
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity, float angle) {
+    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
         guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + (float) size / 2, y + (float) size / 2).scaleAround(scale, x + (float) size / 2, y + (float) size / 2);
-        var skin = getSkin(input).body().texturePath();
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8, 8, size, size, 8, 8, 64, 64, getColor(opacity));
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x - 1, y - 1, 40, 8, size + 2, size + 2, 8, 8, 64, 64, getColor(opacity));
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2).scaleAround(scale, x + width / 2, y + height / 2);
+        if (identifier != null) renderImage(guiGraphics, identifier, x, y, 1, 1, width, height, getColor(-1, opacity, brightness));
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y, opacity, brightness);
         guiGraphics.pose().popMatrix();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
+    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + (float) size / 2, y + (float) size / 2).scaleAround(scale, x + (float) size / 2, y + (float) size / 2);
+        var skin = getSkin(input).body().texturePath();
+        int color = getColor(-1, opacity, brightness);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8, 8, size, size, 8, 8, 64, 64, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x - 1, y - 1, 40, 8, size + 2, size + 2, 8, 8, 64, 64, color);
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y, opacity, brightness);
+        guiGraphics.pose().popMatrix();
+    }
+
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, Attachment... attachments) {
         guiGraphics.pose().pushMatrix();
         // 应用旋转
         guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + 8f, y + 8f).scaleAround(scale, x + 8f, y + 8f);
         guiGraphics.renderItem(item, x, y);
-        guiGraphics.renderItemDecorations(minecraft.font, item, x, y, text);
+        guiGraphics.renderItemDecorations(minecraft.font, item, x, y);
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y, 100, 100);
         guiGraphics.pose().popMatrix();
-    }
-
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
-        renderItem(guiGraphics, item, x, y, scale, angle, "");
     }
 
     //text
@@ -413,6 +408,7 @@ public class RenderUtil {
     }
 
     public static void drawStringAlign(GuiGraphics guiGraphics, FormattedText text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, RubyPart... rubyParts) {
+        if (ARGB.alpha(color) == 0) return;
         var font = minecraft.font;
         int renderX = startX; int renderY = startY;
         switch (alignX) {
@@ -494,13 +490,11 @@ public class RenderUtil {
             int partStart = 0;
             for (var part : font.getSplitter().splitLines(Component.nullToEmpty(noRuby), lineWidth, Style.EMPTY)) {
                 String textPart = part.getString();
-                // 换行符在第一个字符时，跳过
-                if (!noRuby.isEmpty() && noRuby.charAt(partStart) == '\n') partStart++;
                 RubyPart[] rubyFromTo = rubyFromTo(partStart, partStart + textPart.length());
                 drawStringAlign(guiGraphics, part, startX, renderY, lineWidth, alignX, color, rubyFromTo);
                 if (rubyFromTo.length > 0) renderY += 6;
                 renderY += font.lineHeight;
-                partStart += textPart.length();
+                partStart += textPart.length() + 1;
             }
         }
     }
@@ -508,7 +502,11 @@ public class RenderUtil {
     public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
 
     public static void renderTooltip(GuiGraphics guiGraphics, Component tooltip, int x, int y) {
-        guiGraphics.renderTooltip(minecraft.font, List.of(new ClientTextTooltip(tooltip.getVisualOrderText())), x, y, DefaultTooltipPositioner.INSTANCE, null);
+        renderTooltip(guiGraphics, List.of(tooltip), x, y);
+    }
+
+    public static void renderTooltip(GuiGraphics guiGraphics, List<Component> tooltips, int x, int y) {
+        guiGraphics.renderTooltip(minecraft.font, tooltips.stream().map(c -> (ClientTooltipComponent) new ClientTextTooltip(c.getVisualOrderText())).toList(), x, y, DefaultTooltipPositioner.INSTANCE, null);
     }
 
     //cursor
@@ -537,8 +535,13 @@ public class RenderUtil {
 
     //util
 
-    public static int getColor(float opacity) {
-        return ARGB.color((int) (opacity / 100 * 255), 255, 255, 255);
+    public static int getColor(int color, float opacity, float brightness) {
+        opacity = opacity / 100f;
+        brightness = brightness / 100f;
+        int r = Math.clamp((int) (ARGB.red(color) * brightness), 0, 255);
+        int g = Math.clamp((int) (ARGB.green(color) * brightness), 0, 255);
+        int b = Math.clamp((int) (ARGB.blue(color) * brightness), 0, 255);
+        return ARGB.color((int) (opacity * 255), r, g, b);
     }
 
     //private

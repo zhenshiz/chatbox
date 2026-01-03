@@ -18,7 +18,7 @@
       "com.zhenshiz.chatbox.ChatBoxFabric"
     ],
     "client": [
-      "com.zhenshiz.chatbox.client.ChatBoxClientFabric"
+      "com.zhenshiz.chatbox.fabric.client.ClientFabric"
     ],
     "modmenu": [
       "com.zhenshiz.chatbox.ModMenuIntegration"

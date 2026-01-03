@@ -2,6 +2,8 @@ package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -9,7 +11,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.CommonColors;
@@ -30,14 +31,8 @@ public class HistoricalDialogue extends AbstractWidget {
         super(x, y, width, height, Component.empty());
     }
 
-    public HistoricalDialogue addHistoricalInfo(HistoricalInfo historicalInfo) {
-        if (historicalInfo != null) this.historicalInfos.add(historicalInfo);
-        return this;
-    }
-
-    public HistoricalDialogue setHistoricalInfo(List<HistoricalInfo> historicalInfos) {
-        if (historicalInfos != null) this.historicalInfos = historicalInfos;
-        return this;
+    public void addHistoricalInfo(Identifier identifier, String group, int index, String name, String text) {
+        this.historicalInfos.add(new HistoricalInfo(identifier, group, index, name, text));
     }
 
     @Override
@@ -88,31 +83,21 @@ public class HistoricalDialogue extends AbstractWidget {
     }
 
     public static class HistoricalInfo {
-        public Component name;
-        public Component text;
-        public Identifier Identifier;
+        public String name;
+        public String text;
+        public Identifier identifier;
         public String group;
         public int index;
 
         private Vector4i vector4i;
         private float progress;
 
-        public HistoricalInfo(Identifier Identifier, String group, int index) {
-            this.name = CommonComponents.EMPTY;
-            this.text = CommonComponents.EMPTY;
-            this.Identifier = Identifier;
+        public HistoricalInfo(Identifier identifier, String group, int index, String name, String text) {
+            this.name = RenderUtil.translated(name);
+            this.text = RenderUtil.translated(text);
+            this.identifier = identifier;
             this.group = group;
             this.index = index;
-        }
-
-        public HistoricalInfo setName(String name) {
-            if (name != null) this.name = Component.translatable(name);
-            return this;
-        }
-
-        public HistoricalInfo setText(String text) {
-            if (text != null) this.text = Component.translatable(text);
-            return this;
         }
 
         private void render(HistoricalDialogue historicalDialogue, GuiGraphics guiGraphics, double mouseX, double mouseY, float delta) {
@@ -122,19 +107,19 @@ public class HistoricalDialogue extends AbstractWidget {
             poseStack.translate(historicalDialogue.width * -0.025F * progress, 0);
             poseStack.scale(1 + 0.05F * progress, 1 + 0.05F * progress);
             Vector4i relativelyRect = createEntryRelativelyRect();
-            Font font = Minecraft.getInstance().font;
+            Font font = minecraft.font;
             boolean inRect = isMouseInRect(mouseX, mouseY);
             this.progress = Math.clamp(progress + (inRect ? delta * 0.5F : -delta * 0.5F), 0, 1);
             guiGraphics.fill(relativelyRect.x, relativelyRect.y, relativelyRect.z, relativelyRect.w, getBackgroundColor());
-            int lineBreak = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 7 * 5;
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name.getString(), true), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text.getString(), true), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
+            int lineBreak = minecraft.getWindow().getGuiScaledWidth() / 7 * 5;
+            if (CollUtil.notEmpty(this.name)) guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name, false), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
+            if (CollUtil.notEmpty(this.text)) guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text, false), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
 
             poseStack.popMatrix();
         }
 
         public void click() {
-            ChatBoxUtil.skipDialogues(Identifier, group, index);
+            ChatBoxUtil.skipDialogues(identifier, group, index);
         }
 
         public boolean isMouseInRect(double mouseX, double mouseY) {
@@ -148,8 +133,8 @@ public class HistoricalDialogue extends AbstractWidget {
         }
 
         private Vector4i createEntryRelativelyRect() {
-            int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-            return new Vector4i(width / 7, -7, width / 7 * 6, 20 + Minecraft.getInstance().font.lineHeight);
+            int width = minecraft.getWindow().getGuiScaledWidth();
+            return new Vector4i(width / 7, -7, width / 7 * 6, 20 + minecraft.font.lineHeight);
         }
 
         private int getBackgroundColor() {

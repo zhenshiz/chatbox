@@ -2,19 +2,16 @@ package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.data.Keyframe;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
-import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
-import com.zhenshiz.chatbox.render.ChatBoxRenderCommon;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -24,14 +21,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ChatBoxUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
@@ -41,7 +34,7 @@ public class ChatBoxUtil {
     //所有的对话信息
     public static final Map<Identifier, ChatBoxDialogues> dialoguesMap = new HashMap<>();
     //所有的自定义动画，并不与某个主题绑定，而是全局通用
-    public static final Map<String, List<ChatBoxTheme.Portrait.CustomAnimation>> animationMap = new HashMap<>();
+    public static final Map<String, List<Keyframe>> animationMap = new HashMap<>();
     //玩家的对话框主题
     public static ChatBoxTheme chatBoxTheme;
     //玩家的对话框信息
@@ -64,7 +57,7 @@ public class ChatBoxUtil {
     public static void setChatTargets(Map<Integer, CompoundTag> tags) {
         var level = minecraft.level;
         if (level == null) return;
-        ChatBoxRenderCommon.lastSyncTime = level.getGameTime();
+        ChatBoxRender.lastSyncTime = level.getGameTime();
         chatTargets.clear();
         tags.forEach((id, tag) -> {
             Entity entity = level.getEntity(id);
@@ -89,8 +82,8 @@ public class ChatBoxUtil {
         }
     }
 
-    private static List<Portrait> bakePortrait(Identifier newRl, String newGroup, Integer newIndex) {
-        List<Portrait> portraits = chatBoxScreen.portraits;
+    private static List<Portrait<?>> bakePortrait(Identifier newRl, String newGroup, Integer newIndex) {
+        List<Portrait<?>> portraits = chatBoxScreen.portraits;
         List<ChatBoxDialogues.Dialogues> dialogues = dialoguesMap.get(newRl).dialogues.get(newGroup);
         // 如果恰好是下一句对话，直接设置
         if (dialoguesIdentifier != null && group != null && index != null &&
@@ -118,7 +111,7 @@ public class ChatBoxUtil {
     public static void skipDialogues(Identifier dialoguesIdentifier, String group, int index) {
         if (minecraft.player == null) return;
 
-        ChatBoxDialogues chatBoxDialogues = dialoguesMap.getOrDefault(dialoguesIdentifier, null);
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesIdentifier);
         if (chatBoxDialogues == null) return;
 
         if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
@@ -148,27 +141,27 @@ public class ChatBoxUtil {
                     .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
                     .playVoice(dialog.sound)
                     // 一切就绪，再触发ON_START事件
-                    .setEvents(ChatBoxDialogues.transform(dialog.renderEvents)).fireEvent("ON_START");
+                    .setEvents(dialog.renderEvents).fireEvent("ON_START");
 
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
                 //如果不是对话框和历史记录界面跳转，就清除历史记录
                 historicalDialogue = new HistoricalDialogueScreen();
             }
             //添加历史聊天记录
-            historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesIdentifier, group, index).setName(dialogBox.name).setText(dialogBox.text));
-            //进入对话执行自定义指令
-            if (dialog.command != null) ChatBox.PLATFORM.sendToServer(new SendClickEvent("COMMAND", dialog.command));
+            historicalDialogue.historicalDialogue.addHistoricalInfo(dialoguesIdentifier, group, index, dialogBox.name, dialogBox.text);
 
             //调试用
             //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesIdentifier + " " + group + " " + index);
             ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesIdentifier, group, index, chatTargets);
             ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesIdentifier.toString(), group, String.valueOf(index)));
 
-            ChatBoxRenderCommon.isOpenChatBox = true;
+            ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {
                 minecraft.setScreen(chatBoxScreen);
             } else {
-                ChatBoxRenderCommon.shouldRender = true;
+                // 防止进入两种模式的叠加态
+                if (minecraft.screen instanceof ChatBoxScreen) minecraft.setScreen(null);
+                ChatBoxRender.shouldRender = true;
             }
             // 确认对话框加载完成后再设置客户端对话框信息
             setDialoguesInfo(dialoguesIdentifier, group, index);
@@ -178,7 +171,7 @@ public class ChatBoxUtil {
                     minecraft.screen.onClose();
                 }
             } else {
-                if (ChatBoxRenderCommon.isRenderChatBox()) ChatBoxRenderCommon.onClose();
+                if (ChatBoxRender.isRenderChatBox()) ChatBoxRender.onClose();
             }
         }
     }
@@ -196,80 +189,35 @@ public class ChatBoxUtil {
     //切换对话框主题
     public static void toggleTheme(Identifier themeIdentifier) {
         chatBoxTheme = themeMap.get(themeIdentifier);
+        if (chatBoxTheme == null) {
+            ChatBox.LOGGER.error("theme \"{}\" not found!", themeIdentifier);
+            return;
+        }
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
-                .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionButtons))
+                .setFunctionalButtons(ChatBoxTheme.setButtonTheme(chatBoxTheme.functionalButton))
                 .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
     }
 
     public static void setTheme(Map<Identifier, String> map) {
         map.forEach((identifier, str) -> {
-            JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
-            if (jsonElement == null) return;
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-
-            JsonElement portraitElement = jsonObject.get("portrait");
-            JsonElement chatOptionElement = jsonObject.get("option");
-            JsonElement dialogBoxElement = jsonObject.get("dialogBox");
-            JsonElement fbElement = jsonObject.get("functionalButton");
-            JsonElement keyPromptElement = jsonObject.get("keyPrompt");
-            JsonElement customAnimationElement = jsonObject.get("customAnimation");
-            Map<String, ChatBoxTheme.Portrait> portrait = new HashMap<>();
-            ChatBoxTheme.Option option = new ChatBoxTheme.Option();
-            ChatBoxTheme.DialogBox dialogBox = new ChatBoxTheme.DialogBox();
-            List<ChatBoxTheme.FunctionButton> functionButton = new ArrayList<>();
-            ChatBoxTheme.KeyPrompt keyPrompt = new ChatBoxTheme.KeyPrompt();
-            Map<String, List<ChatBoxTheme.Portrait.CustomAnimation>> customAnimation = new HashMap<>();
-
-            if (portraitElement != null) {
-                portrait = GSON.fromJson(portraitElement, new TypeToken<Map<String, ChatBoxTheme.Portrait>>() {
-                }.getType());
+            try {
+                ChatBoxTheme chatBoxTheme = GSON.fromJson(str, ChatBoxTheme.class).setDefaultValue();
+                themeMap.put(identifier, chatBoxTheme);
+                animationMap.putAll(chatBoxTheme.customAnimation);
+            } catch (JsonSyntaxException e) {
+                ChatBox.LOGGER.error("Error parsing theme for {}: {}", identifier, e.getMessage());
             }
-            if (chatOptionElement != null) {
-                option = GSON.fromJson(chatOptionElement, ChatBoxTheme.Option.class);
-            }
-            if (dialogBoxElement != null) {
-                dialogBox = GSON.fromJson(dialogBoxElement, ChatBoxTheme.DialogBox.class);
-            }
-            if (fbElement != null) {
-                functionButton = GSON.fromJson(fbElement, new TypeToken<List<ChatBoxTheme.FunctionButton>>() {}.getType());
-            }
-            if (keyPromptElement != null) {
-                keyPrompt = GSON.fromJson(keyPromptElement, ChatBoxTheme.KeyPrompt.class);
-            }
-            if (customAnimationElement != null) {
-                customAnimation = GSON.fromJson(customAnimationElement, new TypeToken<Map<String, List<ChatBoxTheme.Portrait.CustomAnimation>>>() {}.getType());
-            }
-            animationMap.putAll(customAnimation);
-
-            themeMap.put(identifier, new ChatBoxTheme(portrait, option, dialogBox, functionButton, keyPrompt).setDefaultValue());
         });
     }
 
     public static void setDialogues(Map<Identifier, String> map) {
         map.forEach((identifier, str) -> {
-            JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
-            if (jsonElement != null) {
-                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(jsonElement, new com.google.common.reflect.TypeToken<ChatBoxDialogues>() {
-                }.getType());
+            try {
+                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(str, ChatBoxDialogues.class);
                 dialoguesMap.put(identifier, chatBoxDialogues);
+            } catch (JsonSyntaxException e) {
+                ChatBox.LOGGER.error("Error parsing dialogues for {}: {}", identifier, e.getMessage());
             }
-        });
-    }
-
-    // 属性解析器映射
-    private static final Map<String, Function<Entity, String>> PROPERTY_RESOLVERS = new HashMap<>();
-
-    public static void addPropertyResolver(String key, Function<Entity, String> resolver) {
-        PROPERTY_RESOLVERS.put(key, resolver);
-    }
-
-    static {
-        addPropertyResolver("name", entity -> entity.getDisplayName().getString());
-        addPropertyResolver("uuid", entity -> entity.getUUID().toString());
-        addPropertyResolver("tags", entity -> String.join(", ", entity.getTags()));
-        addPropertyResolver("health", entity -> {
-            if (entity instanceof LivingEntity livingEntity) return String.valueOf(livingEntity.getHealth());
-            return "0";
         });
     }
 
@@ -279,56 +227,13 @@ public class ChatBoxUtil {
             // @s 替换成当前玩家id
             input = input.replaceAll("(?<!@)@s", Objects.requireNonNull(minecraft.player.getDisplayName()).getString());
 
-            input = parseTargetPlaceholders(input);
+            input = PlaceholderUtil.parseTargetPlaceholders(chatTargets, input);
 
-            if (isLineBreak) input = input.replaceAll("\n", "");
+            if (!isLineBreak) input = input.replaceAll("\n", "");
 
             // 将@@ 替换为 @
             return input.replaceAll("@@", "@");
         }
         return input;
-    }
-
-    public static String parseTargetPlaceholders(String input) {
-        if (chatTargets.isEmpty()) return input;
-        // 匹配 <targetN.property> 或 <targetN> 格式的占位符
-        Pattern pattern = Pattern.compile("<target(\\d+)(\\.(\\w+))?>");
-        Matcher matcher = pattern.matcher(input);
-        StringBuilder sb = new StringBuilder();
-        int lastIndex = 0;
-
-        while (matcher.find()) {
-            // 追加匹配前的文本
-            sb.append(input, lastIndex, matcher.start());
-            lastIndex = matcher.end();
-            try {
-                // 获取目标索引
-                int index = Integer.parseInt(matcher.group(1)) - 1; // 转换为0-based索引
-                // 获取属性名，如果没有指定则默认为"name"
-                String property = matcher.group(3) != null ? matcher.group(3) : "name";
-                // 检查索引是否有效
-                if (index >= 0 && index < chatTargets.size()) {
-                    Entity target = chatTargets.get(index);
-                    // 获取属性解析器
-                    Function<Entity, String> resolver = PROPERTY_RESOLVERS.getOrDefault(property, null);
-                    if (resolver != null) {
-                        // 应用解析器获取属性值
-                        sb.append(resolver.apply(target));
-                    } else {
-                        // 如果没有对应的解析器，保留占位符
-                        sb.append(matcher.group());
-                    }
-                } else {
-                    // 如果索引无效，保留占位符
-                    sb.append(matcher.group());
-                }
-            } catch (NumberFormatException e) {
-                // 如果解析索引失败，保留占位符
-                sb.append(matcher.group());
-            }
-        }
-        // 追加剩余文本
-        sb.append(input.substring(lastIndex));
-        return sb.toString();
     }
 }

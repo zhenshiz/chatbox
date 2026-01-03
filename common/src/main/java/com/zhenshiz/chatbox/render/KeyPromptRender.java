@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.render;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
@@ -10,9 +11,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
-import net.minecraft.world.phys.Vec2;
 
 public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
+    public static final Identifier
+            mouse_right = ChatBox.id("textures/key/right_mouse.png"),
+            mouse_scroll = ChatBox.id("textures/key/scroll_mouse.png");
     public Boolean visible;
     public Float mouseTextureWidth;
     public Float mouseTextureHeight;
@@ -32,18 +35,17 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     }
 
     public KeyPromptRender setRightClickTexture(String rightClickTexture) {
-        if (rightClickTexture != null) this.rightClickTexture = Identifier.parse(rightClickTexture);
+        if (rightClickTexture != null) this.rightClickTexture = ChatBox.parseId(rightClickTexture);
         return this;
     }
 
     public KeyPromptRender setScrollTexture(String scrollTexture) {
-        if (scrollTexture != null) this.scrollTexture = Identifier.parse(scrollTexture);
+        if (scrollTexture != null) this.scrollTexture = ChatBox.parseId(scrollTexture);
         return this;
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
         if (this.visible) {
             Font font = minecraft.font;
 
@@ -53,18 +55,17 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
             String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
             String keyF6 = Component.translatable("chatbox.key.f6").getString();
 
-            Vec2 vec2 = getCurrentPosition();
-            float x = vec2.x;
-            float y = vec2.y;
+            float x = xPos();
+            float y = yPos();
 
             //right scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, Identifier.parse("chatbox:textures/key/right_mouse.png")), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 0f);
+            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, mouse_right), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 100, 0f);
             drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
 
             x += mouseTextureWidth + font.width(keyRightClick) + 4;
 
             //mouse scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, Identifier.parse("chatbox:textures/key/scroll_mouse.png")), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 0f);
+            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, mouse_scroll), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 100, 0f);
             drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
 
             x += mouseTextureWidth + font.width(keyScroll) + 4;

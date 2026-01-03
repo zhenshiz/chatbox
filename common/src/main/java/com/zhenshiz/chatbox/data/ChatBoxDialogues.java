@@ -2,15 +2,11 @@ package com.zhenshiz.chatbox.data;
 
 import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
-import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -28,10 +24,9 @@ public class ChatBoxDialogues {
     public Boolean isScreen;
     public float animationFPS = 60F;
     public int autoPlayTick = 20;
-
-    public static List<ComponentEvent> transform(List<Dialogues.RenderEvent> renderEvents) {
-        return renderEvents.stream().map(Dialogues.RenderEvent::transform).toList();
-    }
+    // =====仅服务端有效=====
+    public int maxTriggerCount = -1;
+    public JsonElement criteria;
 
     public static class Dialogues {
         public DialogBox dialogBox = new DialogBox();
@@ -43,108 +38,66 @@ public class ChatBoxDialogues {
         public Video video;
         public Boolean clearOldPortrait = true;
         public List<String> removePortrait;
-        public List<RenderEvent> renderEvents = new ArrayList<>();
+        public List<ChatBoxTheme.RenderEvent> renderEvents;
 
-        public static class RenderEvent {
-            public String trigger = "on_start";
-            public String type = "";
-            public String value = "";
-
-            public ComponentEvent transform() {
-                return new ComponentEvent(ComponentEvent.Trigger.of(trigger), type, value, null);
-            }
-        }
-
-        public List<Portrait> setPortraitDialogues(List<Portrait> portraitList) {
-            Map<String, ChatBoxTheme.Portrait> map = ChatBoxUtil.chatBoxTheme.portrait;
-            var animations = ChatBoxUtil.animationMap;
+        public List<Portrait<?>> setPortraitDialogues(List<Portrait<?>> portraitList) {
             if (clearOldPortrait) portraitList.clear();
             else if (!CollUtil.isEmpty(removePortrait)) {
                 portraitList.removeIf(portrait -> removePortrait.contains(portrait.id));
             }
 
-            if (map != null && !map.isEmpty()) {
-                parsePortrait().forEach(p -> {
-                    Portrait portrait = null;
-                    if (p instanceof String s) {
-                        try {
-                            portrait = map.get(s).setPortraitTheme().setId(s);
-                        } catch (Exception e) {
-                            ChatBox.LOGGER.error("portrait {} not found", p);
-                        }
-                    } else if (p instanceof ReplacePortrait replacePortrait) {
-                        try {
-                            portrait = replacePortrait.replace(map.get(replacePortrait.id))
-                                    .setPortraitTheme()
-                                    .setId(replacePortrait.id)
-                                    .setEvents(transform(replacePortrait.renderEvents));
-                        } catch (Exception e) {
-                            ChatBox.LOGGER.error("portrait {} not found", replacePortrait.id);
-                        }
-                    }
-
-                    if (portrait != null) {
-                        List<ChatBoxTheme.Portrait.CustomAnimation> animation = new ArrayList<>();
-                        // 先看立绘是否有动画类型字段
-                        if (portrait.animationType != null && animations.containsKey(portrait.animationType))
-                            animation = animations.get(portrait.animationType);
-                        // 如果还定义了自定义动画，就用自定义动画覆盖（两种动画是不可以同时生效的）
-                        if (!CollUtil.isEmpty(portrait.customAnimation)) animation = portrait.customAnimation;
-                        if (!CollUtil.isEmpty(animation)) {
-                            portrait.setCustomAnimation(animation);
-                            portrait.setIsAnimation(true).setTarget(portrait.x, portrait.y, portrait.scale, portrait.opacity, portrait.angle);
-                            if (portrait.loop) portrait.setStart(portrait.x, portrait.y, portrait.scale, portrait.opacity, portrait.angle);
-                        }
-                        portraitList.add(portrait);
-                    }
-                });
-            }
+            if (CollUtil.notEmpty(portrait)) portrait.forEach(e -> addPortrait(e, portraitList));
             return portraitList;
         }
 
-        private List<Object> parsePortrait() {
-            List<Object> portraitList = new ArrayList<>();
-            if (CollUtil.isEmpty(portrait)) return portraitList;
-            for (JsonElement element : portrait) {
-                if (element.isJsonPrimitive()) {
-                    portraitList.add(element.getAsString());
-                } else if (element.isJsonObject()) {
-                    ReplacePortrait obj = ChatBoxUtil.GSON.fromJson(element, ReplacePortrait.class);
-                    portraitList.add(obj);
+        public static Object getValue(JsonElement value) {
+            try {
+                if (value.isJsonPrimitive()) return value.getAsString();
+                if (value.isJsonObject()) return ChatBoxUtil.GSON.fromJson(value, ReplacePortrait.class);
+            } catch (Exception ignored) {
+            }
+            return null;
+        }
+
+        public static void addPortrait(JsonElement value, List<Portrait<?>> portraitList) {
+            Object o = getValue(value);
+            if (o == null || o instanceof String s && s.isEmpty()) return;
+            var portraits = ChatBoxUtil.chatBoxTheme.portrait;
+
+            Portrait<?> portrait = null;
+            if (o instanceof String s) {
+                try {
+                    portrait = portraits.get(s).setPortraitTheme().setId(s);
+                } catch (Exception e) {
+                    ChatBox.LOGGER.error("Portrait {} not found", s);
+                }
+            } else if (o instanceof ReplacePortrait rp) {
+                try {
+                    portrait = rp.replace(portraits.get(rp.id)).setPortraitTheme().setId(rp.id);
+                    if (rp.replace) portraitList.removeIf(p -> p.id.equals(rp.id));
+                } catch (Exception e) {
+                    ChatBox.LOGGER.error("Portrait {} not found", rp.id);
                 }
             }
-            return portraitList;
+            if (portrait != null) portraitList.add(portrait);
         }
 
         public static class DialogBox {
             public String name = "";
             public String text = "";
-            public List<RenderEvent> renderEvents = new ArrayList<>();
 
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
                 return dialogBox.setName(this.name).setText(this.text)
-                        .resetTickCount().setAllOver(false)
-                        .setEvents(transform(renderEvents));
+                        .setAllOver(false);
             }
         }
 
         public static class ReplacePortrait extends ChatBoxTheme.Portrait {
             { // 给Component直接设置初始值唯一的缺点
-                x = null;
-                y = null;
-                width = null;
-                height = null;
-                alignX = null;
-                alignY = null;
-                opacity = null;
                 renderOrder = null;
-                angle = null;
-                scale = null;
-                loop = null;
-                attachment = null;
             }
             public String id;
-            public List<RenderEvent> renderEvents = new ArrayList<>();
+            public boolean replace = false;
 
             public ChatBoxTheme.Portrait replace(ChatBoxTheme.Portrait portrait) {
                 ChatBoxTheme.Portrait copy = new ChatBoxTheme.Portrait();
@@ -166,7 +119,6 @@ public class ChatBoxDialogues {
             public Boolean canControl = true;
             public Boolean canSkip = true;
             public Boolean loop = false;
-            public List<RenderEvent> renderEvents = new ArrayList<>();
 
             public com.zhenshiz.chatbox.component.Video setVideo() {
                 if (!ChatBox.isWaterMediaLoaded()) return null;
@@ -177,9 +129,7 @@ public class ChatBoxDialogues {
                     ChatBox.LOGGER.error("video {} not found", path);
                     return null;
                 }
-                return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop)
-                        .setDefaultOption(x, y, width, height, AbstractComponent.AlignX.of(alignX), AbstractComponent.AlignY.of(alignY), opacity, renderOrder, angle)
-                        .setEvents(transform(renderEvents));
+                return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop).of(this);
             }
         }
 
@@ -199,18 +149,17 @@ public class ChatBoxDialogues {
 
         public List<ChatOption> setChatOptionDialogues() {
             List<ChatOption> chatOptions = new ArrayList<>();
-            ClientLevel level = Minecraft.getInstance().level;
-            if (level != null && !CollUtil.isEmpty(this.options)) {
-                for (Option option : this.options) {
-                    ChatOption chatOption = new ChatOption().setOptionTooltip(option.tooltip)
-                            .setOptionChat(option.text)
-                            .setIsLock(option.isLock)
-                            .setUnlockCommand(option.unlockCommand)
-                            .setNext(option.next)
-                            .setClickEvent(option.click.type, option.click.value);
-
-                    chatOptions.add(ChatBoxUtil.chatBoxTheme.option.setChatOptionTheme(chatOption));
+            if (CollUtil.notEmpty(options)) for (Option option : this.options) {
+                ChatOption chatOption = ChatBoxUtil.chatBoxTheme.option.newOption().setOptionTooltip(option.tooltip)
+                        .setOptionChat(option.text)
+                        .setNext(option.next)
+                        .setClickEvent(option.click.type, option.click.value);
+                if (option.unlockCommand != null && option.unlockCommand.startsWith("execute")) {
+                    if (option.isLock) chatOption.setIsLock(true);
+                    else chatOption.hideOption(true);
                 }
+
+                chatOptions.add(chatOption);
             }
             return chatOptions;
         }

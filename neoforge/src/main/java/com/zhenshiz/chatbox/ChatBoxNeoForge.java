@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
+import com.zhenshiz.chatbox.neoforge.platform.NeoForgePlatformHelper;
 import me.shedaniel.autoconfig.AutoConfigClient;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 public class ChatBoxNeoForge {
 
     public ChatBoxNeoForge(ModContainer modContainer, Dist dist) {
+        ChatBox.PLATFORM = new NeoForgePlatformHelper();
         ChatBox.init();
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(this::onWorldLoad);

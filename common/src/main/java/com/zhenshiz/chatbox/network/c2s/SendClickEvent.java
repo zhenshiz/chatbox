@@ -2,7 +2,6 @@ package com.zhenshiz.chatbox.network.c2s;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,13 +13,9 @@ public record SendClickEvent(String typeId, String value) implements CustomPacke
     public static final Type<SendClickEvent> TYPE = new Type<>(ChatBox.id("execute_click_event"));
     public static final StreamCodec<FriendlyByteBuf, SendClickEvent> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, SendClickEvent::typeId,
-            ByteBufCodecs.STRING_UTF8, SendClickEvent::getParsedValue,
+            ByteBufCodecs.STRING_UTF8, SendClickEvent::value,
             SendClickEvent::new
     );
-
-    private String getParsedValue() {
-        return ChatBoxUtil.parseTargetPlaceholders(value);
-    }
 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {return TYPE;}
