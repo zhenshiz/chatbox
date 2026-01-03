@@ -33,7 +33,7 @@ import static com.zhenshiz.chatbox.utils.chatbox.ScreenUtil.*;
 @SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
 public class ChatBoxScreen extends Screen {
     public List<ChatOption> chatOptions = new ArrayList<>();
-    public List<Portrait> portraits = new ArrayList<>();
+    public List<Portrait<?>> portraits = new ArrayList<>();
     public DialogBox dialogBox = new DialogBox();
     public List<FunctionalButton> functionalButtons = new ArrayList<>();
     public Identifier backgroundImage;
@@ -93,7 +93,7 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
-    public ChatBoxScreen setPortrait(List<Portrait> portraits) {
+    public ChatBoxScreen setPortrait(List<Portrait<?>> portraits) {
         if (portraits != null) this.portraits = portraits;
         return this;
     }
@@ -103,18 +103,11 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
-    public ChatBoxScreen setBackgroundImage(Identifier backgroundImage) {
-        this.backgroundImage = backgroundImage;
-        return this;
-    }
-
     public ChatBoxScreen setBackgroundImage(String backgroundImage) {
         if (backgroundImage != null) {
-            return setBackgroundImage(Identifier.parse(backgroundImage));
-        } else {
-            this.backgroundImage = null;
-            return this;
-        }
+            this.backgroundImage = Identifier.tryParse(backgroundImage);
+        } else this.backgroundImage = null;
+        return this;
     }
 
     public ChatBoxScreen setVideo(Video video) {
@@ -237,18 +230,18 @@ public class ChatBoxScreen extends Screen {
         if (ChatBox.PLATFORM.postRenderEventPre(guiGraphics)) return;
 
         if (backgroundImage != null) {
-            RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 100, 0);
+            RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 100, 100, 0);
         }
 
         List<AbstractComponent<?>> renderList = getRenderList(isScreen);
         renderList.forEach(component -> {
             if (!component.hidden) {
-                if (shouldUpdatePortrait && component instanceof Portrait portrait) portrait.updateAnimationTick();
+                if (shouldUpdatePortrait && component instanceof Portrait<?> portrait) portrait.updateAnimationTick();
                 component.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
             }
             if (debug && hasShiftDown()) {
-                int x1 = component.getX1(); int x2 = component.getX2();
-                int y1 = component.getY1(); int y2 = component.getY2();
+                int x1 = component.x1(); int x2 = component.x2();
+                int y1 = component.y1(); int y2 = component.y2();
                 RenderUtil.drawBox(guiGraphics, x1, y1, x2 - x1, y2 - y1, -65536);
             }
         });
@@ -326,7 +319,7 @@ public class ChatBoxScreen extends Screen {
                 if (button.isSelect && button.click()) return true;
             }
 
-            for (Portrait portrait : portraits) { // 触发立绘的点击事件，重叠的立绘只有位于最上层的才能触发
+            for (Portrait<?> portrait : portraits) { // 触发立绘的点击事件，重叠的立绘只有位于最上层的才能触发
                 if (portrait.isSelect && portrait.fireEvent("ON_CLICK") > 0) return true;
             }
 
@@ -338,10 +331,10 @@ public class ChatBoxScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (debug && hasControlDown()) {
-            if (underCursor instanceof Portrait portrait) {
+            if (underCursor != null) {
                 // 防止缩太小了就消失了
-                float toSet = portrait.scale + (scrollY > 0 ? 0.1f : -0.1f);
-                if (toSet >= 0.1f) portrait.setScale(toSet);
+                float toSet = underCursor.scale + (scrollY > 0 ? 0.1f : -0.1f);
+                if (toSet >= 0.05f) underCursor.setScale(toSet);
             }
             return true;
         }
@@ -430,7 +423,7 @@ public class ChatBoxScreen extends Screen {
     private boolean shouldFastForward() {
         if (fastForward) return true;
         if (hasControlDown()) {
-            if (ChatBoxUtil.isScreen && !debug) return getButton(FunctionalButton.Type.FASTFORWARD) != null;
+            if (ChatBoxUtil.isScreen) return !debug && getButton(FunctionalButton.Type.FASTFORWARD) != null;
             else return keyPromptRender.visible;
         }
         return false;

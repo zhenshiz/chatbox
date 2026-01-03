@@ -4,6 +4,7 @@ import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.fabric.SettingLoader;
 import com.zhenshiz.chatbox.fabric.network.Network;
+import com.zhenshiz.chatbox.fabric.platform.FabricPlatformHelper;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.Level;
 public class ChatBoxFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        ChatBox.PLATFORM = new FabricPlatformHelper();
         ChatBox.init();
         SettingLoader.chatBoxLoader();
         Network.register();

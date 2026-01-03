@@ -6,7 +6,6 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.phys.Vec2;
 import org.watermedia.api.image.ImageAPI;
 import org.watermedia.api.image.ImageRenderer;
 import org.watermedia.api.player.videolan.VideoPlayer;
@@ -79,7 +78,7 @@ public class Video extends AbstractComponent<Video> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
+        renderInner(mouseX, mouseY);
         if (!isPlaying()) return;
 
         if (!success && getState() == State.PLAYING) success = true;
@@ -93,11 +92,10 @@ public class Video extends AbstractComponent<Video> {
             return;
         }
 
-        Vec2 pos = getCurrentPosition();
-        actualX = getResponsiveWidth(pos.x);
-        actualY = getResponsiveHeight(pos.y);
-        actualWidth = getResponsiveWidth(width);
-        actualHeight = getResponsiveHeight(height);
+        actualX = realX();
+        actualY = realY();
+        actualWidth = realWidth();
+        actualHeight = realHeight();
 
         videoTexture = player.preRender();
 
@@ -151,7 +149,7 @@ public class Video extends AbstractComponent<Video> {
         float y = (actualHeight / 2 - 32 + actualY);
         int size = 64;
 
-        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(alpha));
+        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(-1, alpha, 100));
         fadeStep30 = Math.max(fadeStep30 - (pPartialTicks / 8), 0.0f);
     }
 
@@ -163,7 +161,7 @@ public class Video extends AbstractComponent<Video> {
         float y = (actualHeight / 2 - 32 + actualY);
         int size = 64;
 
-        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(alpha));
+        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(-1, alpha, 100));
         fadeStep10 = Math.max(fadeStep10 - (pPartialTicks / 8), 0.0f);
     }
 

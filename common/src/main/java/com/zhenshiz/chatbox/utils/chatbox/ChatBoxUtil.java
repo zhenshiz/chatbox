@@ -3,14 +3,14 @@ package com.zhenshiz.chatbox.utils.chatbox;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.mojang.serialization.Codec;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.component.HistoricalDialogue;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.data.Keyframe;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
@@ -41,7 +41,7 @@ public class ChatBoxUtil {
     //所有的对话信息
     public static final Map<Identifier, ChatBoxDialogues> dialoguesMap = new HashMap<>();
     //所有的自定义动画，并不与某个主题绑定，而是全局通用
-    public static final Map<String, List<ChatBoxTheme.Portrait.CustomAnimation>> animationMap = new HashMap<>();
+    public static final Map<String, List<Keyframe>> animationMap = new HashMap<>();
     //玩家的对话框主题
     public static ChatBoxTheme chatBoxTheme;
     //玩家的对话框信息
@@ -89,8 +89,8 @@ public class ChatBoxUtil {
         }
     }
 
-    private static List<Portrait> bakePortrait(Identifier newRl, String newGroup, Integer newIndex) {
-        List<Portrait> portraits = chatBoxScreen.portraits;
+    private static List<Portrait<?>> bakePortrait(Identifier newRl, String newGroup, Integer newIndex) {
+        List<Portrait<?>> portraits = chatBoxScreen.portraits;
         List<ChatBoxDialogues.Dialogues> dialogues = dialoguesMap.get(newRl).dialogues.get(newGroup);
         // 如果恰好是下一句对话，直接设置
         if (dialoguesIdentifier != null && group != null && index != null &&
@@ -155,7 +155,7 @@ public class ChatBoxUtil {
                 historicalDialogue = new HistoricalDialogueScreen();
             }
             //添加历史聊天记录
-            historicalDialogue.historicalDialogue.addHistoricalInfo(new HistoricalDialogue.HistoricalInfo(dialoguesIdentifier, group, index).setName(dialogBox.name).setText(dialogBox.text));
+            historicalDialogue.historicalDialogue.addHistoricalInfo(dialoguesIdentifier, group, index, dialogBox.name, dialogBox.text);
             //进入对话执行自定义指令
             if (dialog.command != null) ChatBox.PLATFORM.sendToServer(new SendClickEvent("COMMAND", dialog.command));
 
@@ -197,7 +197,7 @@ public class ChatBoxUtil {
     public static void toggleTheme(Identifier themeIdentifier) {
         chatBoxTheme = themeMap.get(themeIdentifier);
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
-                .setFunctionalButtons(ChatBoxTheme.FunctionButton.setFunctionalButtonTheme(chatBoxTheme.functionButtons))
+                .setFunctionalButtons(ChatBoxTheme.setButtonTheme(chatBoxTheme.functionalButton))
                 .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
     }
 
@@ -205,53 +205,25 @@ public class ChatBoxUtil {
         map.forEach((identifier, str) -> {
             JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
             if (jsonElement == null) return;
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
 
-            JsonElement portraitElement = jsonObject.get("portrait");
-            JsonElement chatOptionElement = jsonObject.get("option");
-            JsonElement dialogBoxElement = jsonObject.get("dialogBox");
-            JsonElement fbElement = jsonObject.get("functionalButton");
-            JsonElement keyPromptElement = jsonObject.get("keyPrompt");
-            JsonElement customAnimationElement = jsonObject.get("customAnimation");
-            Map<String, ChatBoxTheme.Portrait> portrait = new HashMap<>();
-            ChatBoxTheme.Option option = new ChatBoxTheme.Option();
-            ChatBoxTheme.DialogBox dialogBox = new ChatBoxTheme.DialogBox();
-            List<ChatBoxTheme.FunctionButton> functionButton = new ArrayList<>();
-            ChatBoxTheme.KeyPrompt keyPrompt = new ChatBoxTheme.KeyPrompt();
-            Map<String, List<ChatBoxTheme.Portrait.CustomAnimation>> customAnimation = new HashMap<>();
+            ChatBoxTheme theme = GSON.fromJson(jsonElement, ChatBoxTheme.class).setDefaultValue();
+            themeMap.put(identifier, theme);
 
-            if (portraitElement != null) {
-                portrait = GSON.fromJson(portraitElement, new TypeToken<Map<String, ChatBoxTheme.Portrait>>() {
-                }.getType());
-            }
-            if (chatOptionElement != null) {
-                option = GSON.fromJson(chatOptionElement, ChatBoxTheme.Option.class);
-            }
-            if (dialogBoxElement != null) {
-                dialogBox = GSON.fromJson(dialogBoxElement, ChatBoxTheme.DialogBox.class);
-            }
-            if (fbElement != null) {
-                functionButton = GSON.fromJson(fbElement, new TypeToken<List<ChatBoxTheme.FunctionButton>>() {}.getType());
-            }
-            if (keyPromptElement != null) {
-                keyPrompt = GSON.fromJson(keyPromptElement, ChatBoxTheme.KeyPrompt.class);
-            }
-            if (customAnimationElement != null) {
-                customAnimation = GSON.fromJson(customAnimationElement, new TypeToken<Map<String, List<ChatBoxTheme.Portrait.CustomAnimation>>>() {}.getType());
-            }
+            JsonElement customAnimationElement = jsonElement.getAsJsonObject().get("customAnimation");
+            Map<String, List<Keyframe>> customAnimation = new HashMap<>();
+            if (customAnimationElement != null) customAnimation =
+                    GSON.fromJson(customAnimationElement, new TypeToken<Map<String, List<Keyframe>>>() {}.getType());
             animationMap.putAll(customAnimation);
-
-            themeMap.put(identifier, new ChatBoxTheme(portrait, option, dialogBox, functionButton, keyPrompt).setDefaultValue());
         });
     }
 
     public static void setDialogues(Map<Identifier, String> map) {
         map.forEach((identifier, str) -> {
-            JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
-            if (jsonElement != null) {
-                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(jsonElement, new com.google.common.reflect.TypeToken<ChatBoxDialogues>() {
-                }.getType());
+            try {
+                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(str, ChatBoxDialogues.class);
                 dialoguesMap.put(identifier, chatBoxDialogues);
+            } catch (JsonSyntaxException e) {
+                ChatBox.LOGGER.error("Error parsing dialogues for {}: {}", identifier, e.getMessage());
             }
         });
     }
@@ -281,7 +253,7 @@ public class ChatBoxUtil {
 
             input = parseTargetPlaceholders(input);
 
-            if (isLineBreak) input = input.replaceAll("\n", "");
+            if (!isLineBreak) input = input.replaceAll("\n", "");
 
             // 将@@ 替换为 @
             return input.replaceAll("@@", "@");

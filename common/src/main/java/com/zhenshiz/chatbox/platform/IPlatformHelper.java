@@ -13,13 +13,6 @@ import java.util.List;
 public interface IPlatformHelper {
 
     /**
-     * Gets the name of the current platform
-     *
-     * @return The name of the current platform.
-     */
-    String getPlatformName();
-
-    /**
      * Checks if a mod with the given id is loaded.
      *
      * @param modId The mod to check if it is loaded.

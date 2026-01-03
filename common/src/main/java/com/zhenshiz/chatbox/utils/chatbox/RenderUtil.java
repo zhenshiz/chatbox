@@ -8,7 +8,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.zhenshiz.chatbox.component.AbstractComponent;
-import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.data.Attachment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
@@ -365,44 +365,38 @@ public class RenderUtil {
     }
 
     // image
-    public static void renderImage(GuiGraphics guiGraphics, Matrix3x2f pose, Identifier identifier, float x, float y, float uw, float uh, float width, float height, float opacity) {
+    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float uw, float uh, float width, float height, int color) {
         AbstractTexture texture = minecraft.getTextureManager().getTexture(identifier);
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), pose, x, y, width, height, uw, uh, getColor(opacity)));
+        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), new Matrix3x2f(guiGraphics.pose()), x, y, width, height, uw, uh, color));
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
-        Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose()).rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2).scaleAround(scale, x + width / 2, y + height / 2);
-        renderImage(guiGraphics, pose, identifier, x, y, 1, 1, width, height, opacity);
-        for (var attachment : attachments) {
-            var a = attachment.mapParameter();
-            renderImage(guiGraphics, pose, Identifier.parse(a.value), x + a.x, y + a.y, 1, 1, a.width, a.height, opacity);
-        }
-    }
-
-    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float angle) {
-        renderImage(guiGraphics, identifier, x, y, width, height, scale, opacity, angle, List.of());
-    }
-
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity, float angle) {
+    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
         guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + (float) size / 2, y + (float) size / 2).scaleAround(scale, x + (float) size / 2, y + (float) size / 2);
-        var skin = getSkin(input).body().texturePath();
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8, 8, size, size, 8, 8, 64, 64, getColor(opacity));
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x - 1, y - 1, 40, 8, size + 2, size + 2, 8, 8, 64, 64, getColor(opacity));
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2).scaleAround(scale, x + width / 2, y + height / 2);
+        if (identifier != null) renderImage(guiGraphics, identifier, x, y, 1, 1, width, height, getColor(-1, opacity, brightness));
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y, opacity, brightness);
         guiGraphics.pose().popMatrix();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
+    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + (float) size / 2, y + (float) size / 2).scaleAround(scale, x + (float) size / 2, y + (float) size / 2);
+        var skin = getSkin(input).body().texturePath();
+        int color = getColor(-1, opacity, brightness);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8, 8, size, size, 8, 8, 64, 64, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, skin, x - 1, y - 1, 40, 8, size + 2, size + 2, 8, 8, 64, 64, color);
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y, opacity, brightness);
+        guiGraphics.pose().popMatrix();
+    }
+
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, Attachment... attachments) {
         guiGraphics.pose().pushMatrix();
         // 应用旋转
         guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + 8f, y + 8f).scaleAround(scale, x + 8f, y + 8f);
         guiGraphics.renderItem(item, x, y);
-        guiGraphics.renderItemDecorations(minecraft.font, item, x, y, text);
+        guiGraphics.renderItemDecorations(minecraft.font, item, x, y);
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y, 100, 100);
         guiGraphics.pose().popMatrix();
-    }
-
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
-        renderItem(guiGraphics, item, x, y, scale, angle, "");
     }
 
     //text
@@ -413,6 +407,7 @@ public class RenderUtil {
     }
 
     public static void drawStringAlign(GuiGraphics guiGraphics, FormattedText text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, RubyPart... rubyParts) {
+        if (ARGB.alpha(color) == 0) return;
         var font = minecraft.font;
         int renderX = startX; int renderY = startY;
         switch (alignX) {
@@ -537,8 +532,11 @@ public class RenderUtil {
 
     //util
 
-    public static int getColor(float opacity) {
-        return ARGB.color((int) (opacity / 100 * 255), 255, 255, 255);
+    public static int getColor(int color, float opacity, float brightness) {
+        opacity = opacity / 100f;
+        brightness = brightness / 100f;
+        int brightnessInt = ARGB.setBrightness(color, brightness);
+        return ARGB.color((int) (opacity * 255), ARGB.red(brightnessInt), ARGB.green(brightnessInt), ARGB.blue(brightnessInt));
     }
 
     //private
