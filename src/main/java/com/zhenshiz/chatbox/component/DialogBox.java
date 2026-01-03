@@ -1,22 +1,20 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
+import com.zhenshiz.chatbox.data.Attachment;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.CommonColors;
-import net.minecraft.world.phys.Vec2;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
-public class DialogBox extends AbstractComponent<DialogBox> {
-    //默认材质
-    public ResourceLocation texture;
+public class DialogBox extends Portrait<DialogBox> {
+    public static final ResourceLocation dialog_box = ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png");
     //对话框文本
     private String text = "";
     //文本x位置
@@ -40,22 +38,8 @@ public class DialogBox extends AbstractComponent<DialogBox> {
     private int textLength = 0;
     private int charIndex;
 
-    public DialogBox() {
-        setTexture(ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png"));
-
-        setAllOver(false);
-        resetTickCount();
-    }
-
-    public DialogBox setTexture(ResourceLocation texture) {
-        if (texture != null) this.texture = texture;
-        return this;
-    }
-
-    public DialogBox setTexture(String texture) {
-        if (texture != null) return setTexture(ResourceLocation.tryParse(texture));
-        return this;
-    }
+    @Override
+    public ResourceLocation getTexture() {return BeanUtil.getValueOrDefault(super.getTexture(), dialog_box);}
 
     public static boolean papiLoaded = false;
 
@@ -111,13 +95,10 @@ public class DialogBox extends AbstractComponent<DialogBox> {
         if (allOver) {
             fireEvent("ON_END");
             charIndex = -1; // 防止字符串长度随动态解析而改变，也是为了减少计算次数
+        } else { // 原来的resetTickCount方法在这里了。
+            this.tickCount = 0;
+            this.charIndex = 0;
         }
-        return this;
-    }
-
-    public DialogBox resetTickCount() {
-        this.tickCount = 0;
-        this.charIndex = 0;
         return this;
     }
 
@@ -192,24 +173,11 @@ public class DialogBox extends AbstractComponent<DialogBox> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
+        renderInner(mouseX, mouseY);
         //chatBox image
-        if (texture != null) renderImage(guiGraphics, this.texture);
-
-        //name and text
-        Vec2 position = getCurrentPosition();
-        float x = position.x;
-        float y = position.y;
-
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-        int lineWidth = (int) getResponsiveWidth(this.lineWidth);
-        if (StrUtil.isNotEmpty(this.name)) {
-            RenderUtil.drawStringAlign(guiGraphics, parseText(this.name), (int) getResponsiveWidth(x + this.nameX), (int) getResponsiveHeight(y + this.nameY), lineWidth, this.textAlign, CommonColors.WHITE, false);
-        }
-        if (StrUtil.isNotEmpty(this.text)) {
-            RenderUtil.drawStringAlign(guiGraphics, subString(parseText(this.text), charIndex), (int) getResponsiveWidth(x + this.textX), (int) getResponsiveHeight(y + this.textY), lineWidth, this.textAlign, CommonColors.WHITE, true);
-        }
-        poseStack.popPose();
+        renderImage(guiGraphics, isSelect ? getHoverTexture() : getTexture(), addTempAttachment(
+                Attachment.ofText(parseText(this.name), this.nameX, this.nameY, this.lineWidth, this.textAlign.name(), -1, false),
+                Attachment.ofText(subString(parseText(this.text), charIndex), this.textX, this.textY, this.lineWidth, this.textAlign.name(), -1, true)
+        ));
     }
 }

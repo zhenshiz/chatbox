@@ -6,7 +6,7 @@ import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.zhenshiz.chatbox.component.AbstractComponent;
-import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.data.Attachment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
@@ -365,40 +365,34 @@ public class RenderUtil {
     }
 
     // image
-    public static void renderImageInner(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float uw, float uh, float width, float height) {
+    public static void renderImageInner(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float uw, float uh, float width, float height) {
         BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
-        bufferBuilder.addVertex(matrix4f, x, y, z).setUv(0, 0);
-        bufferBuilder.addVertex(matrix4f, x, y + height, z).setUv(0, uh);
-        bufferBuilder.addVertex(matrix4f, x + width, y + height, z).setUv(uw, uh);
-        bufferBuilder.addVertex(matrix4f, x + width, y, z).setUv(uw, 0);
+        bufferBuilder.addVertex(matrix4f, x, y, 0).setUv(0, 0);
+        bufferBuilder.addVertex(matrix4f, x, y + height, 0).setUv(0, uh);
+        bufferBuilder.addVertex(matrix4f, x + width, y + height, 0).setUv(uw, uh);
+        bufferBuilder.addVertex(matrix4f, x + width, y, 0).setUv(uw, 0);
 
+        RenderSystem.enableBlend();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, resourceLocation);
-        RenderSystem.enableBlend();
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+        RenderSystem.disableBlend();
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle, List<ChatBoxTheme.Portrait.Attachment> attachments) {
+    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float width, float height, float scale, float angle, Attachment... attachments) {
         guiGraphics.pose().pushPose();
         float centerX = x + width / 2;
         float centerY = y + height / 2;
         // 应用旋转
         guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
         guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
-        renderImageInner(guiGraphics, resourceLocation, x, y, z, 1, 1, width, height);
-        for (var attachment : attachments) {
-            var a = attachment.mapParameter();
-            renderImageInner(guiGraphics, ResourceLocation.parse(a.value), x + a.x, y + a.y, z, 1, 1, a.width, a.height);
-        }
+        if (resourceLocation != null) renderImageInner(guiGraphics, resourceLocation, x, y, 1, 1, width, height);
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y);
         guiGraphics.pose().popPose();
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float z, float width, float height, float scale, float angle) {
-        renderImage(guiGraphics, resourceLocation, x, y, z, width, height, scale, angle, List.of());
-    }
-
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float angle) {
+    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float angle, Attachment... attachments) {
         PoseStack pose = guiGraphics.pose();
         ResourceLocation skin = getSkin(input).texture();
         pose.pushPose();
@@ -408,13 +402,12 @@ public class RenderUtil {
         guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
         guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
         guiGraphics.blit(skin, x, y, size, size, 8, 8, 8, 8, 64, 64);
-        RenderSystem.enableBlend();
         guiGraphics.blit(skin, x - 1, y - 1, size + 2, size + 2, 40, 8, 8, 8, 64, 64);
-        RenderSystem.disableBlend();
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y);
         pose.popPose();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, String text) {
+    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, Attachment... attachments) {
         guiGraphics.pose().pushPose();
         float centerX = x + 8f;
         float centerY = y + 8f;
@@ -422,12 +415,9 @@ public class RenderUtil {
         guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
         guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
         guiGraphics.renderItem(item, x, y);
-        guiGraphics.renderItemDecorations(minecraft.font, item, x, y, text);
+        guiGraphics.renderItemDecorations(minecraft.font, item, x, y);
+        for (var attachment : attachments) attachment.render(guiGraphics, x, y);
         guiGraphics.pose().popPose();
-    }
-
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle) {
-        renderItem(guiGraphics, item, x, y, scale, angle, "");
     }
 
     //text
@@ -520,7 +510,7 @@ public class RenderUtil {
             for (var part : font.getSplitter().splitLines(Component.nullToEmpty(noRuby), lineWidth, Style.EMPTY)) {
                 String textPart = part.getString();
                 // 换行符在第一个字符时，跳过
-                if (!noRuby.isEmpty() && noRuby.charAt(partStart) == '\n') partStart++;
+                if (noRuby.length() > partStart && noRuby.charAt(partStart) == '\n') partStart++;
                 RubyPart[] rubyFromTo = rubyFromTo(partStart, partStart + textPart.length());
                 drawStringAlign(guiGraphics, part, startX, renderY, lineWidth, alignX, color, rubyFromTo);
                 if (rubyFromTo.length > 0) renderY += 6;
@@ -558,9 +548,10 @@ public class RenderUtil {
 
     //util
 
-    public static void renderOpacity(GuiGraphics guiGraphics, float opacity, Runnable runnable) {
+    public static void renderOpacity(GuiGraphics guiGraphics, float brightness, float opacity, Runnable runnable) {
         RenderSystem.enableBlend();
-        guiGraphics.setColor(1f, 1f, 1f, opacity);
+        brightness = brightness / 100f;
+        guiGraphics.setColor(brightness, brightness, brightness, opacity / 100f);
         runnable.run();
         RenderSystem.disableBlend();
     }

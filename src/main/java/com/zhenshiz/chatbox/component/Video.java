@@ -9,7 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.phys.Vec2;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.watermedia.api.image.ImageAPI;
@@ -84,7 +83,7 @@ public class Video extends AbstractComponent<Video> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        super.render(guiGraphics, mouseX, mouseY, pPartialTick);
+        renderInner(mouseX, mouseY);
         if (!isPlaying()) return;
 
         if (!success && getState() == State.PLAYING) success = true;
@@ -98,11 +97,10 @@ public class Video extends AbstractComponent<Video> {
             return;
         }
 
-        Vec2 pos = getCurrentPosition();
-        actualX = getResponsiveWidth(pos.x);
-        actualY = getResponsiveHeight(pos.y);
-        actualWidth = getResponsiveWidth(width);
-        actualHeight = getResponsiveHeight(height);
+        actualX = realX();
+        actualY = realY();
+        actualWidth = realWidth();
+        actualHeight = realHeight();
 
         videoTexture = player.preRender();
 

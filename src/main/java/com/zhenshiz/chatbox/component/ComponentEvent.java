@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.component;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -33,6 +34,13 @@ public class ComponentEvent {
     public String value = "";
     @Setter
     @Nullable private AbstractComponent<?> component;
+
+    public static ComponentEvent of(ChatBoxDialogues.RenderEvent e) {
+        return of(e.trigger, e.type, e.value, null);
+    }
+    public static ComponentEvent of(String trigger, String type, String value, @Nullable AbstractComponent<?> component) {
+        return new ComponentEvent(Trigger.of(trigger), type, value, component);
+    }
 
     /**
      * 根据提供的触发时机，执行组件事件
@@ -119,7 +127,7 @@ public class ComponentEvent {
         registerClientEvent("SET_AUTOPLAY", (c, s) -> chatBoxScreen.autoPlay = Boolean.parseBoolean(s));
 
         registerClientEvent("SCALE", (c, s) -> {
-            if (c instanceof Portrait portrait) portrait.setScale(Float.parseFloat(s));
+            if (c != null) c.setScale(Float.parseFloat(s));
         });
     }
 
