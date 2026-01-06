@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.network;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.ComponentEvent;
+import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -25,7 +26,7 @@ import java.util.function.Consumer;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil.*;
 
 public record SimplePayload(String name, String value) implements CustomPacketPayload {
-    public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("simple_payload"));
+    public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.id("simple_payload"));
     public static final StreamCodec<FriendlyByteBuf, SimplePayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8,
             SimplePayload::name,
@@ -34,20 +35,19 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             SimplePayload::new
     );
 
-    public static final String REQUEST_SYNC = "request_sync";
-    public static final String SKIP_CHAT_C2S = "skip_chat_c2s";
-    public static final String REQUEST_UNLOCK = "request_unlock";
+    public static final String REQUEST_SYNC         = "request_sync";
+    public static final String SKIP_CHAT_C2S        = "skip_chat_c2s";
 
-    public static final String OPEN_DIALOG = "open_dialog";
-    public static final String SET_THEME = "set_theme";
-    public static final String NEXT_DIALOGUE = "next_dialogue";
-    public static final String AUTO_PLAY = "auto_play";
-    public static final String SET_IS_SCREEN = "set_is_screen";
-    public static final String SET_DIALOG_BOX = "set_dialog_box";
-    public static final String ADD_CHAT_OPTION = "add_chat_option";
-    public static final String CLEAR_CHAT_OPTION = "clear_chat_option";
-    public static final String UNLOCK_CHAT_OPTION = "unlock_chat_option";
-    public static final String HIDE_CHAT_OPTION = "hide_chat_option";
+    public static final String SKIP_CHAT_S2C        = "skip_chat_s2c";
+    public static final String OPEN_DIALOG          = "open_dialog";
+    public static final String SET_THEME            = "set_theme";
+    public static final String NEXT_DIALOGUE        = "next_dialogue";
+    public static final String AUTO_PLAY            = "auto_play";
+    public static final String SET_IS_SCREEN        = "set_is_screen";
+    public static final String SET_DIALOG_BOX       = "set_dialog_box";
+    public static final String ADD_CHAT_OPTION      = "add_chat_option";
+    public static final String SET_CHAT_OPTION      = "set_chat_option";
+    public static final String CLEAR_CHAT_OPTION    = "clear_chat_option";
 
     private static final Map<String, Consumer<String>> handlersS2C = new HashMap<>();
 
@@ -95,19 +95,14 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         addHandlerC2S(SKIP_CHAT_C2S, (player, s) -> {
             String[] parsed = StrUtil.parse(s);
             if (parsed.length != 3) return;
-            NeoForge.EVENT_BUS.post(new SkipChatEvent(player, ResourceLocation.parse(parsed[0]), parsed[1], Integer.parseInt(parsed[2]), serverGetChatTargets(player)));
-        });
-        addHandlerC2S(REQUEST_UNLOCK, (player, s) -> {
-            String[] parsed = StrUtil.parse(s);
-            if (parsed.length != 3) return;
-            boolean isLock = Boolean.parseBoolean(parsed[0]);
-            int result = ComponentEvent.executeCommand(player.server, player, parsed[2]);
-            // 如果命令测试通过且是锁定状态，则解锁聊天选项
-            if (result == 1 && isLock) simplePayloadS2C(player, UNLOCK_CHAT_OPTION, parsed[1]);
-            // 如果命令测试失败且不是锁定状态，则隐藏聊天选项
-            if (result != 1 && !isLock) simplePayloadS2C(player, HIDE_CHAT_OPTION, parsed[1]);
+            onPlayerSkipChat(player, ChatBox.parseId(parsed[0]), parsed[1], Integer.parseInt(parsed[2]));
         });
 
+        addHandlerS2C(SKIP_CHAT_S2C, s -> {
+            String[] parsed = StrUtil.parse(s);
+            if (parsed.length != 3) return;
+            clientSkipDialogues(ChatBox.parseId(parsed[0]), parsed[1], Integer.parseInt(parsed[2]));
+        });
         addHandlerS2C(OPEN_DIALOG, s -> clientOpenChatBox());
         addHandlerS2C(SET_THEME, ChatBoxCommandUtil::clientToggleTheme);
         addHandlerS2C(NEXT_DIALOGUE, s -> clientNextDialogue());
@@ -124,8 +119,46 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             clientAddChatOption(parts[0], parts[1], parts[2], parts[3], parts[4]);
         });
         addHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
-        addHandlerS2C(UNLOCK_CHAT_OPTION, s -> clientUnlockChatOption(Integer.parseInt(s)));
-        addHandlerS2C(HIDE_CHAT_OPTION, s -> clientHideChatOption(Integer.parseInt(s)));
+    }
+
+    private static void onPlayerSkipChat(ServerPlayer player, ResourceLocation rl, String group, int index) {
+        if (index != -1) {
+            var dialog = ChatBoxDialoguesLoader.parsedDialogues.get(rl).dialogues.get(group).get(index);
+            if (dialog.command != null) ComponentEvent.executeCommands(player, dialog.command);
+
+            var options = dialog.options;
+            if (options != null) for (var option : options) {
+                String parsedText = null; String parsedTip = null; Boolean bl = null;
+                var text = option.text;
+                if (text != null && !text.isEmpty()) {
+                    parsedText = parsePlaceholders(player, text);
+                    if (parsedText.equals(text)) parsedText = null;
+                }
+                var tip = option.tooltip;
+                if (tip != null && !tip.isEmpty()) {
+                    parsedTip = parsePlaceholders(player, tip);
+                    if (parsedTip.equals(tip)) parsedTip = null;
+                }
+                var unlockCommand = option.unlockCommand; // 解锁命令测试通过后，取消锁定和隐藏
+                if (unlockCommand != null && unlockCommand.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, unlockCommand) == 1) bl = false;
+                if (parsedText != null || parsedTip != null || bl != null)
+                    serverSetChatOption(player, options.indexOf(option), parsedText, parsedTip, bl, bl);
+            }
+
+            var dialogBox = dialog.dialogBox;
+            String parsedName = null; String parsedText = null;
+            var name = dialogBox.name; var text = dialogBox.text;
+            if (!name.isEmpty()) {
+                parsedName = parsePlaceholders(player, name);
+                if (parsedName.equals(name)) parsedName = null;
+            }
+            if (!text.isEmpty()) {
+                parsedText = parsePlaceholders(player, text);
+                if (parsedText.equals(text)) parsedText = null;
+            }
+            if (parsedName != null || parsedText != null) serverSetDialogBox(player, parsedName, parsedText);
+        }
+        NeoForge.EVENT_BUS.post(new SkipChatEvent(player, rl, group, index, serverGetChatTargets(player)));
     }
 
     public static void execute(SimplePayload payload, IPayloadContext context) {

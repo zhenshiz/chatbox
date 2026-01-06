@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -105,13 +106,13 @@ public class HistoricalDialogue extends AbstractWidget {
             poseStack.translate(historicalDialogue.width * -0.025F * progress, 0, 0);
             poseStack.scale(1 + 0.05F * progress, 1 + 0.05F * progress, 1 + 0.05F * progress);
             Vector4i relativelyRect = createEntryRelativelyRect();
-            Font font = Minecraft.getInstance().font;
+            Font font = minecraft.font;
             boolean inRect = isMouseInRect(mouseX, mouseY);
             this.progress = Math.clamp(progress + (inRect ? delta * 0.5F : -delta * 0.5F), 0, 1);
             guiGraphics.fill(relativelyRect.x, relativelyRect.y, relativelyRect.z, relativelyRect.w, getBackgroundColor());
-            int lineBreak = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 7 * 5;
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name, false), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text, false), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
+            int lineBreak = minecraft.getWindow().getGuiScaledWidth() / 7 * 5;
+            if (CollUtil.notEmpty(this.name)) guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name, false), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
+            if (CollUtil.notEmpty(this.text)) guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text, false), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
 
             poseStack.popPose();
         }
@@ -130,8 +131,8 @@ public class HistoricalDialogue extends AbstractWidget {
         }
 
         private Vector4i createEntryRelativelyRect() {
-            int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-            return new Vector4i(width / 7, -7, width / 7 * 6, 20 + Minecraft.getInstance().font.lineHeight);
+            int width = minecraft.getWindow().getGuiScaledWidth();
+            return new Vector4i(width / 7, -7, width / 7 * 6, 20 + minecraft.font.lineHeight);
         }
 
         private int getBackgroundColor() {

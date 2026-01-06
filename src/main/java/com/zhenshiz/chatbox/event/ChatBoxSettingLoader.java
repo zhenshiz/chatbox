@@ -1,7 +1,6 @@
 package com.zhenshiz.chatbox.event;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
@@ -31,9 +30,8 @@ public class ChatBoxSettingLoader {
     public static void initializeChatBoxScreen(PlayerEvent.PlayerLoggedInEvent event) {
         ServerPlayer player = (ServerPlayer) event.getEntity();
         //发包到客户端
-        player.connection.send(new ClientChatBoxPayload.AllChatBoxThemeToClient(ChatBoxSettingLoader.cutString(ChatBoxThemeLoader.themeMap)));
-        player.connection.send(new ClientChatBoxPayload.AllChatBoxDialoguesToClient(ChatBoxSettingLoader.cutString(ChatBoxDialoguesLoader.dialoguesMap)));
-        PluginHelper.setPapiLoaded(player);
+        player.connection.send(new ClientChatBoxPayload.ChatBoxDataToClient("theme", cutString(ChatBoxThemeLoader.themeMap)));
+        player.connection.send(new ClientChatBoxPayload.ChatBoxDataToClient("dialogues", cutString(ChatBoxDialoguesLoader.dialoguesMap)));
     }
 
     @SubscribeEvent

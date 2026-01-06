@@ -16,11 +16,6 @@ public class HistoricalDialogueScreen extends Screen {
         historicalDialogue = new HistoricalDialogue(0, 0, window.getGuiScaledWidth(), window.getGuiScaledHeight());
     }
 
-    public HistoricalDialogueScreen setHistoricalDialogue(HistoricalDialogue historicalDialogue) {
-        if (historicalDialogue != null) this.historicalDialogue = historicalDialogue;
-        return this;
-    }
-
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 1) {

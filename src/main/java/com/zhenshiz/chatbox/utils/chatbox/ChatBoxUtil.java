@@ -2,9 +2,7 @@ package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -13,7 +11,6 @@ import com.zhenshiz.chatbox.data.Keyframe;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
-import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
@@ -24,13 +21,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ChatBoxUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
@@ -137,7 +130,6 @@ public class ChatBoxUtil {
                     .setIsEsc(chatBoxDialogues.isEsc)
                     .setIsPause(chatBoxDialogues.isPause)
                     .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip)
-                    .setMaxTriggerCount(chatBoxDialogues.maxTriggerCount)
                     .setAnimationFPS(chatBoxDialogues.animationFPS)
                     .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
                     .playVoice(dialog.sound)
@@ -150,8 +142,6 @@ public class ChatBoxUtil {
             }
             //添加历史聊天记录
             historicalDialogue.historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
-            //进入对话执行自定义指令
-            if (dialog.command != null) minecraft.player.connection.send(new SendClickEvent("COMMAND", dialog.command));
 
             NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
             SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, String.valueOf(index)));
@@ -188,6 +178,10 @@ public class ChatBoxUtil {
     //切换对话框主题
     public static void toggleTheme(ResourceLocation themeResourceLocation) {
         chatBoxTheme = themeMap.get(themeResourceLocation);
+        if (chatBoxTheme == null) {
+            ChatBox.LOGGER.error("theme \"{}\" not found!", themeResourceLocation);
+            return;
+        }
         chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
                 .setFunctionalButtons(ChatBoxTheme.setButtonTheme(chatBoxTheme.functionalButton))
                 .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
@@ -195,17 +189,13 @@ public class ChatBoxUtil {
 
     public static void setTheme(Map<ResourceLocation, String> map) {
         map.forEach((resourceLocation, str) -> {
-            JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
-            if (jsonElement == null) return;
-
-            ChatBoxTheme theme = GSON.fromJson(jsonElement, ChatBoxTheme.class).setDefaultValue();
-            themeMap.put(resourceLocation, theme);
-
-            JsonElement customAnimationElement = jsonElement.getAsJsonObject().get("customAnimation");
-            Map<String, List<Keyframe>> customAnimation = new HashMap<>();
-            if (customAnimationElement != null) customAnimation =
-                    GSON.fromJson(customAnimationElement, new TypeToken<Map<String, List<Keyframe>>>() {}.getType());
-            animationMap.putAll(customAnimation);
+            try {
+                ChatBoxTheme chatBoxTheme = GSON.fromJson(str, ChatBoxTheme.class).setDefaultValue();
+                themeMap.put(resourceLocation, chatBoxTheme);
+                animationMap.putAll(chatBoxTheme.customAnimation);
+            } catch (JsonSyntaxException e) {
+                ChatBox.LOGGER.error("Error parsing theme for {}: {}", resourceLocation, e.getMessage());
+            }
         });
     }
 
@@ -220,30 +210,13 @@ public class ChatBoxUtil {
         });
     }
 
-    // 属性解析器映射
-    private static final Map<String, Function<Entity, String>> PROPERTY_RESOLVERS = new HashMap<>();
-
-    public static void addPropertyResolver(String key, Function<Entity, String> resolver) {
-        PROPERTY_RESOLVERS.put(key, resolver);
-    }
-
-    static {
-        addPropertyResolver("name", entity -> entity.getDisplayName().getString());
-        addPropertyResolver("uuid", entity -> entity.getUUID().toString());
-        addPropertyResolver("tags", entity -> String.join(", ", entity.getTags()));
-        addPropertyResolver("health", entity -> {
-            if (entity instanceof LivingEntity livingEntity) return String.valueOf(livingEntity.getHealth());
-            return "0";
-        });
-    }
-
     //解析文本
     public static String parseText(String input, boolean isLineBreak) {
         if (minecraft.player != null) {
             // @s 替换成当前玩家id
             input = input.replaceAll("(?<!@)@s", Objects.requireNonNull(minecraft.player.getDisplayName()).getString());
 
-            input = parseTargetPlaceholders(input);
+            input = PlaceholderUtil.parseTargetPlaceholders(chatTargets, input);
 
             if (!isLineBreak) input = input.replaceAll("\n", "");
 
@@ -251,48 +224,5 @@ public class ChatBoxUtil {
             return input.replaceAll("@@", "@");
         }
         return input;
-    }
-
-    public static String parseTargetPlaceholders(String input) {
-        if (chatTargets.isEmpty()) return input;
-        // 匹配 <targetN.property> 或 <targetN> 格式的占位符
-        Pattern pattern = Pattern.compile("<target(\\d+)(\\.(\\w+))?>");
-        Matcher matcher = pattern.matcher(input);
-        StringBuilder sb = new StringBuilder();
-        int lastIndex = 0;
-
-        while (matcher.find()) {
-            // 追加匹配前的文本
-            sb.append(input, lastIndex, matcher.start());
-            lastIndex = matcher.end();
-            try {
-                // 获取目标索引
-                int index = Integer.parseInt(matcher.group(1)) - 1; // 转换为0-based索引
-                // 获取属性名，如果没有指定则默认为"name"
-                String property = matcher.group(3) != null ? matcher.group(3) : "name";
-                // 检查索引是否有效
-                if (index >= 0 && index < chatTargets.size()) {
-                    Entity target = chatTargets.get(index);
-                    // 获取属性解析器
-                    Function<Entity, String> resolver = PROPERTY_RESOLVERS.getOrDefault(property, null);
-                    if (resolver != null) {
-                        // 应用解析器获取属性值
-                        sb.append(resolver.apply(target));
-                    } else {
-                        // 如果没有对应的解析器，保留占位符
-                        sb.append(matcher.group());
-                    }
-                } else {
-                    // 如果索引无效，保留占位符
-                    sb.append(matcher.group());
-                }
-            } catch (NumberFormatException e) {
-                // 如果解析索引失败，保留占位符
-                sb.append(matcher.group());
-            }
-        }
-        // 追加剩余文本
-        sb.append(input.substring(lastIndex));
-        return sb.toString();
     }
 }

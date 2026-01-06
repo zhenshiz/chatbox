@@ -27,6 +27,7 @@ public class ChatBoxDialogues {
     public String theme;
     public float animationFPS = 60F;
     public int autoPlayTick = 20;
+    public JsonElement criteria;
 
     public static class RenderEvent {
         public String trigger = "on_start";
@@ -100,7 +101,7 @@ public class ChatBoxDialogues {
             public List<RenderEvent> renderEvents;
 
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
-                return dialogBox.setName(this.name).setText(this.text, true)
+                return dialogBox.setName(this.name).setText(this.text)
                         .setAllOver(false)
                         .setEvents(transform(renderEvents));
             }
@@ -169,10 +170,12 @@ public class ChatBoxDialogues {
             if (CollUtil.notEmpty(options)) for (Option option : this.options) {
                 ChatOption chatOption = ChatBoxUtil.chatBoxTheme.option.newOption().setOptionTooltip(option.tooltip)
                         .setOptionChat(option.text)
-                        .setIsLock(option.isLock)
-                        .setUnlockCommand(option.unlockCommand)
                         .setNext(option.next)
                         .setClickEvent(option.click.type, option.click.value);
+                if (option.unlockCommand != null && option.unlockCommand.startsWith("execute")) {
+                    if (option.isLock) chatOption.setIsLock(true);
+                    else chatOption.hideOption(true);
+                }
 
                 chatOptions.add(chatOption);
             }

@@ -11,12 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 
 public class ChatOption extends Portrait<ChatOption> {
-    //默认材质
-    public static final ResourceLocation root = ChatBox.ResourceLocationMod("textures/options/default_no_checked_option.png");
-    //鼠标悬浮材质
-    public static final ResourceLocation hover = ChatBox.ResourceLocationMod("textures/options/default_checked_option.png");
-    //上锁材质
-    public static final ResourceLocation lock = ChatBox.ResourceLocationMod("textures/options/default_lock_checked_option.png");
+    public static final ResourceLocation
+            root = ChatBox.id("textures/options/default_no_checked_option.png"),
+            hover = ChatBox.id("textures/options/default_checked_option.png"),
+            lock = ChatBox.id("textures/options/default_lock_checked_option.png");
     //选项文本
     public String optionChat = "";
     //选项x位置
@@ -25,9 +23,6 @@ public class ChatOption extends Portrait<ChatOption> {
     public float optionChatY = 0;
     //是否上锁
     public boolean isLock = false;
-    //解锁命令，若解锁命令不为null，则客户端设置完选项后会执行命令，若命令测试通过，选项会是正常可选状态
-    //若命令测试不通过，如果原本isLock为true，则选项锁定，否则隐藏选项
-    public String unlockCommand;
     //悬浮字体
     public String optionTooltip = "";
     //文本对齐
@@ -66,12 +61,14 @@ public class ChatOption extends Portrait<ChatOption> {
         return this;
     }
 
-    public ChatOption setUnlockCommand(String unlockCommand) {
-        // 虽然execute也可以执行任意命令，但是为了不让玩家随意通过解锁命令执行任意命令，还是加个判断吧
-        if (notNull(unlockCommand) && unlockCommand.startsWith("execute"))
-            this.unlockCommand = ChatBoxUtil.parseTargetPlaceholders(unlockCommand);
-        return this;
+    public void hideOption(Boolean hidden) {
+        if (notNull(hidden)) {
+            if (hidden) this.renderIndex = -1;
+            else this.renderIndex = 0;
+        }
     }
+
+    public boolean hiddenByCommand() {return this.renderIndex < 0;}
 
     public ChatOption setNext(String next) {
         addEvent("ON_CLICK", "JUMP", notNull(next) ? next : "");
@@ -101,18 +98,14 @@ public class ChatOption extends Portrait<ChatOption> {
 
     /**@return 是否成功点击*/
     public boolean click() {
-        if (this.renderIndex < 0 || this.hidden) return false;
-        if (!this.isLock && minecraft.player != null) {
-            //触发自定义事件
-            fireEvent("ON_CLICK");
-            return true;
-        }
-        return false;
+        if (hiddenByCommand() || this.hidden || this.isLock) return false;
+        //触发自定义事件
+        return fireEvent("ON_CLICK") > 0;
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        if (this.renderIndex < 0) return;
+        if (hiddenByCommand()) return;
         renderInner(mouseX, mouseY);
         this.y = this.originY + this.renderIndex * this.height;
         int num = ChatBoxUtil.chatBoxScreen.getRenderOptionCount();

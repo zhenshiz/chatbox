@@ -15,6 +15,7 @@ public class ChatBoxTheme {
     public DialogBox dialogBox = new DialogBox();
     public List<FunctionButton> functionalButton = new ArrayList<>();
     public KeyPrompt keyPrompt = new KeyPrompt();
+    public Map<String, List<Keyframe>> customAnimation = new HashMap<>();
 
     public ChatBoxTheme setDefaultValue() {
         for (FunctionButton button : this.functionalButton) {

@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.component.AbstractComponent;
@@ -69,7 +70,7 @@ public class ChatBoxCommandUtil {
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        player.connection.send(new ClientChatBoxPayload.OpenScreenPayload(dialogues, group, index));
+        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues.toString(), group, String.valueOf(index)));
     }
 
     @Info("客户端跳转对话")
@@ -188,6 +189,19 @@ public class ChatBoxCommandUtil {
         chatBoxScreen.addChatOptions(option);
     }
 
+    @Info("服务端设置选项")
+    public static void serverSetChatOption(ServerPlayer player, int index, String text, String tip, Boolean lock, Boolean hide) {
+        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(String.valueOf(index), text, tip, String.valueOf(lock), String.valueOf(hide)));
+    }
+
+    @Info("客户端设置选项")
+    public static void clientSetChatOption(int index, String text, String tip, boolean lock, boolean hide) {
+        var options = chatBoxScreen.chatOptions;
+        if (index < 0 || index >= options.size()) return;
+        var option = options.get(index);
+        option.setOptionChat(text).setOptionTooltip(tip).setIsLock(lock).hideOption(hide);
+    }
+
     @Info("服务端清除选项")
     public static void serverClearChatOption(ServerPlayer player) {
         simplePayloadS2C(player, CLEAR_CHAT_OPTION, "");
@@ -198,35 +212,33 @@ public class ChatBoxCommandUtil {
         chatBoxScreen.chatOptions.clear();
     }
 
-    @Info("客户端解锁选项，服务端并不能获取当前客户端的选项信息，故不提供服务端对应的方法")
-    public static void clientUnlockChatOption(int index) {
-        List<ChatOption> options = chatBoxScreen.chatOptions;
-        if (index < 0 || index >= options.size()) return;
-        options.get(index).setIsLock(false);
-    }
-
-    @Info("客户端隐藏选项，服务端并不能获取当前客户端的选项信息，故不提供服务端对应的方法")
-    public static void clientHideChatOption(int index) {
-        List<ChatOption> options = chatBoxScreen.chatOptions;
-        if (index < 0 || index >= options.size()) return;
-        options.get(index).renderIndex = -1;
-    }
-
     @Info("注册一个选项点击事件，可以在服务端任意位置使用")
     public static void registerComponentEvent(String type, BiConsumer<AbstractComponent<?>, String> executeOnClient, Boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
         EventExecutor.registerEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
     }
 
-    @Info("添加一个占位符属性解析器，在客户端任意位置使用")
+    @Info("添加一个占位符属性解析器，在服务端任意位置使用")
     public static void addPlaceholderResolver(String key, Function<Entity, String> resolver) {
-        addPropertyResolver(key, resolver);
+        PlaceholderUtil.addPropertyResolver(key, resolver);
+    }
+
+    @Info("解析对话目标信息占位符")
+    public static String parseTargetPlaceholders(ServerPlayer player, String input) {
+        input = parsePlaceholders(player, input);
+        return PlaceholderUtil.parseTargetPlaceholders(serverGetChatTargets(player), input);
+    }
+
+    @HideFromJS
+    public static String parsePlaceholders(ServerPlayer player, String input) {
+        if (ChatBox.pluginHelper != null) input = ChatBox.pluginHelper.parsePapiPlaceholders(player.getUUID(), input);
+        return input;
     }
 
     private static boolean testMaxTriggerCount(ResourceLocation dialogues) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return false;
         //判断该对话是否有触发的次数限制
-        ChatBoxDialogues chatBoxDialogues = dialoguesMap.getOrDefault(dialogues, null);
+        ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialogues);
         if (chatBoxDialogues == null) return false;
 
         ChatBoxTriggerCount.MaxTriggerCount maxTriggerCount = minecraft.player.getData(ChatBoxTriggerCount.MAX_TRIGGER_COUNT);

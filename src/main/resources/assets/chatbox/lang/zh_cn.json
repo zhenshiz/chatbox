@@ -51,5 +51,6 @@
   "chatbox.debug.tip3": "  ①显示当前鼠标悬停的组件信息",
   "chatbox.debug.tip4": "  ②鼠标左键拖动组件可以移动组件",
   "chatbox.debug.tip5": "  ③滚动鼠标滚轮可以缩放立绘组件",
-  "chatbox.debug.tip6": "%s + C 复制当前鼠标悬停的组件信息"
+  "chatbox.debug.tip6": "%s + C 复制当前鼠标悬停的组件信息",
+  "chatbox.debug.tip7": "点此重载数据包（需要管理员权限）"
 }

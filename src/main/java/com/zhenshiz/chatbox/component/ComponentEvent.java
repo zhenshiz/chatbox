@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.component;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -12,8 +13,8 @@ import lombok.Setter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,13 +92,7 @@ public class ComponentEvent {
     }
 
     public static void registerDefaultEvents() {
-        registerEvent("COMMAND", (c, s) -> {}, () -> true, ((player, value) -> {
-            var commands = value.split(";");
-            for (var command : commands) {
-                command = command.trim();
-                if (!command.isBlank()) executeCommand(player.server, player, command);
-            }
-        }));
+        registerEvent("COMMAND", (c, s) -> {}, () -> true, (ComponentEvent::executeCommands));
 
         registerClientEvent("JUMP", (c, next) -> { //跳转到指定的对话或者其它模块的对话
             if (StrUtil.isEmpty(next)) {            //跳转下一句话
@@ -131,10 +126,19 @@ public class ComponentEvent {
         });
     }
 
+    public static void executeCommands(ServerPlayer player, String value) {
+        var commands = value.split(";");
+        for (var command : commands) {
+            command = command.trim();
+            if (!command.isBlank()) executeCommand(player.server, player, command);
+        }
+    }
+
     public static int executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {
-        if (ChatBox.pluginHelper != null && entity instanceof Player player) {
-            command = ChatBox.pluginHelper.parsePapiPlaceholders(player.getUUID(), command);
-            if (!command.startsWith("execute")) return ChatBox.pluginHelper.executeCommand(player.getUUID(), command);
+        if (entity instanceof ServerPlayer player) {
+            command = ChatBoxCommandUtil.parseTargetPlaceholders(player, command);
+            if (ChatBox.pluginHelper != null && !command.startsWith("execute"))
+                return ChatBox.pluginHelper.executeCommand(player.getUUID(), command);
         }
 
         // 创建命令源，并赋予2级权限，且禁止输出

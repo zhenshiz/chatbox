@@ -4,7 +4,6 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
-import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -16,7 +15,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,6 @@ public class ChatBoxScreen extends Screen {
     public Boolean isEsc;
     public Boolean isPause;
     public Boolean isHistoricalSkip;
-    public Integer maxTriggerCount;
     public Video video;
     //render模式对话框用
     public KeyPromptRender keyPromptRender = new KeyPromptRender();
@@ -63,7 +63,8 @@ public class ChatBoxScreen extends Screen {
             Component.translatable("chatbox.debug.tip3").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip4").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip5").withStyle(ChatFormatting.AQUA),
-            Component.translatable("chatbox.debug.tip6", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD)
+            Component.translatable("chatbox.debug.tip6", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD),
+            Component.translatable("chatbox.debug.tip7").withStyle(ChatFormatting.RED, ChatFormatting.BOLD).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reload")))
     );
 
     public ChatBoxScreen() {
@@ -76,13 +77,7 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setChatOptions(List<ChatOption> chatOptions) {
-        if (chatOptions != null) {
-            this.chatOptions = chatOptions;
-            for (ChatOption option : chatOptions) {
-                if (StrUtil.isEmpty(option.unlockCommand)) continue;
-                SimplePayload.simplePayloadC2S(SimplePayload.REQUEST_UNLOCK, StrUtil.merge(String.valueOf(option.isLock), String.valueOf(chatOptions.indexOf(option)), option.unlockCommand));
-            }
-        }
+        if (chatOptions != null) this.chatOptions = chatOptions;
         return this;
     }
 
@@ -127,11 +122,6 @@ public class ChatBoxScreen extends Screen {
 
     public ChatBoxScreen setIsHistoricalSkip(Boolean isHistoricalSkip) {
         if (isHistoricalSkip != null) this.isHistoricalSkip = isHistoricalSkip;
-        return this;
-    }
-
-    public ChatBoxScreen setMaxTriggerCount(Integer maxTriggerCount) {
-        if (maxTriggerCount != null) this.maxTriggerCount = maxTriggerCount;
         return this;
     }
 
@@ -200,7 +190,7 @@ public class ChatBoxScreen extends Screen {
 
     /**@return 不因指令隐藏的选项数量*/
     public int getRenderOptionCount() {
-        return chatOptions.stream().filter(option -> option.renderIndex >= 0).toList().size();
+        return chatOptions.stream().filter(option -> !option.hiddenByCommand()).toList().size();
     }
 
     private List<AbstractComponent<?>> getRenderList(boolean isScreen) {
@@ -209,7 +199,7 @@ public class ChatBoxScreen extends Screen {
             list.add(dialogBox);
             int i = 0; // 渲染选项时设置选项在列表中的索引
             for (ChatOption option : chatOptions) {
-                if (option.renderIndex < 0) continue;
+                if (option.hiddenByCommand()) continue;
                 option.renderIndex = i++;
                 list.add(option);
             }
@@ -299,9 +289,26 @@ public class ChatBoxScreen extends Screen {
         return functionalButtons.stream().filter(b -> b.type == type).findFirst().orElse(null);
     }
 
+    private Style getClickedComponentStyleAt(double x, double y) {
+        if (x >= 2 && y >= 2) {
+            int line = (int) (y - 2) / 10;
+            if (0 <= line && line < debugTips.size()) {
+                var sequence = debugTips.get(line).getVisualOrderText();
+                return minecraft.font.getSplitter().componentStyleAtWidth(sequence, (int) (x - 2));
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (debug && hasControlDown()) return true;
+        if (debug) {
+            if (hasControlDown()) return true;
+            else {
+                Style style = getClickedComponentStyleAt(pMouseX, pMouseY);
+                if (this.handleComponentClicked(style)) return true;
+            }
+        }
         if (hideDialogBox) {
             hideDialogBox = false;
             return true;

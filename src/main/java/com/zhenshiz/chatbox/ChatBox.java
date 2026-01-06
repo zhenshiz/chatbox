@@ -48,7 +48,6 @@ public class ChatBox {
         if (dist == Dist.CLIENT) {
             modContainer.registerConfig(ModConfig.Type.COMMON, Config.CONFIG_SPEC, StrUtil.format("{}_config.toml", MOD_ID));
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
-            PluginHelper.init();
         }
     }
 
@@ -76,8 +75,11 @@ public class ChatBox {
         });
     }
 
+    public static ResourceLocation parseId(String id) {
+        return ResourceLocation.parse(id);
+    }
 
-    public static ResourceLocation ResourceLocationMod(String path) {
+    public static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 

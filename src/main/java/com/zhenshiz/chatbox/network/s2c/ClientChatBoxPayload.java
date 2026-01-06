@@ -15,84 +15,38 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class ClientChatBoxPayload {
-    public record OpenScreenPayload(ResourceLocation dialogues, String group, int index) implements CustomPacketPayload {
-        public static final Type<OpenScreenPayload> TYPE = new Type<>(ChatBox.ResourceLocationMod("open_screen"));
-        public static final StreamCodec<FriendlyByteBuf, OpenScreenPayload> CODEC = StreamCodec.composite(
-                ResourceLocation.STREAM_CODEC,
-                OpenScreenPayload::dialogues,
-                ByteBufCodecs.STRING_UTF8,
-                OpenScreenPayload::group,
-                ByteBufCodecs.INT,
-                OpenScreenPayload::index,
-                OpenScreenPayload::new
-        );
 
-        public static void execute(OpenScreenPayload payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientSkipDialogues(payload.dialogues(), payload.group(), payload.index());
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public record AllChatBoxThemeToClient(
-            Map<ResourceLocation, List<String>> themeMap) implements CustomPacketPayload {
-        public static final Type<AllChatBoxThemeToClient> TYPE = new Type<>(ChatBox.ResourceLocationMod("all_chat_box_theme_to_client"));
-        public static final StreamCodec<FriendlyByteBuf, AllChatBoxThemeToClient> CODEC = StreamCodec.composite(
+    public record ChatBoxDataToClient(String name, Map<ResourceLocation, List<String>> dataMap) implements CustomPacketPayload {
+        public static final Type<ChatBoxDataToClient> TYPE = new Type<>(ChatBox.id("chat_box_data_to_client"));
+        public static final StreamCodec<FriendlyByteBuf, ChatBoxDataToClient> CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, ChatBoxDataToClient::name,
                 ByteBufCodecs.map(
                         HashMap::new,
                         ResourceLocation.STREAM_CODEC,
                         ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)
-                ),
-                AllChatBoxThemeToClient::themeMap,
-                AllChatBoxThemeToClient::new
+                ), ChatBoxDataToClient::dataMap,
+                ChatBoxDataToClient::new
         );
 
-        public static void execute(AllChatBoxThemeToClient payload, IPayloadContext context) {
-            ChatBoxUtil.setTheme(mergeString(payload.themeMap()));
-            if (ChatBoxUtil.themeResourceLocation != null) {
-                ResourceLocation theme = ResourceLocation.tryParse(ChatBoxUtil.themeResourceLocation);
-                if (theme != null) {
-                    ChatBoxUtil.toggleTheme(theme);
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {return TYPE;}
+
+        public static void execute(ChatBoxDataToClient payload, IPayloadContext context) {
+            switch (payload.name()) {
+                case "theme" -> {
+                    ChatBoxUtil.setTheme(mergeString(payload.dataMap()));
+                    if (ChatBoxUtil.themeResourceLocation != null) {
+                        ChatBoxCommandUtil.clientToggleTheme(ChatBoxUtil.themeResourceLocation);
+                    }
                 }
+                case "dialogues" -> ChatBoxUtil.setDialogues(mergeString(payload.dataMap()));
             }
-            ;
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public record AllChatBoxDialoguesToClient(
-            Map<ResourceLocation, List<String>> dialoguesMap) implements CustomPacketPayload {
-        public static final Type<AllChatBoxDialoguesToClient> TYPE = new Type<>(ChatBox.ResourceLocationMod("all_chat_box_dialogues_to_client"));
-        public static final StreamCodec<FriendlyByteBuf, AllChatBoxDialoguesToClient> CODEC = StreamCodec.composite(
-                ByteBufCodecs.map(
-                        HashMap::new,
-                        ResourceLocation.STREAM_CODEC,
-                        ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.STRING_UTF8)
-                ),
-                AllChatBoxDialoguesToClient::dialoguesMap,
-                AllChatBoxDialoguesToClient::new
-        );
-
-        public static void execute(AllChatBoxDialoguesToClient payload, IPayloadContext context) {
-            ChatBoxUtil.setDialogues(mergeString(payload.dialoguesMap()));
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
         }
     }
 
     public record SetMaxTriggerCount(ResourceLocation resourceLocation,
                                      int maxTriggerCount) implements CustomPacketPayload {
-        public static final Type<SetMaxTriggerCount> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_set_max_trigger_count"));
+        public static final Type<SetMaxTriggerCount> TYPE = new Type<>(ChatBox.id("client_set_max_trigger_count"));
         public static final StreamCodec<FriendlyByteBuf, SetMaxTriggerCount> CODEC = StreamCodec.composite(
                 ResourceLocation.STREAM_CODEC,
                 SetMaxTriggerCount::resourceLocation,
@@ -112,7 +66,7 @@ public class ClientChatBoxPayload {
     }
 
     public record ResetMaxTriggerCount() implements CustomPacketPayload {
-        public static final Type<ResetMaxTriggerCount> TYPE = new Type<>(ChatBox.ResourceLocationMod("client_reset_max_trigger_count"));
+        public static final Type<ResetMaxTriggerCount> TYPE = new Type<>(ChatBox.id("client_reset_max_trigger_count"));
         public static final StreamCodec<FriendlyByteBuf, ResetMaxTriggerCount> CODEC = StreamCodec.ofMember(ResetMaxTriggerCount::write, ResetMaxTriggerCount::new);
 
         public ResetMaxTriggerCount(FriendlyByteBuf friendlyByteBuf) {
@@ -133,7 +87,7 @@ public class ClientChatBoxPayload {
     }
 
     public record SyncEntityData(LinkedHashMap<Integer, CompoundTag> entities) implements CustomPacketPayload {
-        public static final Type<SyncEntityData> TYPE = new Type<>(ChatBox.ResourceLocationMod("sync_entity_data"));
+        public static final Type<SyncEntityData> TYPE = new Type<>(ChatBox.id("sync_entity_data"));
         public static final StreamCodec<FriendlyByteBuf, SyncEntityData> CODEC = StreamCodec.composite(
                 ByteBufCodecs.map(
                         LinkedHashMap::new,
