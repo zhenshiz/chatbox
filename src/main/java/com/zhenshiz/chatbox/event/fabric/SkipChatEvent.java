@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.event.fabric;
 
+//? fabric {
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.resources.ResourceLocation;

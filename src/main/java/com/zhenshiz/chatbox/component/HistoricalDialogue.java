@@ -4,7 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+//? < 1.21
+/*import com.zhenshiz.chatbox.utils.math.Clamp;*/
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -35,11 +38,11 @@ public class HistoricalDialogue extends AbstractWidget {
 
     @Override
     protected void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        yOffset = Math.clamp(yOffset + verticalScrollAmount * delta, height - 30 - (minecraft.font.lineHeight + 27) * historicalInfos.size(), height - 30);
+        yOffset = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(yOffset + verticalScrollAmount * delta, height - 30 - (minecraft.font.lineHeight + 27) * historicalInfos.size(), height - 30);
         if (verticalScrollAmount > 0) {
-            verticalScrollAmount = Math.clamp(verticalScrollAmount - delta * 3, 0, Float.MAX_VALUE);
+            verticalScrollAmount = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(verticalScrollAmount - delta * 3, 0, Float.MAX_VALUE);
         } else {
-            verticalScrollAmount = Math.clamp(verticalScrollAmount + delta * 3, -Float.MAX_VALUE, 0);
+            verticalScrollAmount = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(verticalScrollAmount + delta * 3, -Float.MAX_VALUE, 0);
         }
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
@@ -52,9 +55,9 @@ public class HistoricalDialogue extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY/*? >= 1.21 {*/, double horizontalAmount/*?}*/, double verticalAmount) {
         float direction = (float) Math.signum(verticalAmount);
-        float baseSpeed = ChatBoxClient.conf.historicalScrollSpeed /*Config.historicalScrollSpeed.get()*/;
+        float baseSpeed = ChatBoxClient.conf.historicalScrollSpeed;
         verticalScrollAmount = direction * baseSpeed;
         return true;
     }
@@ -105,13 +108,13 @@ public class HistoricalDialogue extends AbstractWidget {
             poseStack.translate(historicalDialogue.width * -0.025F * progress, 0, 0);
             poseStack.scale(1 + 0.05F * progress, 1 + 0.05F * progress, 1 + 0.05F * progress);
             Vector4i relativelyRect = createEntryRelativelyRect();
-            Font font = Minecraft.getInstance().font;
+            Font font = minecraft.font;
             boolean inRect = isMouseInRect(mouseX, mouseY);
-            this.progress = Math.clamp(progress + (inRect ? delta * 0.5F : -delta * 0.5F), 0, 1);
+            this.progress = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(progress + (inRect ? delta * 0.5F : -delta * 0.5F), 0, 1);
             guiGraphics.fill(relativelyRect.x, relativelyRect.y, relativelyRect.z, relativelyRect.w, getBackgroundColor());
-            int lineBreak = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 7 * 5;
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name, false), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
-            guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text, false), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
+            int lineBreak = minecraft.getWindow().getGuiScaledWidth() / 7 * 5;
+            if (CollUtil.notEmpty(this.name)) guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.name, false), 60)), relativelyRect.x + 3, -5, lineBreak, CommonColors.WHITE);
+            if (CollUtil.notEmpty(this.text)) guiGraphics.drawWordWrap(font, Component.nullToEmpty(StrUtil.maxLength(ChatBoxUtil.parseText(this.text, false), 60)), relativelyRect.x + 3, 8, lineBreak, CommonColors.WHITE);
 
             poseStack.popPose();
         }
@@ -130,8 +133,8 @@ public class HistoricalDialogue extends AbstractWidget {
         }
 
         private Vector4i createEntryRelativelyRect() {
-            int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-            return new Vector4i(width / 7, -7, width / 7 * 6, 20 + Minecraft.getInstance().font.lineHeight);
+            int width = minecraft.getWindow().getGuiScaledWidth();
+            return new Vector4i(width / 7, -7, width / 7 * 6, 20 + minecraft.font.lineHeight);
         }
 
         private int getBackgroundColor() {

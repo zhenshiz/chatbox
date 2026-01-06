@@ -1,36 +1,70 @@
 package com.zhenshiz.chatbox.event;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+//? fabric {
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
+//?}
+//? forge {
+/*import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+*///?}
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//? forge
+/*@Mod.EventBusSubscriber(modid = ChatBox.MOD_ID)*/
 public class ChatBoxSettingLoader {
+
+    //? fabric {
+    private static class ThemeFabric extends ChatBoxThemeLoader implements IdentifiableResourceReloadListener {
+        public ResourceLocation getFabricId() {return ChatBox.id("chatbox/theme");}
+    }
+
+    private static class DialoguesFabric extends ChatBoxDialoguesLoader implements IdentifiableResourceReloadListener {
+        public ResourceLocation getFabricId() {return ChatBox.id("chatbox/dialogues");}
+    }
 
     public static void chatBoxLoader() {
         ResourceManagerHelper resourceManagerHelper = ResourceManagerHelper.get(PackType.SERVER_DATA);
-        resourceManagerHelper.registerReloadListener(new ChatBoxThemeLoader());
-        resourceManagerHelper.registerReloadListener(new ChatBoxDialoguesLoader());
+        resourceManagerHelper.registerReloadListener(new ThemeFabric());
+        resourceManagerHelper.registerReloadListener(new DialoguesFabric());
+    }//?} else {
+
+    /*@SubscribeEvent
+    public static void chatBoxLoader(AddReloadListenerEvent event) {
+        event.addListener(new ChatBoxThemeLoader());
+        event.addListener(new ChatBoxDialoguesLoader());
     }
+
+    @SubscribeEvent
+    public static void initializeChatBoxScreen(OnDatapackSyncEvent event) {
+        ServerPlayer player = event.getPlayer();
+        //发包到客户端
+        if (player != null) initializeChatBoxScreen(player);
+        else event.getPlayerList().getPlayers().forEach(ChatBoxSettingLoader::initializeChatBoxScreen);
+    }
+    *///?}
 
     public static void initializeChatBoxScreen(ServerPlayer player) {
         //玩家进入以及重载数据包后，发包到客户端
-        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxThemeToClient(cutString(ChatBoxThemeLoader.themeMap)));
-        ServerPlayNetworking.send(player, new ChatBoxPayload.AllChatBoxDialoguesToClient(cutString(ChatBoxDialoguesLoader.dialoguesMap)));
+        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.ChatBoxDataToClient("theme", cutString(ChatBoxThemeLoader.themeMap)));
+        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.ChatBoxDataToClient("dialogues", cutString(ChatBoxDialoguesLoader.dialoguesMap)));
     }
 
     //由于字符串长度的限制为32767，所以需要把字符串分割成多个字符串，然后再发送给客户端
     private static final int STRING_SIZE_LIMIT = 32000;
-    //经过测试，单人游戏正常运行，多人游戏无法打开我的对话框，原因未知
     private static Map<ResourceLocation, List<String>> cutString(Map<ResourceLocation, String> map) {
         Map<ResourceLocation, List<String>> result = new HashMap<>();
         for (var entry : map.entrySet()) {

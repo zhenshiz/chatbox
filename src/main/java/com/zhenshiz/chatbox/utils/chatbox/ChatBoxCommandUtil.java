@@ -1,13 +1,17 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
+import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+//? forge {
+/*import dev.latvian.mods.kubejs.typings.Info;
+import dev.latvian.mods.rhino.util.HideFromJS;
+*///?}
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +28,8 @@ import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class ChatBoxCommandUtil {
 
+    //? forge
+    /*@HideFromJS*/
     public static void serverSyncEntityData(ServerPlayer player) {
         LinkedHashMap<Integer, CompoundTag> entityTags = new LinkedHashMap<>();
         for (Entity entity : serverGetChatTargets(player)) {
@@ -31,146 +37,242 @@ public class ChatBoxCommandUtil {
             entity.saveWithoutId(tag);
             entityTags.put(entity.getId(), tag);
         }
-        ServerPlayNetworking.send(player, new ChatBoxPayload.SyncEntityData(entityTags));
+        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.SyncEntityData(entityTags));
     }
 
+    //? forge
+    /*@Info("服务端切换对话框主题样式")*/
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
         simplePayloadS2C(player, SET_THEME, theme.toString());
     }
 
+    //? forge
+    /*@Info("客户端切换对话框主题样式")*/
     public static void clientToggleTheme(String theme) {
-        toggleTheme(ResourceLocation.parse(theme));
+        toggleTheme(ResourceLocation.tryParse(theme));
         themeResourceLocation = theme;
     }
 
+    //? forge
+    /*@Info("服务端跳转对话")*/
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        ServerPlayNetworking.send(player, new ChatBoxPayload.OpenScreen(dialogues, group, index));
+        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues.toString(), group, String.valueOf(index)));
     }
 
-    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Entity... targets) {
-        serverSkipDialogues(player, dialogues, group, 0, List.of(targets));
+    //? forge
+    /*@Info("服务端跳转对话")*/
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group) {
+        serverSkipDialogues(player, dialogues, group, 0, List.of(player));
     }
 
+    //? forge
+    /*@Info("服务端跳转对话")*/
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index) {
+        serverSkipDialogues(player, dialogues, group, index, List.of(player));
+    }
+
+    //? forge
+    /*@Info("服务端跳转对话")*/
+    public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, List<Entity> targets) {
+        serverSkipDialogues(player, dialogues, group, 0, targets);
+    }
+
+    //? forge
+    /*@Info("客户端跳转对话")*/
     public static void clientSkipDialogues(ResourceLocation dialogues, String group, Integer index) {
         skipDialogues(dialogues, group, index);
     }
 
+    //? forge
+    /*@Info("客户端跳转对话，默认第一句话")*/
     public static void clientSkipDialogues(ResourceLocation dialogues, String group) {
         clientSkipDialogues(dialogues, group, 0);
     }
 
+    //? forge
+    /*@Info("获取当前对话的实体")*/
     public static List<Entity> serverGetChatTargets(ServerPlayer player) {
         return ChatBoxCommand.TARGETS_MAP.getOrDefault(player.getUUID(), List.of());
     }
 
+    //? forge
+    /*@Info("服务端打开最近打开的对话框，无视最大访问次数")*/
     public static void serverOpenChatBox(ServerPlayer player) {
         simplePayloadS2C(player, OPEN_DIALOG, "");
     }
 
+    //? forge
+    /*@Info("客户端打开最近打开的对话框，无视最大访问次数")*/
     public static void clientOpenChatBox() {
         if (dialoguesResourceLocation != null && group != null && index != null) {
             skipDialogues(dialoguesResourceLocation, group, index);
         }
     }
 
+    //? forge
+    /*@Info("服务端跳转下一条对话")*/
     public static void serverNextDialogue(ServerPlayer player) {
         simplePayloadS2C(player, NEXT_DIALOGUE, "");
     }
 
+    //? forge
+    /*@Info("客户端跳转下一条对话")*/
     public static void clientNextDialogue() {
         chatBoxScreen.dialogBoxClick();
     }
 
+    //? forge
+    /*@Info("服务端开关自动对话")*/
     public static void serverAutoPlay(ServerPlayer player, boolean autoPlay) {
         simplePayloadS2C(player, AUTO_PLAY, String.valueOf(autoPlay));
     }
 
+    //? forge
+    /*@Info("客户端开关自动对话")*/
     public static void clientAutoPlay(boolean autoPlay) {
         chatBoxScreen.autoPlay = autoPlay;
     }
 
+    //? forge
+    /*@Info("服务端设置对话框是否为屏幕")*/
     public static void serverSetIsScreen(ServerPlayer player, boolean isScreen) {
         simplePayloadS2C(player, SET_IS_SCREEN, String.valueOf(isScreen));
     }
 
+    //? forge
+    /*@Info("客户端设置对话框是否为屏幕")*/
     public static void clientSetIsScreen(boolean isScreen) {
         ChatBoxUtil.isScreen = isScreen;
     }
 
+    //? forge
+    /*@Info("获取最大访问次数")*/
     public static int serverGetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation) {
         return ChatBox.getTriggerCounts().getPlayerMaxTriggerCount(player, dialogResourceLocation);
     }
 
+    //? forge
+    /*@Info("设置最大访问次数")*/
     public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
         ChatBox.getTriggerCounts().setPlayerMaxTriggerCount(player, dialogResourceLocation, count);
     }
 
+    //? forge
+    /*@Info("重置最大访问次数")*/
     public static void serverResetMaxTriggerCount(ServerPlayer player) {
         ChatBox.getTriggerCounts().resetPlayerMaxTriggerCount(player);
     }
 
+    //? forge
+    /*@Info("服务端设置对话框")*/
     public static void serverSetDialogBox(ServerPlayer player, String name, String text) {
         simplePayloadS2C(player, SET_DIALOG_BOX, StrUtil.merge(name, text));
     }
 
+    //? forge
+    /*@Info("客户端设置对话框")*/
     public static void clientSetDialogBox(String name, String text) {
         chatBoxScreen.dialogBox.setName(name).setText(text).setAllOver(false);
+        //? >= 1.21 {
         var historicalInfo = historicalDialogue.historicalDialogue.historicalInfos.getLast();
+        //?} else {
+        /*var historicalInfos = historicalDialogue.historicalDialogue.historicalInfos;
+        var historicalInfo = historicalInfos.get(historicalInfos.size() - 1);
+        *///?}
         historicalInfo.name = name;
         historicalInfo.text = text;
     }
 
+    //? forge
+    /*@Info("服务端添加选项")*/
     public static void serverAddChatOption(ServerPlayer player, String text, String next, String tip, String clickType, String clickValue) {
         simplePayloadS2C(player, ADD_CHAT_OPTION, StrUtil.merge(text, next, tip, clickType, clickValue));
     }
 
+    //? forge
+    /*@Info("客户端添加选项")*/
     public static void clientAddChatOption(String text, String next, String tip, String clickType, String clickValue) {
         ChatOption option = chatBoxTheme.option.newOption()
                 .setOptionChat(text).setNext(next).setOptionTooltip(tip).setClickEvent(clickType, clickValue);
         chatBoxScreen.addChatOptions(option);
     }
 
+    //? forge
+    /*@Info("服务端设置选项")*/
+    public static void serverSetChatOption(ServerPlayer player, int index, String text, String tip, Boolean lock, Boolean hide) {
+        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(String.valueOf(index), text, tip, String.valueOf(lock), String.valueOf(hide)));
+    }
+
+    //? forge
+    /*@Info("客户端设置选项")*/
+    public static void clientSetChatOption(int index, String text, String tip, boolean lock, boolean hide) {
+        var options = chatBoxScreen.chatOptions;
+        if (index < 0 || index >= options.size()) return;
+        var option = options.get(index);
+        option.setOptionChat(text).setOptionTooltip(tip).setIsLock(lock).hideOption(hide);
+    }
+
+    //? forge
+    /*@Info("服务端清除选项")*/
     public static void serverClearChatOption(ServerPlayer player) {
         simplePayloadS2C(player, CLEAR_CHAT_OPTION, "");
     }
 
+    //? forge
+    /*@Info("客户端清除选项")*/
     public static void clientClearChatOption() {
         chatBoxScreen.chatOptions.clear();
     }
 
-    // 服务端并不能获取当前客户端的选项信息，故不提供服务端解锁以及隐藏选项的方法
-    public static void clientUnlockChatOption(int index) {
-        List<ChatOption> options = chatBoxScreen.chatOptions;
-        if (index < 0 || index >= options.size()) return;
-        options.get(index).setIsLock(false);
+    //? forge
+    /*@Info("注册一个组件事件，在服务端任意位置使用")*/
+    public static void registerComponentEvent(String type, BiConsumer<AbstractComponent<?>, String> executeOnClient, boolean shouldExecuteOnServer, BiConsumer<ServerPlayer, String> executeOnServer) {
+        EventExecutor.registerEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
     }
 
-    public static void clientHideChatOption(int index) {
-        List<ChatOption> options = chatBoxScreen.chatOptions;
-        if (index < 0 || index >= options.size()) return;
-        options.get(index).renderIndex = -1;
-    }
-
+    //? forge
+    /*@Info("添加一个占位符解析器，在服务端任意位置使用")*/
     public static void addPlaceholderResolver(String key, Function<Entity, String> resolver) {
-        addPropertyResolver(key, resolver);
+        PlaceholderUtil.addPropertyResolver(key, resolver);
     }
 
+    //? forge
+    /*@Info("解析对话目标信息占位符")*/
+    public static String parseTargetPlaceholders(ServerPlayer player, String input) {
+        input = parsePlaceholders(player, input);
+        return PlaceholderUtil.parseTargetPlaceholders(serverGetChatTargets(player), input);
+    }
+
+    //? forge
+    /*@HideFromJS*/
+    public static String parsePlaceholders(ServerPlayer player, String input) {
+        if (ChatBox.pluginHelper != null) input = ChatBox.pluginHelper.parsePapiPlaceholders(player.getUUID(), input);
+        return input;
+    }
+
+    //? forge
+    /*@HideFromJS*/
     public static void simplePayloadS2C(ServerPlayer player, String name, String value) {
-        ServerPlayNetworking.send(player, new SimplePayload(name, value));
+        ChatBox.PLATFORM.sendToClient(player, new SimplePayload(name, value));
     }
 
+    //? forge
+    /*@HideFromJS*/
     public static void addSimpleHandlerS2C(String name, Consumer<String> handler) {
         SimplePayload.addHandlerS2C(name, handler);
     }
 
+    //? forge
+    /*@HideFromJS*/
     public static void simplePayloadC2S(String name, String value) {
-        ClientPlayNetworking.send(new SimplePayload(name, value));
+        ChatBox.PLATFORM.sendToServer(new SimplePayload(name, value));
     }
 
+    //? forge
+    /*@HideFromJS*/
     public static void addSimpleHandlerC2S(String name, BiConsumer<ServerPlayer, String> handler) {
         SimplePayload.addHandlerC2S(name, handler);
     }
-
 }

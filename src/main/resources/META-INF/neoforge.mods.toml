@@ -1,0 +1,34 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+license = "GPL-3.0 license"
+
+[[mods]]
+modId = "chatbox"
+displayName = "ChatBox"
+version = "${version}"
+displayURL = "https://modrinth.com/mod/chatbox"
+logoFile = "assets/chatbox/icon.png"
+authors = "zhenshiz, Amotassic"
+description = '''GalGame DialogBox'''
+
+[[mixins]]
+config = "chatbox.mixins.json"
+
+[[dependencies.chatbox]]
+modId = "neoforge"
+type = "required"
+versionRange = "[1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.chatbox]]
+modId = "minecraft"
+versionRange = "[1.21.1,)"
+type = "required"
+
+[[dependencies.chatbox]]
+modId = "cloth_config"
+mandatory = true
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"

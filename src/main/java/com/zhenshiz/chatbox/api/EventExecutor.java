@@ -3,7 +3,6 @@ package com.zhenshiz.chatbox.api;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.HashMap;
@@ -79,7 +78,7 @@ public interface EventExecutor {
     default void execute(AbstractComponent<?> component, String value) {
         executeOnClient(component, value);
         if (shouldExecuteOnServer()) {
-            ClientPlayNetworking.send(new SendClickEvent(getType().toUpperCase(), value));
+            ChatBox.PLATFORM.sendToServer(new SendClickEvent(getType().toUpperCase(), value));
         }
     }
 }

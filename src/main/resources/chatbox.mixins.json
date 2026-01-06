@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.zhenshiz.chatbox.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [
     "EntityAccessor",
     "PlayerListMixin",
@@ -18,5 +18,6 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "refmap": "chatbox-refmap.json"
 }

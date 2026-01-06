@@ -1,8 +1,6 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.PropertyMap;
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.zhenshiz.chatbox.component.AbstractComponent;
@@ -11,25 +9,29 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ResolvableProfile;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-import org.lwjgl.glfw.GLFW;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+//? >= 1.21 {
+import com.mojang.authlib.properties.PropertyMap;
+import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.world.item.component.ResolvableProfile;
+import java.util.concurrent.ExecutionException;
+//?} else {
+/*import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import net.minecraft.client.resources.SkinManager;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
+*///?}
 
 public class RenderUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
@@ -42,232 +44,6 @@ public class RenderUtil {
         return minecraft.getWindow().getGuiScaledHeight();
     }
 
-    //fill
-
-    //矩形
-    public static void fillRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        buf.addVertex(mat, (float) x, (float) y, 0).setColor(color);
-        buf.addVertex(mat, (float) (x + w), (float) y, 0).setColor(color);
-        buf.addVertex(mat, (float) (x + w), (float) (y + h), 0).setColor(color);
-        buf.addVertex(mat, (float) x, (float) (y + h), 0).setColor(color);
-
-        beginRendering();
-        BufferUploader.drawWithShader(Objects.requireNonNull(buf.build()));
-        finishRendering();
-    }
-
-    //圆弧
-    public static void fillArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        buf.addVertex(mat, (float) cX, (float) cY, 0).setColor(color);
-
-        for (int i = start - 90; i <= end - 90; i++) {
-            double angle = Math.toRadians(i);
-            float x = (float) (Math.cos(angle) * radius) + cX;
-            float y = (float) (Math.sin(angle) * radius) + cY;
-            buf.addVertex(mat, x, y, 0).setColor(color);
-        }
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-    //圆
-    public static void fillCircle(GuiGraphics guiGraphics, int cX, int cY, int radius, int color) {
-        fillArc(guiGraphics, cX, cY, radius, 0, 360, color);
-    }
-
-    //环形扇区
-    public static void fillAnnulusArc(GuiGraphics guiGraphics, int cx, int cy, int radius, int start, int end, int thickness, int color) {
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        for (int i = start - 90; i <= end - 90; i++) {
-            float angle = (float) Math.toRadians(i);
-            float cos = (float) Math.cos(angle);
-            float sin = (float) Math.sin(angle);
-            float x1 = cx + cos * radius;
-            float y1 = cy + sin * radius;
-            float x2 = cx + cos * (radius + thickness);
-            float y2 = cy + sin * (radius + thickness);
-            buf.addVertex(mat, x1, y1, 0).setColor(color);
-            buf.addVertex(mat, x2, y2, 0).setColor(color);
-        }
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-    //环形圆
-    public static void fillAnnulus(GuiGraphics guiGraphics, int cx, int cy, int radius, int thickness, int color) {
-        fillAnnulusArc(guiGraphics, cx, cy, radius, 0, 360, thickness, color);
-    }
-
-    //实心圆角矩形
-    public static void fillRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
-        r = Mth.clamp(r, 0, Math.min(w, h) / 2);
-
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        buf.addVertex(mat, x + w / 2F, y + h / 2F, 0).setColor(color);
-
-        int[][] corners = {
-                {x + w - r, y + r},
-                {x + w - r, y + h - r},
-                {x + r, y + h - r},
-                {x + r, y + r}
-        };
-
-        for (int corner = 0; corner < 4; corner++) {
-            int cornerStart = (corner - 1) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.addVertex(mat, rx, ry, 0).setColor(color);
-            }
-        }
-
-        buf.addVertex(mat, corners[0][0], y, 0).setColor(color);
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-    //圆角阴影边框
-    public static void fillRoundShadow(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int thickness, int innerColor, int outerColor) {
-        r = Mth.clamp(r, 0, Math.min(w, h) / 2);
-
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        int[][] corners = {
-                {x + w - r, y + r},
-                {x + w - r, y + h - r},
-                {x + r, y + h - r},
-                {x + r, y + r}
-        };
-
-        for (int corner = 0; corner < 4; corner++) {
-            int cornerStart = (corner - 1) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx1 = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry1 = corners[corner][1] + (float) (Math.sin(angle) * r);
-                float rx2 = corners[corner][0] + (float) (Math.cos(angle) * (r + thickness));
-                float ry2 = corners[corner][1] + (float) (Math.sin(angle) * (r + thickness));
-                buf.addVertex(mat, rx1, ry1, 0).setColor(innerColor);
-                buf.addVertex(mat, rx2, ry2, 0).setColor(outerColor);
-            }
-        }
-
-        buf.addVertex(mat, corners[0][0], y, 0).setColor(innerColor);
-        buf.addVertex(mat, corners[0][0], y - thickness, 0).setColor(outerColor);
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-    //上圆角矩形
-    public static void fillRoundTabTop(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
-        r = Mth.clamp(r, 0, Math.min(w, h) / 2);
-
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        buf.addVertex(mat, x + w / 2F, y + h / 2F, 0).setColor(color);
-
-        int[][] corners = {
-                {x + r, y + r},
-                {x + w - r, y + r}
-        };
-
-        for (int corner = 0; corner < 2; corner++) {
-            int cornerStart = (corner - 2) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.addVertex(mat, rx, ry, 0).setColor(color);
-            }
-        }
-
-        buf.addVertex(mat, x + w, y + h, 0).setColor(color);
-        buf.addVertex(mat, x, y + h, 0).setColor(color);
-        buf.addVertex(mat, x, corners[0][1], 0).setColor(color); // connect last to first vertex
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-    //下圆角矩形
-    public static void fillRoundTabBottom(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
-        r = Mth.clamp(r, 0, Math.min(w, h) / 2);
-
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        buf.addVertex(mat, x + w / 2F, y + h / 2F, 0).setColor(color);
-
-        int[][] corners = {
-                {x + w - r, y + h - r},
-                {x + r, y + h - r}
-        };
-
-        for (int corner = 0; corner < 2; corner++) {
-            int cornerStart = corner * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.addVertex(mat, rx, ry, 0).setColor(color);
-            }
-        }
-
-        buf.addVertex(mat, x, y, 0).setColor(color);
-        buf.addVertex(mat, x + w, y, 0).setColor(color);
-        buf.addVertex(mat, x + w, corners[0][1], 0).setColor(color); // connect last to first vertex
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-    //水平方向的胶囊状线条
-    public static void fillRoundHorLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
-        fillRoundRect(guiGraphics, x, y, length, thickness, thickness / 2, color);
-    }
-
-    //垂直方向的胶囊状线条
-    public static void fillRoundVerLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
-        fillRoundRect(guiGraphics, x, y, thickness, length, thickness / 2, color);
-    }
-
-    //draw
-
-    //矩形
-    public static void drawRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
-        drawHorLine(guiGraphics, x, y, w, color);
-        drawVerLine(guiGraphics, x, y + 1, h - 2, color);
-        drawVerLine(guiGraphics, x + w - 1, y + 1, h - 2, color);
-        drawHorLine(guiGraphics, x, y + h - 1, w, color);
-    }
-
     //盒子
     public static void drawBox(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
         drawLine(guiGraphics, x, y, x + w, y, color);
@@ -276,97 +52,32 @@ public class RenderUtil {
         drawLine(guiGraphics, x + w, y, x + w, y + h, color);
     }
 
-    //横线
-    public static void drawHorLine(GuiGraphics guiGraphics, int x, int y, int length, int color) {
-        fillRect(guiGraphics, x, y, length, 1, color);
-    }
-
-    //竖线
-    public static void drawVerLine(GuiGraphics guiGraphics, int x, int y, int length, int color) {
-        fillRect(guiGraphics, x, y, 1, length, color);
-    }
-
     //一条线
     public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
+        //? >= 1.21 {
         BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
         buf.addVertex(mat, (float) x1, (float) y1, 0).setColor(color);
         buf.addVertex(mat, (float) x2, (float) y2, 0).setColor(color);
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-
-    //扇形
-    public static void drawArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+        //?} else {
+        /*BufferBuilder buf = getBuffer();
+        buf.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
-        for (int i = start - 90; i <= end - 90; i++) {
-            double angle = Math.toRadians(i);
-            float x = (float) (Math.cos(angle) * radius) + cX;
-            float y = (float) (Math.sin(angle) * radius) + cY;
-            buf.addVertex(mat, x, y, 0).setColor(color);
-        }
+        buf.vertex(mat, (float) x1, (float) y1, 0).color(color).endVertex();
+        buf.vertex(mat, (float) x2, (float) y2, 0).color(color).endVertex();
+        *///?}
 
         beginRendering();
         drawBuffer(buf);
         finishRendering();
-    }
-
-    //圆
-    public static void drawCircle(GuiGraphics guiGraphics, int cX, int cY, int radius, int color) {
-        drawArc(guiGraphics, cX, cY, radius, 0, 360, color);
-    }
-
-    //圆角矩形
-    public static void drawRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
-        r = Mth.clamp(r, 0, Math.min(w, h) / 2);
-
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f mat = guiGraphics.pose().last().pose();
-
-        int[][] corners = {
-                {x + w - r, y + r},
-                {x + w - r, y + h - r},
-                {x + r, y + h - r},
-                {x + r, y + r}
-        };
-
-        for (int corner = 0; corner < 4; corner++) {
-            int cornerStart = (corner - 1) * 90;
-            int cornerEnd = cornerStart + 90;
-            for (int i = cornerStart; i <= cornerEnd; i += 10) {
-                float angle = (float) Math.toRadians(i);
-                float rx = corners[corner][0] + (float) (Math.cos(angle) * r);
-                float ry = corners[corner][1] + (float) (Math.sin(angle) * r);
-                buf.addVertex(mat, rx, ry, 0).setColor(color);
-            }
-        }
-
-        buf.addVertex(mat, corners[0][0], y, 0).setColor(color); // connect last to first vertex
-
-        beginRendering();
-        drawBuffer(buf);
-        finishRendering();
-    }
-
-    //圆角横线
-    public static void drawRoundHorLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
-        drawRoundRect(guiGraphics, x, y, length, thickness, thickness / 2, color);
-    }
-
-    //圆角竖线
-    public static void drawRoundVerLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
-        drawRoundRect(guiGraphics, x, y, thickness, length, thickness / 2, color);
     }
 
     // image
     public static void renderImageInner(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float uw, float uh, float width, float height) {
-        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        //? >= 1.21 {
+        BufferBuilder bufferBuilder = getTesselator().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
         bufferBuilder.addVertex(matrix4f, x, y, 0).setUv(0, 0);
         bufferBuilder.addVertex(matrix4f, x, y + height, 0).setUv(0, uh);
@@ -378,6 +89,21 @@ public class RenderUtil {
         RenderSystem.setShaderTexture(0, resourceLocation);
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
+        //?} else {
+        /*BufferBuilder buf = getBuffer();
+        buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        Matrix4f matrix4f = guiGraphics.pose().last().pose();
+        buf.vertex(matrix4f, x, y, 0).uv(0, 0).endVertex();
+        buf.vertex(matrix4f, x, y + height, 0).uv(0, uh).endVertex();
+        buf.vertex(matrix4f, x + width, y + height, 0).uv(uw, uh).endVertex();
+        buf.vertex(matrix4f, x + width, y, 0).uv(uw, 0).endVertex();
+
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, resourceLocation);
+        RenderSystem.enableBlend();
+        BufferUploader.drawWithShader(buf.end());
+        RenderSystem.disableBlend();
+        *///?}
     }
 
     public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float width, float height, float scale, float angle, Attachment... attachments) {
@@ -394,7 +120,7 @@ public class RenderUtil {
 
     public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float angle, Attachment... attachments) {
         PoseStack pose = guiGraphics.pose();
-        ResourceLocation skin = getSkin(input).texture();
+        ResourceLocation skin = getSkin(input)/*? >= 1.21 {*/.texture()/*?}*/;
         pose.pushPose();
         float centerX = x + (float) size / 2;
         float centerY = y + (float) size / 2;
@@ -522,30 +248,6 @@ public class RenderUtil {
 
     public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
 
-    //cursor
-
-    public static void setCursor(int x, int y) {
-        Window window = minecraft.getWindow();
-        int w1 = window.getWidth();
-        int w2 = screenWidth();
-        int h1 = window.getHeight();
-        int h2 = screenHeight();
-        double ratW = (double) w2 / (double) w1;
-        double ratH = (double) h2 / (double) h1;
-        GLFW.glfwSetCursorPos(window.getWindow(), x / ratW, y / ratH);
-    }
-
-    public static Point getCursor() {
-        Window window = minecraft.getWindow();
-        int w1 = window.getWidth();
-        int w2 = screenWidth();
-        int h1 = window.getHeight();
-        int h2 = screenHeight();
-        double rW = (double) w2 / (double) w1;
-        double rH = (double) h2 / (double) h1;
-        return new Point((int) (rW * minecraft.mouseHandler.xpos()), (int) (rH * minecraft.mouseHandler.ypos()));
-    }
-
     //util
 
     public static void renderOpacity(GuiGraphics guiGraphics, float brightness, float opacity, Runnable runnable) {
@@ -559,7 +261,11 @@ public class RenderUtil {
     //private
 
     private static void drawBuffer(BufferBuilder buf) {
-        BufferUploader.drawWithShader(Objects.requireNonNull(buf.build()));
+        //? >= 1.21 {
+        BufferUploader.drawWithShader(Objects.requireNonNull(buf.buildOrThrow()));
+        //?} else {
+        /*BufferUploader.drawWithShader(buf.end());
+        *///?}
     }
 
     public static void beginRendering() {
@@ -575,10 +281,16 @@ public class RenderUtil {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
     }
 
+    //? >= 1.21 {
     private static Tesselator getTesselator() {
         return Tesselator.getInstance();
     }
+    //?} else {
+    /*private static BufferBuilder getBuffer() {
+        return Tesselator.getInstance().getBuilder();
+    }*///?}
 
+    //? >= 1.21 {
     private static final Map<String, PlayerSkin> skins = new HashMap<>();
 
     private static void handleGameProfileAsync(String input) {
@@ -610,4 +322,28 @@ public class RenderUtil {
         if (skins.containsKey(input)) return skins.get(input);
         return DefaultPlayerSkin.get(minecraft.getUser().getProfileId());
     }
+    //?} else {
+    /*private static GameProfile createProfileComponent(String input) {
+        try {
+            return new GameProfile(UUID.fromString(input), null);
+        } catch (IllegalArgumentException e) {
+            return new GameProfile(null, input);
+        }
+    }
+
+    private static final Map<String, ResourceLocation> skins = new HashMap<>();
+
+    private static ResourceLocation getSkin(String input) {
+        if (skins.containsKey(input)) return skins.get(input);
+        // 尝试获取皮肤，并缓存到map中
+        GameProfile profile = createProfileComponent(input);
+        SkullBlockEntity.updateGameprofile(profile, gameProfile -> {
+            SkinManager manager = minecraft.getSkinManager();
+            var map = manager.getInsecureSkinInformation(gameProfile);
+            if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) skins.put(input, manager.registerTexture(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN));
+        });
+        if (skins.containsKey(input)) return skins.get(input);
+        return DefaultPlayerSkin.getDefaultSkin(Objects.requireNonNull(minecraft.getUser().getProfileId()));
+    }
+    *///?}
 }

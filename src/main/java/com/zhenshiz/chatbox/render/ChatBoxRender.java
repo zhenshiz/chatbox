@@ -1,12 +1,10 @@
 package com.zhenshiz.chatbox.render;
 
 import com.zhenshiz.chatbox.component.ChatOption;
-import com.zhenshiz.chatbox.event.fabric.InputEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+//? >= 1.21
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -14,7 +12,8 @@ import org.lwjgl.glfw.GLFW;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
-public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTick, InputEvent.Key, InputEvent.MouseButton.Post, InputEvent.MouseScrollingEvent {
+@SuppressWarnings("unused")
+public class ChatBoxRender {
     //是否打开了对话框，包括对话框渲染层和对话框界面
     public static boolean isOpenChatBox = false;
     //上次同步对话目标实体时间
@@ -24,16 +23,18 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
     //当前选择的选项序号
     public static int selectIndex = 0;
 
-    @Override
-    public void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    //? >= 1.21 {
+    public static void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
         float partialTick = deltaTracker.getGameTimeDeltaTicks();
+        //?} else {
+    /*public static void onHudRender(GuiGraphics guiGraphics, float partialTick) {
+        *///?}
         if (isRenderChatBox()) {
             chatBoxScreen.renderInner(guiGraphics, 0, 0, partialTick, false);
         }
     }
 
-    @Override
-    public void onEndTick(Minecraft minecraft) {
+    public static void onEndTick(Minecraft minecraft) {
         if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
         // 客户端每5 tick请求同步对话目标实体
         if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
@@ -44,8 +45,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
         }
     }
 
-    @Override
-    public void onKey(int key, int scancode, int action, int modifiers) {
+    public static void onKey(int key, int scancode, int action, int modifiers) {
         // System.out.println("key: " + key + " scancode: " + scancode + " action: " + action + " mod: " + modifiers);
         if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
             if (action == 1 && key == GLFW.GLFW_KEY_F6) {
@@ -55,8 +55,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
         }
     }
 
-    @Override
-    public void mousePost(int button, int action, int modifiers) {
+    public static void mousePost(int button, int action, int modifiers) {
         if (isRenderChatBox()) {
             if (action == 1 && button == 1) {
                 if (chatBoxScreen.getRenderOptionCount() > 0 && chatBoxScreen.dialogBox.isAllOver) {
@@ -72,8 +71,7 @@ public class ChatBoxRender implements HudRenderCallback, ClientTickEvents.EndTic
         }
     }
 
-    @Override
-    public boolean onMouseScroll(double scrollDeltaX, double scrollDeltaY, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY) {
+    public static boolean onMouseScroll(double scrollDeltaX, double scrollDeltaY, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY) {
         int optionCount = chatBoxScreen.getRenderOptionCount();
         if (isRenderChatBox() && optionCount > 0) {
             if (scrollDeltaY > 0) { //向上

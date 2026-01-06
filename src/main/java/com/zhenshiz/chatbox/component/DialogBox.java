@@ -2,19 +2,16 @@ package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
-import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.data.Attachment;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
-import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class DialogBox extends Portrait<DialogBox> {
-    public static final ResourceLocation dialog_box = ChatBox.ResourceLocationMod("textures/chatbox/default_dialog_box.png");
+    public static final ResourceLocation dialog_box = ChatBox.id("textures/chatbox/default_dialog_box.png");
     //对话框文本
     private String text = "";
     //文本x位置
@@ -41,21 +38,11 @@ public class DialogBox extends Portrait<DialogBox> {
     @Override
     public ResourceLocation getTexture() {return BeanUtil.getValueOrDefault(super.getTexture(), dialog_box);}
 
-    public static boolean papiLoaded = false;
-
-    public DialogBox setText(String text) {return setText(text, false);}
-    public DialogBox setText(String text, boolean askForServer) {
+    public DialogBox setText(String text) {
         if (text != null) {
             // 获取翻译键的文本
             text = RenderUtil.translated(text);
             if (ChatBox.isModLoaded("textanimator")) text = text.replaceAll("<typewriter>", "");
-
-            if (papiLoaded && askForServer && text.contains("%")) {
-                // 包含PAPI占位符，需要请求服务器解析
-                ChatBoxCommandUtil.simplePayloadC2S(PluginHelper.RESOLVE_PAPI, StrUtil.merge(name, text));
-                text = "                                                                                                    ";
-            }
-
             this.text = text;
             this.textLength = getRealLength(parseText(text));
         }

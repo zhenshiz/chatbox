@@ -14,6 +14,7 @@
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "sound interruption",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "Whether to interrupt currently playing sound when no new sound is available",
   "text.autoconfig.chatbox_config.option.charPerSecond":"Characters to display per second",
+  "text.autoconfig.chatbox_config.option.isStopTerraDialog":"Whether to block TerraNpc's dialogue system",
 
   "chatbox.key.right_click": "Confirm",
   "chatbox.key.scroll": "Toggle options",
@@ -53,5 +54,6 @@
   "chatbox.debug.tip3": "  ①Displays information for the hovered component",
   "chatbox.debug.tip4": "  ②Left-click and drag to move components",
   "chatbox.debug.tip5": "  ③Mouse wheel scroll to scale portrait components",
-  "chatbox.debug.tip6": "%s + C to copy current hovered component information"
+  "chatbox.debug.tip6": "%s + C to copy current hovered component information",
+  "chatbox.debug.tip7": "click to reload data (requires permission)"
 }

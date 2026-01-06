@@ -8,7 +8,6 @@ import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
-import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -26,6 +25,9 @@ public class ChatBoxDialogues {
     public Boolean isScreen;
     public float animationFPS = 60F;
     public int autoPlayTick = 20;
+    // =====仅服务端有效=====
+    public int maxTriggerCount = -1;
+    public JsonElement criteria;
 
     public static class RenderEvent {
         public String trigger = "on_start";
@@ -99,7 +101,7 @@ public class ChatBoxDialogues {
             public List<RenderEvent> renderEvents;
 
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
-                return dialogBox.setName(this.name).setText(this.text, true)
+                return dialogBox.setName(this.name).setText(this.text)
                         .setAllOver(false)
                         .setEvents(transform(renderEvents));
             }
@@ -137,7 +139,7 @@ public class ChatBoxDialogues {
 
             public com.zhenshiz.chatbox.component.Video setVideo() {
                 if (!ChatBox.isWaterMediaLoaded()) return null;
-                Path gameDir = FabricLoader.getInstance().getGameDir();
+                Path gameDir = ChatBox.PLATFORM.getGameDirectory().toPath();
                 File file = new File(gameDir.toString(), path);
                 if (!file.exists()) file = new File(path);
                 if (!file.exists()) {
@@ -168,10 +170,12 @@ public class ChatBoxDialogues {
             if (CollUtil.notEmpty(options)) for (Option option : this.options) {
                 ChatOption chatOption = ChatBoxUtil.chatBoxTheme.option.newOption().setOptionTooltip(option.tooltip)
                         .setOptionChat(option.text)
-                        .setIsLock(option.isLock)
-                        .setUnlockCommand(option.unlockCommand)
                         .setNext(option.next)
                         .setClickEvent(option.click.type, option.click.value);
+                if (option.unlockCommand != null && option.unlockCommand.startsWith("execute")) {
+                    if (option.isLock) chatOption.setIsLock(true);
+                    else chatOption.hideOption(true);
+                }
 
                 chatOptions.add(chatOption);
             }

@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.data;
 
+//? >= 1.21
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -19,9 +20,10 @@ public class ChatBoxTriggerCount extends SavedData {
     private final Map<UUID, Map<ResourceLocation, Integer>> maxTriggerCounts = new HashMap<>();
     private final ServerLevel world;
 
-    public static SavedData.Factory<ChatBoxTriggerCount> factory(ServerLevel world) {
-        return new SavedData.Factory<>(() -> new ChatBoxTriggerCount(world), (nbt, r) -> fromNbt(world, nbt), null);
-    }
+    //? >= 1.21 {
+    public static Factory<ChatBoxTriggerCount> factory(ServerLevel world) {
+        return new Factory<>(() -> new ChatBoxTriggerCount(world), (nbt, r) -> fromNbt(world, nbt), null);
+    }//?}
 
     public ChatBoxTriggerCount(ServerLevel world) {
         this.world = world;
@@ -63,7 +65,7 @@ public class ChatBoxTriggerCount extends SavedData {
     }
 
     @Override
-    public @NotNull CompoundTag save(CompoundTag nbt, HolderLookup.Provider registries) {
+    public @NotNull CompoundTag save(CompoundTag nbt/*? >=1.21 {*/, HolderLookup.Provider registries/*?}*/) {
         for (var entry : maxTriggerCounts.entrySet()) {
             ListTag listTag = new ListTag();
             UUID player = entry.getKey();

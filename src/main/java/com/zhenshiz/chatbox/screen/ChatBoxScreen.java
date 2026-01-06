@@ -3,11 +3,8 @@ package com.zhenshiz.chatbox.screen;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.component.*;
-import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
-import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
@@ -17,7 +14,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +61,8 @@ public class ChatBoxScreen extends Screen {
             Component.translatable("chatbox.debug.tip3").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip4").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip5").withStyle(ChatFormatting.AQUA),
-            Component.translatable("chatbox.debug.tip6", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD)
+            Component.translatable("chatbox.debug.tip6", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD),
+            Component.translatable("chatbox.debug.tip7").withStyle(ChatFormatting.RED, ChatFormatting.BOLD).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reload")))
     );
 
     public ChatBoxScreen() {
@@ -75,13 +75,7 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setChatOptions(List<ChatOption> chatOptions) {
-        if (chatOptions != null) {
-            this.chatOptions = chatOptions;
-            for (ChatOption option : chatOptions) {
-                if (StrUtil.isEmpty(option.unlockCommand)) continue;
-                ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_UNLOCK, StrUtil.merge(String.valueOf(option.isLock), String.valueOf(chatOptions.indexOf(option)), option.unlockCommand));
-            }
-        }
+        if (chatOptions != null) this.chatOptions = chatOptions;
         return this;
     }
 
@@ -194,7 +188,7 @@ public class ChatBoxScreen extends Screen {
 
     /**@return 不因指令隐藏的选项数量*/
     public int getRenderOptionCount() {
-        return chatOptions.stream().filter(option -> option.renderIndex >= 0).toList().size();
+        return chatOptions.stream().filter(option -> !option.hiddenByCommand()).toList().size();
     }
 
     private List<AbstractComponent<?>> getRenderList(boolean isScreen) {
@@ -203,7 +197,7 @@ public class ChatBoxScreen extends Screen {
             list.add(dialogBox);
             int i = 0; // 渲染选项时设置选项在列表中的索引
             for (ChatOption option : chatOptions) {
-                if (option.renderIndex < 0) continue;
+                if (option.hiddenByCommand()) continue;
                 option.renderIndex = i++;
                 list.add(option);
             }
@@ -224,7 +218,7 @@ public class ChatBoxScreen extends Screen {
         boolean shouldUpdatePortrait = Math.abs(currentTime - lastUpdateTime) >= updateDuration;
         if (shouldUpdatePortrait) lastUpdateTime = currentTime;
 
-        if (ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics)) return;
+        if (ChatBox.PLATFORM.postRenderEventPre(guiGraphics)) return;
 
         if (backgroundImage != null) {
             RenderUtil.renderImage(guiGraphics, backgroundImage, 0, 0, RenderUtil.screenWidth(), RenderUtil.screenHeight(), 1, 0);
@@ -244,7 +238,7 @@ public class ChatBoxScreen extends Screen {
         });
         if (video != null && !video.isPlaying()) setVideo(null);
 
-        ChatBoxRenderEvent.POST.invoker().post(guiGraphics);
+        ChatBox.PLATFORM.postRenderEventPost(guiGraphics);
 
         if (debug) { // 设置鼠标下最上层的组件
             for (int i = renderList.size() - 1; i >= 0; i--) {
@@ -293,9 +287,26 @@ public class ChatBoxScreen extends Screen {
         return functionalButtons.stream().filter(b -> b.type == type).findFirst().orElse(null);
     }
 
+    private Style getClickedComponentStyleAt(double x, double y) {
+        if (x >= 2 && y >= 2) {
+            int line = (int) (y - 2) / 10;
+            if (0 <= line && line < debugTips.size()) {
+                var sequence = debugTips.get(line).getVisualOrderText();
+                return minecraft.font.getSplitter().componentStyleAtWidth(sequence, (int) (x - 2));
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (debug && hasControlDown()) return true;
+        if (debug) {
+            if (hasControlDown()) return true;
+            else {
+                Style style = getClickedComponentStyleAt(pMouseX, pMouseY);
+                if (this.handleComponentClicked(style)) return true;
+            }
+        }
         if (hideDialogBox) {
             hideDialogBox = false;
             return true;
@@ -325,7 +336,7 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY/*? >= 1.21 {*/, double scrollX/*?}*/, double scrollY) {
         if (debug && hasControlDown()) {
             if (underCursor != null) {
                 // 防止缩太小了就消失了
@@ -349,7 +360,7 @@ public class ChatBoxScreen extends Screen {
             FunctionalButton logButton = getButton(FunctionalButton.Type.LOG);
             if (logButton != null && logButton.click()) return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return super.mouseScrolled(mouseX, mouseY/*? >= 1.21 {*/, scrollX/*?}*/, scrollY);
     }
 
     @Override
@@ -435,6 +446,6 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(@NotNull GuiGraphics guiGraphics/*? >= 1.21 {*/, int mouseX, int mouseY, float partialTick/*?}*/) {
     }
 }

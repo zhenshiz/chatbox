@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.component;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.Attachment;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
@@ -153,7 +154,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     public T setTexture(String name, String texture) {
         if (notNull(name) && notNull(texture)) {
             try {
-                this.textures.put(name, ResourceLocation.parse(texture));
+                this.textures.put(name, ChatBox.parseId(texture));
             } catch (Exception e) {
                 this.value = texture;
             }

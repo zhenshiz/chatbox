@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "chatbox",
-  "version": "1.1",
+  "version": "${version}",
   "name": "ChatBox",
   "description": "GalGame DialogBox",
   "authors": ["zhenshiz", "Amotassic"],
@@ -14,11 +14,11 @@
   "icon": "assets/chatbox/icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": [
-      "com.zhenshiz.chatbox.client.ChatBoxClient"
-    ],
     "main": [
       "com.zhenshiz.chatbox.ChatBox"
+    ],
+    "client": [
+      "com.zhenshiz.chatbox.client.ChatBoxClient"
     ],
     "modmenu": [
       "com.zhenshiz.chatbox.ModMenuIntegration"
@@ -28,9 +28,7 @@
     "chatbox.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": ">=1.21-",
     "cloth-config": "*"
   },
   "suggests": {

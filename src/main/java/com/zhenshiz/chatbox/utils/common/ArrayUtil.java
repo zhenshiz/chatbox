@@ -13,44 +13,20 @@ public class ArrayUtil {
     }
 
     public static String toString(Object obj) {
-        switch (obj) {
-            case null -> {
-                return null;
-            }
-            case long[] longs -> {
-                return Arrays.toString(longs);
-            }
-            case int[] ints -> {
-                return Arrays.toString(ints);
-            }
-            case short[] shorts -> {
-                return Arrays.toString(shorts);
-            }
-            case char[] chars -> {
-                return Arrays.toString(chars);
-            }
-            case byte[] bytes -> {
-                return Arrays.toString(bytes);
-            }
-            case boolean[] booleans -> {
-                return Arrays.toString(booleans);
-            }
-            case float[] floats -> {
-                return Arrays.toString(floats);
-            }
-            case double[] doubles -> {
-                return Arrays.toString(doubles);
-            }
-            default -> {
-                if (isArray(obj)) {
-                    try {
-                        return Arrays.deepToString((Object[]) obj);
-                    } catch (Exception var2) {
-                    }
-                }
+        if (obj instanceof long[]) return Arrays.toString((long[]) obj);
+        if (obj instanceof int[]) return Arrays.toString((int[]) obj);
+        if (obj instanceof short[]) return Arrays.toString((short[]) obj);
+        if (obj instanceof char[]) return Arrays.toString((char[]) obj);
+        if (obj instanceof byte[]) return Arrays.toString((byte[]) obj);
+        if (obj instanceof boolean[]) return Arrays.toString((boolean[]) obj);
+        if (obj instanceof float[]) return Arrays.toString((float[]) obj);
+        if (obj instanceof double[]) return Arrays.toString((double[]) obj);
 
-                return obj.toString();
-            }
+        if (isArray(obj)) {
+            try {
+                return Arrays.deepToString((Object[]) obj);
+            } catch (Exception ignored) {}
         }
+        return obj.toString();
     }
 }

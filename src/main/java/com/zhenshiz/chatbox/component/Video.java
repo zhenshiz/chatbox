@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.zhenshiz.chatbox.ChatBox;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
@@ -122,8 +121,7 @@ public class Video extends AbstractComponent<Video> {
         renderStep30(guiGraphics, pPartialTick);
 
         // DEBUG RENDERING
-        // if (!FMLLoader.isProduction()) {
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+        if (ChatBox.PLATFORM.isDevelopmentEnvironment()) {
             draw(guiGraphics, String.format("State: %s", player.getStateName()), getHeightCenter(-12));
             draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(player.getTime())), player.getTime(), FORMAT.format(new Date(player.getDuration())), player.getDuration()), getHeightCenter(0));
         }
@@ -193,6 +191,7 @@ public class Video extends AbstractComponent<Video> {
         RenderSystem.setShaderTexture(0, texture);
 
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
+        //? >= 1.21 {
         BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
         bufferBuilder.addVertex(matrix4f, x, y + height, 0).setUv(0f, 1f);   // Bottom-left
@@ -201,6 +200,17 @@ public class Video extends AbstractComponent<Video> {
         bufferBuilder.addVertex(matrix4f, x, y, 0).setUv(0f, 0f);   // Top-left
 
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+        //?} else {
+        /*BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
+        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+
+        bufferBuilder.vertex(matrix4f, x, y + height, 0).uv(0f, 1f).endVertex();   // Bottom-left
+        bufferBuilder.vertex(matrix4f, x + width, y + height, 0).uv(1f, 1f).endVertex();  // Bottom-right
+        bufferBuilder.vertex(matrix4f, x + width, y, 0).uv(1f, 0f).endVertex();  // Top-right
+        bufferBuilder.vertex(matrix4f, x, y, 0).uv(0f, 0f).endVertex();   // Top-left
+
+        BufferUploader.drawWithShader(bufferBuilder.end());
+        *///?}
 
         RenderSystem.disableBlend();
     }

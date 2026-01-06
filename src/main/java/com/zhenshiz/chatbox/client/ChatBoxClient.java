@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.client;
 
+//? fabric {
 import com.zhenshiz.chatbox.Config;
-import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
@@ -22,26 +22,79 @@ public class ChatBoxClient implements ClientModInitializer {
         conf = AutoConfig.getConfigHolder(Config.class).getConfig();
         registerReceiver();
         registerRenderEvents();
-        PluginHelper.init();
     }
 
     private static void registerReceiver() {
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.OpenScreen.TYPE, ChatBoxPayload.OpenScreen::execute);
-
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxThemeToClient.TYPE, ChatBoxPayload.AllChatBoxThemeToClient::execute);
-
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ChatBoxPayload.AllChatBoxDialoguesToClient::execute);
-
+        //? >= 1.21 {
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ChatBoxDataToClient.TYPE, ChatBoxPayload.ChatBoxDataToClient::execute);
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.TYPE, ChatBoxPayload.SyncEntityData::execute);
-
         ClientPlayNetworking.registerGlobalReceiver(SimplePayload.TYPE, SimplePayload::execute);
+        //?} else {
+        /*ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ChatBoxDataToClient.ID, (client, h, buf, r) -> ChatBoxPayload.ChatBoxDataToClient.handleOnClient(ChatBoxPayload.ChatBoxDataToClient.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.ID, (client, h, buf, r) -> ChatBoxPayload.SyncEntityData.handleOnClient(ChatBoxPayload.SyncEntityData.decode(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(SimplePayload.ID, (client, h, buf, r) -> SimplePayload.handleOnClient(SimplePayload.decode(buf)));
+        *///?}
     }
 
     private void registerRenderEvents() {
-        HudRenderCallback.EVENT.register(new ChatBoxRender());
-        ClientTickEvents.END_CLIENT_TICK.register(new ChatBoxRender());
-        InputEvent.KEY.register(new ChatBoxRender());
-        InputEvent.MouseButton.POST.register(new ChatBoxRender());
-        InputEvent.MOUSE_SCROLLING.register(new ChatBoxRender());
+        HudRenderCallback.EVENT.register(ChatBoxRender::onHudRender);
+        ClientTickEvents.END_CLIENT_TICK.register(ChatBoxRender::onEndTick);
+        InputEvent.KEY.register(ChatBoxRender::onKey);
+        InputEvent.MouseButton.POST.register(ChatBoxRender::mousePost);
+        InputEvent.MOUSE_SCROLLING.register(ChatBoxRender::onMouseScroll);
     }
 }
+//?}
+
+//? neoforge {
+//?}
+
+//? forge {
+/*import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.Config;
+import com.zhenshiz.chatbox.render.ChatBoxRender;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RenderGuiEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+
+@Mod.EventBusSubscriber(modid = ChatBox.MOD_ID, value = Dist.CLIENT)
+public class ChatBoxClient {
+    public static Config conf;
+
+    public static void init() {
+        AutoConfig.register(Config.class, Toml4jConfigSerializer::new);
+        conf = AutoConfig.getConfigHolder(Config.class).getConfig();
+    }
+
+    @SubscribeEvent
+    public static void ChatBoxRenderEvent(RenderGuiEvent.Pre event) {
+        ChatBoxRender.onHudRender(event.getGuiGraphics(), event.getPartialTick());
+    }
+
+    @SubscribeEvent
+    public static void ChatBoxRenderTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) ChatBoxRender.onEndTick(Minecraft.getInstance());
+    }
+
+    @SubscribeEvent
+    public static void ChatBoxRenderKeyInput(InputEvent.Key event) {
+        ChatBoxRender.onKey(event.getKey(), event.getScanCode(), event.getAction(), event.getModifiers());
+    }
+
+    @SubscribeEvent
+    public static void ChatBoxRenderMouseInput(InputEvent.MouseButton.Post event) {
+        ChatBoxRender.mousePost(event.getButton(), event.getAction(), event.getModifiers());
+    }
+
+    @SubscribeEvent
+    public static void ChatBoxRenderKeyInput(InputEvent.MouseScrollingEvent event) {
+        if (ChatBoxRender.onMouseScroll(event.getScrollDelta(), 0, event.isLeftDown(), event.isMiddleDown(), event.isRightDown(), event.getMouseX(), event.getMouseY())) event.setCanceled(true);
+    }
+}
+*///?}
