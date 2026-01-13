@@ -1,9 +1,11 @@
 package com.zhenshiz.chatbox.data;
 
 import com.zhenshiz.chatbox.component.ChatOption;
+import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.component.FunctionalButton;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
+import com.zhenshiz.chatbox.utils.common.CollUtil;
 
 import java.util.*;
 
@@ -116,6 +118,12 @@ public class ChatBoxTheme {
         }
     }
 
+    public static class RenderEvent {
+        public String trigger = "on_start";
+        public String type = "";
+        public String value = "";
+    }
+
     public static class Component {
         public Float x;
         public Float y;
@@ -128,5 +136,12 @@ public class ChatBoxTheme {
         public Float brightness;
         public Float opacity;
         public Float angle;
+        public Boolean hidden;
+        public List<RenderEvent> renderEvents;
+
+        public List<ComponentEvent> getEvents() {
+            if (CollUtil.isEmpty(renderEvents)) return List.of();
+            return renderEvents.stream().map(ComponentEvent::of).toList();
+        }
     }
 }

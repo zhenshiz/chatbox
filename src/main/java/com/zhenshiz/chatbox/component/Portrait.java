@@ -13,8 +13,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
 
-import static com.zhenshiz.chatbox.utils.math.EasingUtil.easingFunction;
-
 @SuppressWarnings({"unchecked", "UnusedReturnValue"})
 public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     public Type type = Type.TEXTURE;
@@ -69,23 +67,51 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     public T setIsAnimation(Boolean isAnimation) {
         if (notNull(isAnimation)) {
             this.isAnimation = isAnimation;
-            if (isAnimation) setStart(x, y, scale, brightness, opacity, angle);
+            if (isAnimation) {
+                setOriginal(x, y, scale, brightness, opacity, angle,
+                        notNull(getTexture()) ? getTexture().toString() : null, attachments);
+                setStart(x, y, scale, brightness, opacity, angle);
+            }
         }
         return (T) this;
     }
 
     public T setLoop(Boolean loop) {
-        if (notNull(loop) && this.isAnimation) {
-            this.loop = loop;
-            if (loop) setOriginal(x, y, scale, brightness, opacity, angle,
-                    notNull(getTexture()) ? getTexture().toString() : null, attachments);
-        }
+        if (notNull(loop) && this.isAnimation) this.loop = loop;
         return (T) this;
+    }
+
+    private void resetAnimation() {
+        this.frameIndex = 0;
+        var reset = this.original;
+        setStart(reset.x, reset.y, reset.scale, reset.brightness, reset.opacity, reset.angle);
+        // 由于我修改了执行动画的逻辑，现在不需要给动画设置初始值了，但是在循环播放时需要重设立绘的初始参数
+        setPosition(reset.x, reset.y).setScale(reset.scale)
+                .setBrightness(reset.brightness).setOpacity(reset.opacity).setAngle(reset.angle)
+                .setTexture(reset.texture).setAttachments(reset.attachment);
+    }
+
+    public T restartAnimation() {
+        if (CollUtil.isEmpty(keyframes) || loop) return (T) this;
+        resetAnimation();
+        return setIsAnimation(true);
+    }
+
+    public void stopAnimation() {
+        if (!isAnimation || loop) return;
+        for (var keyframe : keyframes) {
+            if (keyframes.indexOf(keyframe) < frameIndex) continue;
+            keyframe.apply(this, startKeyframe, keyframe.time);
+            nextKeyframe();
+        }
     }
 
     public void updateAnimationTick() {if (this.isAnimation) this.currentFrame++;}
 
-    public void resetCurrentFrame() {this.currentFrame = 0;}
+    public void nextKeyframe() {
+        this.frameIndex++;
+        this.currentFrame = 0;
+    }
 
     public T setAttachments(Attachment[] attachments) {
         if (CollUtil.notEmpty(attachments)) this.attachments = attachments;
@@ -96,7 +122,7 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
         return ArrayUtils.addAll(this.attachments, attachments);
     }
 
-    protected void setStart(float x, float y, float scale, float brightness, float opacity, float angle) {
+    public void setStart(float x, float y, float scale, float brightness, float opacity, float angle) {
         Keyframe.start(this.startKeyframe, x, y, scale, brightness, opacity, angle);
     }
 
@@ -137,42 +163,14 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     //执行自定义动画
     protected void execCustomAnimation() {
         if (!this.isAnimation) return;
-        var animation = this.keyframes.get(this.frameIndex);
-        setTexture(animation.texture).setAttachments(animation.attachments);
-        int time = this.currentFrame;
-        var start = this.startKeyframe;
-        // 先计算绝对坐标移动产生的偏移量，再加上相对坐标移动产生的偏移量，因此两种移动方式可以同时生效
-        float curX = start.x;
-        float curY = start.y;
-        if (animation.x != null) curX = easingFunction(start.x, animation.x, time, animation.time, animation.easing);
-        if (animation.y != null) curY = easingFunction(start.y, animation.y, time, animation.time, animation.easing);
-        if (animation.xOffset != null) curX += easingFunction(0, animation.xOffset, time, animation.time, animation.easing);
-        if (animation.yOffset != null) curY += easingFunction(0, animation.yOffset, time, animation.time, animation.easing);
-        if (curX != start.x || curY != start.y) setPosition(curX, curY);
-
-        if (animation.scale != null) setScale(easingFunction(start.scale, animation.scale, time, animation.time, animation.easing));
-        if (animation.brightness != null) setBrightness(easingFunction(start.brightness, animation.brightness, time, animation.time, animation.easing));
-        if (animation.opacity != null) setOpacity(easingFunction(start.opacity, animation.opacity, time, animation.time, animation.easing));
-        if (animation.angle != null) setAngle(easingFunction(start.angle, animation.angle, time, animation.time, animation.easing));
-
-        if (time >= animation.time) {
-            setStart(this.x, this.y, this.scale, this.brightness, this.opacity, this.angle);
-            this.frameIndex++;
-            resetCurrentFrame();
-            if (this.frameIndex >= this.keyframes.size()) {
-                if (this.loop) {
-                    this.frameIndex = 0;
-                    var reset = this.original;
-                    setStart(reset.x, reset.y, reset.scale, reset.brightness, reset.opacity, reset.angle);
-                    // 由于我修改了执行动画的逻辑，现在不需要给动画设置初始值了，但是在循环播放时需要重设立绘的初始参数
-                    setPosition(reset.x, reset.y).setScale(reset.scale)
-                            .setBrightness(reset.brightness).setOpacity(reset.opacity).setAngle(reset.angle)
-                            .setTexture(reset.texture).setAttachments(reset.attachments);
-                } else {
-                    setIsAnimation(false);
-                    // 立绘有动画且动画播放完成时触发ON_END事件
-                    fireEvent("ON_END");
-                }
+        if (this.frameIndex < this.keyframes.size()) {
+            keyframes.get(frameIndex).apply(this, startKeyframe, currentFrame);
+        } else {
+            if (this.loop) resetAnimation();
+            else {
+                setIsAnimation(false);
+                // 立绘有动画且动画播放完成时触发ON_END事件
+                fireEvent("ON_END");
             }
         }
     }

@@ -22,7 +22,9 @@
       "x": 40,
       "y": 30,
       "scale": 3,
-      "value": "diamond"
+      "texture": "diamond",
+      "hoverTexture": "coal",
+      "itemCount": 64
     },
     "authors_fade_in": {
       "type": "texture",
@@ -94,7 +96,8 @@
     "alignY": "top",
     "optionChatX": 6,
     "optionChatY": 2.7,
-    "textAlign": "left"
+    "textAlign": "left",
+    "hidden": true
   },
   "dialogBox": {
     "texture": "chatbox:textures/chatbox/default_dialog_box.png",
@@ -106,7 +109,10 @@
     "nameX": 20,
     "nameY": 10,
     "textX": 20,
-    "textY": 15
+    "textY": 15,
+    "renderEvents": [
+      {"trigger": "end", "type": "show", "value": "@Options"}
+    ]
   },
   "functionalButton": [
     {
@@ -121,34 +127,15 @@
   ],
   "customAnimation": {
     "FADE_IN": [
-      {
-        "time": 1,
-        "opacity": 0
-      },
-      {
-        "time": 30,
-        "opacity": 100,
-        "easing": "EASE_OUT_SINE"
-      }
+      {"time": 1, "opacity": 0},
+      {"time": 30, "opacity": 100, "easing": "EASE_OUT_SINE"}
     ],
     "SLIDE_IN_FROM_BOTTOM": [
-      {
-        "time": 30,
-        "yOffset": -5,
-        "easing": "EASE_OUT_SINE"
-      }
+      {"time": 30, "yOffset": -5, "easing": "EASE_OUT_SINE"}
     ],
     "BOUNCE": [
-      {
-        "time": 15,
-        "yOffset": -5,
-        "easing": "EASE_OUT_SINE"
-      },
-      {
-        "time": 15,
-        "yOffset": 5,
-        "easing": "EASE_OUT_SINE"
-      }
+      {"time": 15, "yOffset": -5, "easing": "EASE_OUT_SINE"},
+      {"time": 15, "yOffset": 5, "easing": "EASE_OUT_SINE"}
     ]
   }
 }

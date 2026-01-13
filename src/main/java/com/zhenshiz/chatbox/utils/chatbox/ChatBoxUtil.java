@@ -134,7 +134,7 @@ public class ChatBoxUtil {
                     .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
                     .playVoice(dialog.sound)
                     // 一切就绪，再触发ON_START事件
-                    .setEvents(ChatBoxDialogues.transform(dialog.renderEvents)).fireEvent("ON_START");
+                    .setEvents(dialog.renderEvents).fireEvent("ON_START");
 
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
                 //如果不是对话框和历史记录界面跳转，就清除历史记录

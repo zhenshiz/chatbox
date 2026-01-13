@@ -1,21 +1,22 @@
 {
   "$introduce": "这是一段介绍本模组的文本",
-  "theme": "test:default",
+  "theme": "test:gal",
+  "animationFPS": 60,
   "dialogues": {
     "start": [
       {
-        "renderEvents": [
-          {"trigger": "start", "type": "hide", "value": "@Options"}
-        ],
         "dialogBox": {
-          "renderEvents": [
-            {"trigger": "end", "type": "show", "value": "@Options"}
-          ],
           "name": "chatbox.test.name.1",
           "text": "chatbox.test.text.1"
         },
         "portrait": [
-          "authors",
+          {
+            "id": "authors",
+            "renderEvents": [
+              {"trigger": "click", "type": "show", "value": "ciallo"}
+            ]
+          },
+          "ciallo",
           "head",
           "item"
         ],
@@ -45,7 +46,7 @@
             "customAnimation": [
               {
                 "time": 600,
-                "angle": 360,
+                "angle": -360,
                 "scale": 2,
                 "opacity": 0
               }
@@ -56,7 +57,7 @@
             "id": "head",
             "replace": true,
             "attachment": [{"type": "text", "value": "测试文本附件"}],
-            "customAnimation": [{"time": 1, "brightness": 0}, {"time": 599, "angle": -360, "brightness": 200}],
+            "customAnimation": [{"time": 1, "brightness": 0}, {"time": 599, "angle": 360, "brightness": 200}],
             "loop": true
           }
         ],

@@ -50,7 +50,7 @@
   "chatbox.debug.tip2": "While holding %s:",
   "chatbox.debug.tip3": "  ①Displays information for the hovered component",
   "chatbox.debug.tip4": "  ②Left-click and drag to move components",
-  "chatbox.debug.tip5": "  ③Mouse wheel scroll to scale portrait components",
+  "chatbox.debug.tip5": "  ③Mouse wheel scroll to adjust %s (hold alt to change property)",
   "chatbox.debug.tip6": "%s + C to copy current hovered component information",
-  "chatbox.debug.tip7": "click to reload data (requires permission)"
+  "chatbox.debug.tip7": "%s + R to reload data (requires permission)"
 }

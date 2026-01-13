@@ -105,7 +105,7 @@ public class ChatBoxRender {
         shouldRender = false;
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false;
-        if (chatBoxScreen.video != null) chatBoxScreen.video.close();
+        chatBoxScreen.setVideo(null);
         ChatBoxUtil.onCloseDialogBox();
     }
 }

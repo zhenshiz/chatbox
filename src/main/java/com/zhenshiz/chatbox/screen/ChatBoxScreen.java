@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.screen;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.component.*;
+import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
@@ -15,18 +16,14 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
 public class ChatBoxScreen extends Screen {
@@ -57,14 +54,16 @@ public class ChatBoxScreen extends Screen {
     @Setter private boolean debug = false;
     @Setter private AbstractComponent<?> underCursor = null;
     private static final Minecraft minecraft = Minecraft.getInstance();
+    private static int debugIndex = 0;
+    private static final List<String> debugKeys = List.of("scale", "renderOrder", "angle", "brightness", "opacity");
     private static final List<Component> debugTips = List.of(
             Component.translatable("chatbox.debug.tip1").withStyle(ChatFormatting.BOLD),
             Component.translatable("chatbox.debug.tip2", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD, ChatFormatting.RED),
             Component.translatable("chatbox.debug.tip3").withStyle(ChatFormatting.AQUA),
             Component.translatable("chatbox.debug.tip4").withStyle(ChatFormatting.AQUA),
-            Component.translatable("chatbox.debug.tip5").withStyle(ChatFormatting.AQUA),
+            Component.translatable("chatbox.debug.tip5"),
             Component.translatable("chatbox.debug.tip6", KeyPromptRender.ctrl).withStyle(ChatFormatting.BOLD),
-            Component.translatable("chatbox.debug.tip7").withStyle(ChatFormatting.RED, ChatFormatting.BOLD).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reload")))
+            Component.translatable("chatbox.debug.tip7", KeyPromptRender.ctrl).withStyle(ChatFormatting.RED, ChatFormatting.BOLD)
     );
 
     public ChatBoxScreen() {
@@ -152,14 +151,16 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
-    public ChatBoxScreen setEvents(List<ComponentEvent> events) {
+    public ChatBoxScreen setEvents(List<ChatBoxTheme.RenderEvent> events) {
         this.events.clear();
-        if (events != null) this.events.addAll(events);
+        if (events != null) for (var event : events) {
+            this.events.add(ComponentEvent.of(event));
+        }
         return this;
     }
 
     public ChatBoxScreen fireEvent(String trigger) {
-        ComponentEvent.fireAll(events, ComponentEvent.Trigger.of(trigger));
+        ComponentEvent.fireAll(events, trigger);
         return this;
     }
 
@@ -261,13 +262,15 @@ public class ChatBoxScreen extends Screen {
         if (debug) {
             var font = minecraft.font;
             if (underCursor != null && hasControlDown()) {
-                guiGraphics.renderTooltip(font, Component.literal(underCursor.getDebugInfo()), pMouseX, pMouseY);
+                guiGraphics.renderComponentTooltip(font, Arrays.stream(underCursor.getDebugInfo()).map(Component::nullToEmpty).toList(), pMouseX, pMouseY);
             } else if (hasShiftDown()) {
                 guiGraphics.renderTooltip(font, Component.literal(StrUtil.format("\"x\": {}, \"y\": {}", pMouseX / (float) RenderUtil.screenWidth() * 100, pMouseY / (float) RenderUtil.screenHeight() * 100)), pMouseX, pMouseY);
             }
             if (!hasShiftDown() && !hasControlDown()) {
                 int y = 2;
                 for (Component debugTip : debugTips) {
+                    // 文本组件的占位符不能实时更新，只能在绘制前手动替换了
+                    if (debugTips.indexOf(debugTip) == 4) debugTip = Component.literal(debugTip.getString().replace("%s", debugKeys.get(debugIndex))).withStyle(ChatFormatting.AQUA);
                     // 绘制文本背景
                     guiGraphics.fill(1, y - 1, 1 + font.width(debugTip) + 2, y + font.lineHeight, 0xFF202020);
                     guiGraphics.drawString(font, debugTip, 2, y, -1, false);
@@ -289,26 +292,9 @@ public class ChatBoxScreen extends Screen {
         return functionalButtons.stream().filter(b -> b.type == type).findFirst().orElse(null);
     }
 
-    private Style getClickedComponentStyleAt(double x, double y) {
-        if (x >= 2 && y >= 2) {
-            int line = (int) (y - 2) / 10;
-            if (0 <= line && line < debugTips.size()) {
-                var sequence = debugTips.get(line).getVisualOrderText();
-                return minecraft.font.getSplitter().componentStyleAtWidth(sequence, (int) (x - 2));
-            }
-        }
-        return null;
-    }
-
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (debug) {
-            if (hasControlDown()) return true;
-            else {
-                Style style = getClickedComponentStyleAt(pMouseX, pMouseY);
-                if (this.handleComponentClicked(style)) return true;
-            }
-        }
+        if (debug && hasControlDown()) return true;
         if (hideDialogBox) {
             hideDialogBox = false;
             return true;
@@ -339,11 +325,29 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (debug && hasControlDown()) {
-            if (underCursor != null) {
-                // 防止缩太小了就消失了
-                float toSet = underCursor.scale + (scrollY > 0 ? 0.1f : -0.1f);
-                if (toSet >= 0.05f) underCursor.setScale(toSet);
+        if (debug) {
+            if (hasAltDown()) {
+                debugIndex += scrollY < 0 ? 1 : -1;
+                if (debugIndex < 0) debugIndex += debugKeys.size();
+                else if (debugIndex >= debugKeys.size()) debugIndex -= debugKeys.size();
+            } else if (underCursor != null && hasControlDown()) {
+                switch (debugIndex) {
+                    case 0 -> {
+                        // 防止缩太小了就消失了
+                        float toSet = underCursor.scale + (scrollY > 0 ? 0.1f : -0.1f);
+                        if (toSet >= 0.05f) underCursor.setScale(toSet);
+                    }
+                    case 1 -> underCursor.setRenderOrder(underCursor.renderOrder + (scrollY > 0 ? 1 : -1));
+                    case 2 -> underCursor.setAngle(underCursor.angle + (scrollY < 0 ? 15 : -15));
+                    case 3 -> {
+                        float toSet = underCursor.brightness + (scrollY > 0 ? 5 : -5);
+                        if (0 <= toSet && toSet <= 200) underCursor.setBrightness(toSet);
+                    }
+                    case 4 -> {
+                        float toSet = underCursor.opacity + (scrollY > 0 ? 5 : -5);
+                        if (0 <= toSet && toSet <= 100) underCursor.setOpacity(toSet);
+                    }
+                }
             }
             return true;
         }
@@ -368,8 +372,11 @@ public class ChatBoxScreen extends Screen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_F3) setDebug(!debug);
+        if (debug && keyCode == GLFW.GLFW_KEY_R && hasControlDown()) {
+            Objects.requireNonNull(minecraft.getConnection()).sendCommand("reload");
+        }
         if (isCopy(keyCode) && underCursor != null) {
-            minecraft.keyboardHandler.setClipboard(underCursor.getDebugInfo());
+            minecraft.keyboardHandler.setClipboard(String.join(", ", underCursor.getDebugInfo()).split(", \"id\":")[0]);
         }
         if (video != null && video.isPlaying()) video.keyPressed(keyCode, scanCode, modifiers);
         return super.keyPressed(keyCode, scanCode, modifiers);
@@ -400,7 +407,7 @@ public class ChatBoxScreen extends Screen {
         autoPlay = false;
         fastForward = false;
         hideDialogBox = false;
-        if (video != null) video.close();
+        setVideo(null);
         ChatBoxUtil.onCloseDialogBox();
         super.onClose();
     }
