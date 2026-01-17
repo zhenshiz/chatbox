@@ -94,7 +94,7 @@ public class ChatBoxRender {
         shouldRender = false;
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false; // 这行没必要
-        if (chatBoxScreen.video != null) chatBoxScreen.video.close();
+        chatBoxScreen.setVideo(null);
         ChatBoxUtil.onCloseDialogBox();
     }
 }

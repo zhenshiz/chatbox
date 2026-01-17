@@ -59,8 +59,8 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     protected boolean renderStarted = false;
     public List<ComponentEvent> events = new ArrayList<>();
 
-    public T setHidden(boolean hidden) {
-        this.hidden = hidden;
+    public T setHidden(Boolean hidden) {
+        if (notNull(hidden)) this.hidden = hidden;
         return (T) this;
     }
 
@@ -78,13 +78,9 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
         return (T) this;
     }
 
-    public int fireEvent(ComponentEvent.Trigger trigger) {
+    public int fireEvent(String trigger) {
         if (hidden) return 0;
         return ComponentEvent.fireAll(events, trigger);
-    }
-
-    public int fireEvent(String trigger) {
-        return fireEvent(ComponentEvent.Trigger.of(trigger));
     }
 
     public T addEvent(String trigger, String type, String target) {
@@ -102,7 +98,8 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
 
     public T of(ChatBoxTheme.Component c) {
         return setPosition(c.x, c.y).setSize(c.width, c.height).setScale(c.scale).setAlign(c.alignX, c.alignY)
-                .setBrightness(c.brightness).setOpacity(c.opacity).setRenderOrder(c.renderOrder).setAngle(c.angle);
+                .setBrightness(c.brightness).setOpacity(c.opacity).setRenderOrder(c.renderOrder).setAngle(c.angle).setHidden(c.hidden)
+                .setEvents(c.getEvents());
     }
 
     public T setPosition(Float x, Float y) {
@@ -189,8 +186,14 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
         return ChatBoxUtil.parseText(input, true);
     }
 
-    public String getDebugInfo() {
-        return StrUtil.format("\"x\": {}, \"y\": {}, \"width\": {}, \"height\": {}, \"renderOrder\": {}, \"scale\": {}, \"id\": {}", x, y, width, height, renderOrder, scale, id);
+    public String[] getDebugInfo() {
+        return new String[]{
+                StrUtil.format("\"x\": {}, \"y\": {}", x, y),
+                StrUtil.format("\"width\": {}, \"height\": {}", width, height),
+                StrUtil.format("\"scale\": {}, \"angle\": {}", scale, angle),
+                StrUtil.format("\"brightness\": {}, \"opacity\": {}", brightness, opacity),
+                StrUtil.format("\"renderOrder\": {}, \"id\": {}", renderOrder, id)
+        };
     }
 
     protected void renderInner(int mouseX, int mouseY) {

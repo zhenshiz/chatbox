@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.sounds.SoundSource;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
 import org.watermedia.api.image.ImageAPI;
 import org.watermedia.api.image.ImageRenderer;
@@ -186,6 +187,11 @@ public class Video extends AbstractComponent<Video> {
     }
 
     private void drawTexture(GuiGraphics guiGraphics, int texture, float x, float y, float width, float height) {
+        guiGraphics.pose().pushPose();
+        float centerX = x + width / 2;
+        float centerY = y + height / 2;
+        guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
+        guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
         RenderSystem.enableBlend();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, texture);
@@ -213,6 +219,7 @@ public class Video extends AbstractComponent<Video> {
         *///?}
 
         RenderSystem.disableBlend();
+        guiGraphics.pose().popPose();
     }
 
     private void draw(GuiGraphics guiGraphics, String text, int height) {
@@ -282,13 +289,13 @@ public class Video extends AbstractComponent<Video> {
             player.start(uri);
             return;
         }
-        // 视频正常播放结束，触发ON_END事件
-        fireEvent("ON_END");
         close();
     }
 
     public void close() {
         if (started) {
+            // 视频正常播放结束，触发ON_END事件
+            fireEvent("ON_END");
             started = false;
             player.stop();
             //minecraft.getSoundManager().resume();

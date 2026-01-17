@@ -141,7 +141,7 @@ public class ChatBoxUtil {
                     .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
                     .playVoice(dialog.sound)
                     // 一切就绪，再触发ON_START事件
-                    .setEvents(ChatBoxDialogues.transform(dialog.renderEvents)).fireEvent("ON_START");
+                    .setEvents(dialog.renderEvents).fireEvent("ON_START");
 
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
                 //如果不是对话框和历史记录界面跳转，就清除历史记录
@@ -159,6 +159,8 @@ public class ChatBoxUtil {
             if (isScreen) {
                 minecraft.setScreen(chatBoxScreen);
             } else {
+                // 防止进入两种模式的叠加态
+                if (minecraft.screen instanceof ChatBoxScreen) minecraft.setScreen(null);
                 ChatBoxRender.shouldRender = true;
             }
             // 确认对话框加载完成后再设置客户端对话框信息

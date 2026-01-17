@@ -83,18 +83,18 @@ public class ChatBoxClient {
     }
 
     @SubscribeEvent
-    public static void ChatBoxRenderKeyInput(InputEvent.Key event) {
+    public static void keyInput(InputEvent.Key event) {
         ChatBoxRender.onKey(event.getKey(), event.getScanCode(), event.getAction(), event.getModifiers());
     }
 
     @SubscribeEvent
-    public static void ChatBoxRenderMouseInput(InputEvent.MouseButton.Post event) {
+    public static void mouseButton(InputEvent.MouseButton.Post event) {
         ChatBoxRender.mousePost(event.getButton(), event.getAction(), event.getModifiers());
     }
 
     @SubscribeEvent
-    public static void ChatBoxRenderKeyInput(InputEvent.MouseScrollingEvent event) {
-        if (ChatBoxRender.onMouseScroll(event.getScrollDelta(), 0, event.isLeftDown(), event.isMiddleDown(), event.isRightDown(), event.getMouseX(), event.getMouseY())) event.setCanceled(true);
+    public static void mouseScroll(InputEvent.MouseScrollingEvent event) {
+        if (ChatBoxRender.onMouseScroll(0, event.getScrollDelta(), event.isLeftDown(), event.isMiddleDown(), event.isRightDown(), event.getMouseX(), event.getMouseY())) event.setCanceled(true);
     }
 }
 *///?}

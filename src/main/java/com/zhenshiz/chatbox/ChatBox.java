@@ -21,8 +21,6 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 //?}
-//? neoforge {
-//?}
 //? forge {
 /*import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.compat.terraentity.TerraEntityShop;
@@ -53,8 +51,6 @@ public class ChatBox/*? fabric {*/ implements ModInitializer/*?}*/ {
 
     //? fabric
     public void onInitialize() {
-    //? neoforge
-    //public ChatBox() {
     //? forge
     /*public ChatBox() {*/
         LOGGER.info("Ciallo～(∠·ω< )⌒★");

@@ -45,7 +45,7 @@ public class Attachment {
         String type = this.type.toLowerCase();
         switch (type) {
             case "texture" -> RenderUtil.renderImageInner(guiGraphics, ChatBox.parseId(value), ox + a.x, oy + a.y, 1, 1, a.width, a.height);
-            case "text" -> RenderUtil.drawStringAlign(guiGraphics, value, (int) (ox + a.x), (int) (oy + a.y), (int) (float) a.width, AbstractComponent.AlignX.of(textAlign), textColor, lineBreak);
+            case "text" -> RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(value), (int) (ox + a.x), (int) (oy + a.y), (int) (float) a.width, AbstractComponent.AlignX.of(textAlign), textColor, lineBreak);
         }
     }
 }
