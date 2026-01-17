@@ -86,6 +86,7 @@ public class ComponentEvent {
         registerEvent("COMMAND", (c, s) -> {}, () -> true, ComponentEvent::executeCommands);
 
         registerClientEvent("JUMP", (c, next) -> { //跳转到指定的对话或者其它模块的对话
+            if (next.equalsIgnoreCase("this")) return;
             if (StrUtil.isEmpty(next)) {            //跳转下一句话
                 skipDialogues(dialoguesResourceLocation, group, index + 1);
             } else if (StrUtil.isInteger(next)) {   //如果为数字跳转到指定序号的对话
@@ -118,6 +119,10 @@ public class ComponentEvent {
 
         registerClientEvent("RESTART_ANIMATION", (c, s) -> {
             if (c instanceof Portrait<?> portrait) portrait.restartAnimation();
+        });
+
+        registerClientEvent("PLAY_ANIMATION", (c, s) -> {
+            if (c instanceof Portrait<?> portrait) portrait.setAnimationType(s);
         });
     }
 

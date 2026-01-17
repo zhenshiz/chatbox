@@ -101,6 +101,8 @@ public class DialogBox extends Portrait<DialogBox> {
             }
             if (c == '<') {
                 int closing = text.indexOf('>', i + 1);
+                int another = text.indexOf('<', i + 1);
+                if (another != -1 && another < closing) continue;
                 if (closing != -1) {
                     i = closing;
                     continue;
@@ -114,23 +116,8 @@ public class DialogBox extends Portrait<DialogBox> {
 
     public static int getRealLength(String text) {
         if (text == null || text.isEmpty()) return 0;
-        int current = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c == '\\' || c == '§') {
-                i++;
-                continue;
-            }
-            if (c == '<') {
-                int closing = text.indexOf('>', i + 1);
-                if (closing != -1) {
-                    i = closing;
-                    continue;
-                }
-            }
-            current++;
-        }
-        return current;
+        return text.replaceAll("<[^<]*>", "")
+                .replace("\\", "").replace("§", "").length();
     }
 
     public void click(boolean gotoNext) {

@@ -1,25 +1,20 @@
 {
   "portrait": {
     "authors": {
-      "x": 0,
-      "y": -5,
-      "width": 20,
-      "height": 40,
-      "alignY": "bottom",
+      "type": "texture",
+      "x": 0, "y": -5, "width": 20, "height": 40,
+      "alignX": "left", "alignY": "bottom",
       "texture": "chatbox:textures/portrait/authors.png"
     },
     "ciallo": {
-      "x": 11,
-      "y": 41,
-      "width": 22,
-      "height": 13,
       "texture": "chatbox:textures/box1.png",
+      "x": 11, "y": 41, "width": 22, "height": 13,
       "hidden": true,
       "attachment": [
         {"type": "text", "value": "Ciallo～(∠·ω< )⌒★", "x": 2, "y": 4.5}
       ],
       "customAnimation": [
-        {"scale": 0}, {"time": 14, "scale": 1.5}, {"time": 90}
+        {"scale": 0}, {"time": 14, "scale": 1.5}, {"time": 45}
       ],
       "renderEvents": [
         {"trigger": "end", "type": "hide", "value": "@s"},
@@ -28,43 +23,17 @@
     },
     "head": {
       "type": "player_head",
-      "x": 7, "y": 15, "width": 10, "texture": "@s"
+      "x": 40, "y": 15, "width": 10,
+      "texture": "@s",
+      "renderOrder": -10
     },
     "item": {
       "type": "item",
-      "x": 83, "y": 25, "scale": 3,
-      "texture": "diamond", "hoverTexture": "coal", "itemCount": 64
-    },
-    "authors_fade_in": {
-      "x": 20, "y": -40, "width": 20, "height": 40,
-      "alignX": "left", "alignY": "bottom",
-      "texture": "chatbox:textures/portrait/authors.png",
-      "renderOrder": -10,
-      "animation": "FADE_IN"
-    },
-    "authors_slide_in_from_bottom": {
-      "x": 40, "y": -40, "width": 20, "height": 40,
-      "alignX": "left", "alignY": "bottom",
-      "texture": "chatbox:textures/portrait/authors.png",
-      "renderOrder": -10,
-      "animation": "SLIDE_IN_FROM_BOTTOM"
-    },
-    "authors_bounce": {
-      "x": 60, "y": -40, "width": 20, "height": 40,
-      "alignX": "left", "alignY": "bottom",
-      "texture": "chatbox:textures/portrait/authors.png",
-      "renderOrder": -10,
-      "animation": "BOUNCE"
-    },
-    "custom_animation": {
-      "type": "player_head",
-      "texture": "@s",
-      "x": 0, "y": 20, "width": 10,
-      "customAnimation": [
-        {"time": 50, "x": 20, "easing": "EASE_OUT_SINE"},
-        {"time": 50, "scale": 1.2, "opacity": 0, "easing": "EASE_OUT_SINE"}
-      ],
-      "loop": true
+      "x": 75, "y": 25, "scale": 3,
+      "texture": "diamond",
+      "hoverTexture": "coal",
+      "itemCount": 64,
+      "renderOrder": -10
     }
   },
   "option": {
@@ -85,7 +54,6 @@
       {"trigger": "end", "type": "show", "value": "@Options"}
     ]
   },
-  "注释1": "如果不在这里填写功能按钮，在对话框界面将不会显示功能按钮，对应的功能也无法使用",
   "functionalButton": [
     {"type": "log"},
     {"type": "fastForward"},

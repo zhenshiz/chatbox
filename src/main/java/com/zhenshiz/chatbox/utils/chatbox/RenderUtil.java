@@ -510,13 +510,11 @@ public class RenderUtil {
             int partStart = 0;
             for (var part : font.getSplitter().splitLines(Component.nullToEmpty(noRuby), lineWidth, Style.EMPTY)) {
                 String textPart = part.getString();
-                // 换行符在第一个字符时，跳过
-                if (noRuby.length() > partStart && noRuby.charAt(partStart) == '\n') partStart++;
                 RubyPart[] rubyFromTo = rubyFromTo(partStart, partStart + textPart.length());
                 drawStringAlign(guiGraphics, part, startX, renderY, lineWidth, alignX, color, rubyFromTo);
                 if (rubyFromTo.length > 0) renderY += 6;
                 renderY += font.lineHeight;
-                partStart += textPart.length();
+                partStart += textPart.length() + 1;
             }
         }
     }

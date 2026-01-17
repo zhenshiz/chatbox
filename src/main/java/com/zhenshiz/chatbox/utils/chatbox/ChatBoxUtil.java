@@ -150,6 +150,8 @@ public class ChatBoxUtil {
             if (isScreen) {
                 minecraft.setScreen(chatBoxScreen);
             } else {
+                // 防止进入两种模式的叠加态
+                if (minecraft.screen instanceof ChatBoxScreen) minecraft.setScreen(null);
                 ChatBoxRender.shouldRender = true;
             }
             // 确认对话框加载完成后再设置客户端对话框信息

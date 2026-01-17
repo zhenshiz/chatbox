@@ -166,8 +166,8 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
         if (this.frameIndex < this.keyframes.size()) {
             keyframes.get(frameIndex).apply(this, startKeyframe, currentFrame);
         } else {
-            if (this.loop) resetAnimation();
-            else {
+            resetAnimation();
+            if (!this.loop) {
                 setIsAnimation(false);
                 // 立绘有动画且动画播放完成时触发ON_END事件
                 fireEvent("ON_END");

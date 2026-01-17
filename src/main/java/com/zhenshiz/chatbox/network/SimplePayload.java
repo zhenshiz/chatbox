@@ -118,6 +118,11 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             if (parts.length != 5) return;
             clientAddChatOption(parts[0], parts[1], parts[2], parts[3], parts[4]);
         });
+        addHandlerS2C(SET_CHAT_OPTION, s -> {
+            String[] parts = StrUtil.parse(s);
+            if (parts.length != 5) return;
+            clientSetChatOption(Integer.parseInt(parts[0]), parts[1], parts[2], Boolean.parseBoolean(parts[3]), Boolean.parseBoolean(parts[4]));
+        });
         addHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
     }
 
