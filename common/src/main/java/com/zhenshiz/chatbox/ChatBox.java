@@ -31,4 +31,6 @@ public class ChatBox {
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
+
+    public static Identifier parseId(String id) {return Identifier.parse(id);}
 }

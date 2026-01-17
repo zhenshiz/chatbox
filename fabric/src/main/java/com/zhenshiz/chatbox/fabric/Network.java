@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.fabric.network;
+package com.zhenshiz.chatbox.fabric;
 
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
@@ -9,9 +9,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 public class Network {
 
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(ChatBoxPayload.OpenScreen.TYPE, ChatBoxPayload.OpenScreen.CODEC);
-        PayloadTypeRegistry.playS2C().register(ChatBoxPayload.AllChatBoxThemeToClient.TYPE, ChatBoxPayload.AllChatBoxThemeToClient.CODEC);
-        PayloadTypeRegistry.playS2C().register(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ChatBoxPayload.AllChatBoxDialoguesToClient.CODEC);
+        PayloadTypeRegistry.playS2C().register(ChatBoxPayload.ChatBoxDataToClient.TYPE, ChatBoxPayload.ChatBoxDataToClient.CODEC);
         PayloadTypeRegistry.playS2C().register(ChatBoxPayload.SyncEntityData.TYPE, ChatBoxPayload.SyncEntityData.CODEC);
         PayloadTypeRegistry.playS2C().register(SimplePayload.TYPE, SimplePayload.CODEC);
 

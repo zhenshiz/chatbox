@@ -12,7 +12,6 @@ import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
-import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
@@ -26,15 +25,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader {
+public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //记录所有的对话文件
     public static final Map<Identifier, String> dialoguesMap = new HashMap<>();
     //记录对应对话文件里的组名
     public static final Map<Identifier, Set<String>> dialoguesGroupMap = new HashMap<>();
+    //记录所有的对话（对象形式）
+    public static final Map<Identifier, ChatBoxDialogues> parsedDialogues = new HashMap<>();
 
-    //这一堆东西看的我自己都头大
-    private static final Map<Identifier, JsonElement> criteriaElements = new HashMap<>();
     //套娃，第一个（Map）是文件，第二个是组，第三个是criteria，由于目前的组名下是一个数组，所以只能把判据绑定给同一个json文件里面的第一组对话。解决办法1.花大力气改json格式；2.告诉玩家一个json文件只允许一个组。
     private static final Map<Identifier, Map<String, Map<String, Criterion<?>>>> dialoguesCriteriaMap = new HashMap<>();
     private static final Codec<Map<String, Criterion<?>>> CRITERIA_CODEC = Codec.unboundedMap(Codec.STRING, Criterion.CODEC).validate(map -> map.isEmpty() ? DataResult.error(() -> "Advancement criteria cannot be empty") : DataResult.success(map)); //这个是Advancement类里面的
@@ -42,18 +41,23 @@ public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader {
     public static final Map<Identifier, Integer> defaultMaxTriggerCount = new HashMap<>();
 
     public ChatBoxDialoguesLoader() {
-        super(FileToIdConverter.json("chatbox/dialogues"));
+        super("chatbox/dialogues");
     }
 
     @Override
-    protected void apply(@NotNull Map<Identifier, JsonElement> IdentifierJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
+    protected void apply(@NotNull Map<Identifier, String> map, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         dialoguesMap.clear();
+        parsedDialogues.clear();
         dialoguesGroupMap.clear();
-        criteriaElements.clear();
         dialoguesCriteriaMap.clear();
         defaultMaxTriggerCount.clear();
-        IdentifierJsonElementMap.forEach((Identifier, jsonElement) -> dialoguesMap.put(Identifier, jsonElement.toString()));
-        setDialogues();
+        dialoguesMap.putAll(map);
+        map.forEach((identifier, str) -> {
+            ChatBoxDialogues chatBoxDialogues = GSON.fromJson(str, ChatBoxDialogues.class);
+            parsedDialogues.put(identifier, chatBoxDialogues);
+            dialoguesGroupMap.put(identifier, chatBoxDialogues.dialogues.keySet());
+            defaultMaxTriggerCount.put(identifier, chatBoxDialogues.maxTriggerCount);
+        });
     }
 
     public static <T extends SimpleCriterionTrigger.SimpleInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {
@@ -68,8 +72,7 @@ public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader {
                     CriterionTriggerInstance instance = criterion.triggerInstance();
                     try {
                         //noinspection unchecked
-                        T t = (T) instance;
-                        if (testTrigger.test(t)) {
+                        if (testTrigger.test((T) instance)) {
                             //判断玩家的触发次数是否为0，为0则不触发对话
                             int count = ChatBoxCommandUtil.serverGetMaxTriggerCount(player, rl);
                             if (count != 0) {
@@ -83,35 +86,12 @@ public class ChatBoxDialoguesLoader extends SimpleJsonDataLoader {
         }
     }
 
-    private static void setDialogues() {
-        dialoguesMap.forEach((Identifier, str) -> {
-            JsonElement jsonElement = GSON.fromJson(str, JsonElement.class);
-            if (jsonElement == null) return;
-            JsonElement dialoguesElement = jsonElement.getAsJsonObject().get("dialogues");
-            if (dialoguesElement != null) {
-                ChatBoxDialogues chatBoxDialogues = GSON.fromJson(jsonElement, new com.google.common.reflect.TypeToken<ChatBoxDialogues>() {
-                }.getType());
-                dialoguesGroupMap.put(Identifier, chatBoxDialogues.dialogues.keySet());
-
-                int maxTriggerCount; //仅在服务端加载
-                JsonElement maxTriggerCountElement = jsonElement.getAsJsonObject().get("maxTriggerCount");
-                if (maxTriggerCountElement != null) {
-                    maxTriggerCount = maxTriggerCountElement.getAsInt();
-                } else maxTriggerCount = -1;
-                defaultMaxTriggerCount.put(Identifier, maxTriggerCount);
-
-                //记录判据的jsonElement，用于服务端解析
-                JsonElement criteria = jsonElement.getAsJsonObject().get("criteria");
-                if (criteria != null) criteriaElements.put(Identifier, criteria);
-            }
-        });
-    }
-
-    //解析判据必须要用到registryAccess，fabric我目前没想到别的解决办法
     public static void loadCriteria(MinecraftServer server) {
-        for (var entry : criteriaElements.entrySet()) {
+        for (var entry : parsedDialogues.entrySet()) {
             Identifier rl = entry.getKey();
-            JsonElement criteriaElement = entry.getValue();
+            JsonElement criteriaElement = entry.getValue().criteria;
+            if (criteriaElement == null) continue;
+
             String group = dialoguesGroupMap.get(rl).stream().toList().getFirst();
             RegistryOps<JsonElement> registryOps = server.registryAccess().createSerializationContext(JsonOps.INSTANCE);
             try {

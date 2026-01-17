@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.neoforge.network;
+package com.zhenshiz.chatbox.neoforge;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -17,9 +17,7 @@ public class Network {
     public static void register(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(ChatBox.MOD_ID);
         //s2c
-        registrar.playToClient(ChatBoxPayload.OpenScreen.TYPE, ChatBoxPayload.OpenScreen.CODEC, ((packet, context) -> ChatBoxPayload.OpenScreen.handleOnClient(packet)));
-        registrar.playToClient(ChatBoxPayload.AllChatBoxThemeToClient.TYPE, ChatBoxPayload.AllChatBoxThemeToClient.CODEC, ((packet, context) -> ChatBoxPayload.AllChatBoxThemeToClient.handleOnClient(packet)));
-        registrar.playToClient(ChatBoxPayload.AllChatBoxDialoguesToClient.TYPE, ChatBoxPayload.AllChatBoxDialoguesToClient.CODEC, ((packet, context) -> ChatBoxPayload.AllChatBoxDialoguesToClient.handleOnClient(packet)));
+        registrar.playToClient(ChatBoxPayload.ChatBoxDataToClient.TYPE, ChatBoxPayload.ChatBoxDataToClient.CODEC, ((packet, context) -> ChatBoxPayload.ChatBoxDataToClient.handleOnClient(packet)));
         registrar.playToClient(ChatBoxPayload.SyncEntityData.TYPE, ChatBoxPayload.SyncEntityData.CODEC, ((packet, context) -> ChatBoxPayload.SyncEntityData.handleOnClient(packet)));
 
         //c2s

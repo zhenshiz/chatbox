@@ -6,7 +6,7 @@
   "description": "${description}",
   "authors": ["zhenshiz", "Amotassic"],
   "contact": {
-    "homepage": "https://modrinth.com/mod/chatbox",
+    "homepage": "https://doc.mafuyu.moe/",
     "sources": "https://github.com/zhenshiz/chatbox",
     "issues": "https://github.com/zhenshiz/chatbox/issues"
   },
@@ -18,7 +18,7 @@
       "com.zhenshiz.chatbox.ChatBoxFabric"
     ],
     "client": [
-      "com.zhenshiz.chatbox.fabric.client.Client"
+      "com.zhenshiz.chatbox.fabric.client.ClientFabric"
     ],
     "modmenu": [
       "com.zhenshiz.chatbox.ModMenuIntegration"

@@ -13,12 +13,12 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
     public final Type type;
 
     public static final Identifier
-    log         = ChatBox.id("textures/button/default_log.png"),
-    fast        = ChatBox.id("textures/button/default_fastforward.png"),
-    auto        = ChatBox.id("textures/button/default_autoplay.png"),
-    log_hover   = ChatBox.id("textures/button/default_hover_log.png"),
-    fast_hover  = ChatBox.id("textures/button/default_hover_fastforward.png"),
-    auto_hover  = ChatBox.id("textures/button/default_hover_autoplay.png");
+            log         = ChatBox.id("textures/button/default_log.png"),
+            fast        = ChatBox.id("textures/button/default_fastforward.png"),
+            auto        = ChatBox.id("textures/button/default_autoplay.png"),
+            log_hover   = ChatBox.id("textures/button/default_hover_log.png"),
+            fast_hover  = ChatBox.id("textures/button/default_hover_fastforward.png"),
+            auto_hover  = ChatBox.id("textures/button/default_hover_autoplay.png");
 
     public FunctionalButton(String type) {
         this.type = Type.of(type);

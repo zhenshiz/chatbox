@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
 import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -9,7 +10,6 @@ import net.minecraft.client.sounds.ChannelAccess;
 import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class SoundUtil {
 
     public static SoundEvent fromString(String sound) {
         if (StrUtil.isEmpty(sound)) sound = "";
-        return Holder.direct(SoundEvent.createVariableRangeEvent(Identifier.parse(sound))).value();
+        return Holder.direct(SoundEvent.createVariableRangeEvent(ChatBox.parseId(sound))).value();
     }
 
     public static void playSound(String sound, float volume, float pitch) {
@@ -34,7 +34,7 @@ public class SoundUtil {
 
     public static void stopSound(String sound) {
         if (StrUtil.isEmpty(sound)) return;
-        getSoundManager().stop(Identifier.parse(sound), null);
+        getSoundManager().stop(ChatBox.parseId(sound), null);
     }
 
     public static SoundManager getSoundManager() {return minecraft.getSoundManager();}

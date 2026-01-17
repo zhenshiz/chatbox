@@ -3,7 +3,6 @@ package com.zhenshiz.chatbox.data;
 import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.ChatOption;
-import com.zhenshiz.chatbox.component.ComponentEvent;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
@@ -25,17 +24,9 @@ public class ChatBoxDialogues {
     public Boolean isScreen;
     public float animationFPS = 60F;
     public int autoPlayTick = 20;
-
-    public static class RenderEvent {
-        public String trigger = "on_start";
-        public String type = "";
-        public String value = "";
-    }
-
-    public static List<ComponentEvent> transform(List<RenderEvent> renderEvents) {
-        if (CollUtil.isEmpty(renderEvents)) return List.of();
-        return renderEvents.stream().map(ComponentEvent::of).toList();
-    }
+    // =====仅服务端有效=====
+    public int maxTriggerCount = -1;
+    public JsonElement criteria;
 
     public static class Dialogues {
         public DialogBox dialogBox = new DialogBox();
@@ -47,7 +38,7 @@ public class ChatBoxDialogues {
         public Video video;
         public Boolean clearOldPortrait = true;
         public List<String> removePortrait;
-        public List<RenderEvent> renderEvents;
+        public List<ChatBoxTheme.RenderEvent> renderEvents;
 
         public List<Portrait<?>> setPortraitDialogues(List<Portrait<?>> portraitList) {
             if (clearOldPortrait) portraitList.clear();
@@ -82,8 +73,7 @@ public class ChatBoxDialogues {
                 }
             } else if (o instanceof ReplacePortrait rp) {
                 try {
-                    portrait = rp.replace(portraits.get(rp.id)).setPortraitTheme()
-                            .setId(rp.id).setEvents(transform(rp.renderEvents));
+                    portrait = rp.replace(portraits.get(rp.id)).setPortraitTheme().setId(rp.id);
                     if (rp.replace) portraitList.removeIf(p -> p.id.equals(rp.id));
                 } catch (Exception e) {
                     ChatBox.LOGGER.error("Portrait {} not found", rp.id);
@@ -95,12 +85,10 @@ public class ChatBoxDialogues {
         public static class DialogBox {
             public String name = "";
             public String text = "";
-            public List<RenderEvent> renderEvents;
 
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
                 return dialogBox.setName(this.name).setText(this.text)
-                        .setAllOver(false)
-                        .setEvents(transform(renderEvents));
+                        .setAllOver(false);
             }
         }
 
@@ -110,7 +98,6 @@ public class ChatBoxDialogues {
             }
             public String id;
             public boolean replace = false;
-            public List<RenderEvent> renderEvents;
 
             public ChatBoxTheme.Portrait replace(ChatBoxTheme.Portrait portrait) {
                 ChatBoxTheme.Portrait copy = new ChatBoxTheme.Portrait();
@@ -132,7 +119,6 @@ public class ChatBoxDialogues {
             public Boolean canControl = true;
             public Boolean canSkip = true;
             public Boolean loop = false;
-            public List<RenderEvent> renderEvents;
 
             public com.zhenshiz.chatbox.component.Video setVideo() {
                 if (!ChatBox.isWaterMediaLoaded()) return null;
@@ -143,8 +129,7 @@ public class ChatBoxDialogues {
                     ChatBox.LOGGER.error("video {} not found", path);
                     return null;
                 }
-                return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop)
-                        .of(this).setEvents(transform(renderEvents));
+                return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop).of(this);
             }
         }
 
@@ -167,10 +152,12 @@ public class ChatBoxDialogues {
             if (CollUtil.notEmpty(options)) for (Option option : this.options) {
                 ChatOption chatOption = ChatBoxUtil.chatBoxTheme.option.newOption().setOptionTooltip(option.tooltip)
                         .setOptionChat(option.text)
-                        .setIsLock(option.isLock)
-                        .setUnlockCommand(option.unlockCommand)
                         .setNext(option.next)
                         .setClickEvent(option.click.type, option.click.value);
+                if (option.unlockCommand != null && option.unlockCommand.startsWith("execute")) {
+                    if (option.isLock) chatOption.setIsLock(true);
+                    else chatOption.hideOption(true);
+                }
 
                 chatOptions.add(chatOption);
             }

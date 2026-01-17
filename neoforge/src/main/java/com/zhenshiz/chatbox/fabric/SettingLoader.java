@@ -24,8 +24,8 @@ public class SettingLoader {
 
     public static void initializeChatBoxScreen(ServerPlayer player) {
         //玩家进入以及重载数据包后，发包到客户端
-        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.AllChatBoxThemeToClient(cutString(ChatBoxThemeLoader.themeMap)));
-        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.AllChatBoxDialoguesToClient(cutString(ChatBoxDialoguesLoader.dialoguesMap)));
+        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.ChatBoxDataToClient("theme", cutString(ChatBoxThemeLoader.themeMap)));
+        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.ChatBoxDataToClient("dialogues", cutString(ChatBoxDialoguesLoader.dialoguesMap)));
     }
 
     //由于字符串长度的限制为32767，所以需要把字符串分割成多个字符串，然后再发送给客户端

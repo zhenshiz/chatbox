@@ -12,7 +12,7 @@ import org.lwjgl.glfw.GLFW;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
 @SuppressWarnings("unused")
-public class ChatBoxRenderCommon {
+public class ChatBoxRender {
     //是否打开了对话框，包括对话框渲染层和对话框界面
     public static boolean isOpenChatBox = false;
     //上次同步对话目标实体时间
@@ -89,7 +89,7 @@ public class ChatBoxRenderCommon {
         shouldRender = false;
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false; // 这行没必要
-        if (chatBoxScreen.video != null) chatBoxScreen.video.close();
+        chatBoxScreen.setVideo(null);
         ChatBoxUtil.onCloseDialogBox();
     }
 }

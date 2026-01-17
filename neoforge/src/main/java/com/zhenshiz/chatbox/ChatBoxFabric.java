@@ -1,9 +1,10 @@
 package com.zhenshiz.chatbox;
 
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
+import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.fabric.SettingLoader;
-import com.zhenshiz.chatbox.fabric.network.Network;
+import com.zhenshiz.chatbox.fabric.Network;
 import com.zhenshiz.chatbox.fabric.platform.FabricPlatformHelper;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -23,6 +24,10 @@ public class ChatBoxFabric implements ModInitializer {
             //只需要保存在主世界的data目录下即可
             if (world.dimension() == Level.OVERWORLD) ChatBox.setTriggerCounts(world.getDataStorage().computeIfAbsent(ChatBoxTriggerCount.getType()));
         });
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s, manager, bl) -> s.getPlayerList().getPlayers().forEach(SettingLoader::initializeChatBoxScreen));
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s, manager, bl) -> {
+            ChatBoxDialoguesLoader.loadCriteria(s);
+            s.getPlayerList().getPlayers().forEach(SettingLoader::initializeChatBoxScreen);
+        });
+        ServerLifecycleEvents.SERVER_STARTED.register(ChatBoxDialoguesLoader::loadCriteria);
     }
 }

@@ -48,7 +48,7 @@ public class ChatBoxCommandUtil {
     public static void serverSkipDialogues(ServerPlayer player, Identifier dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        ChatBox.PLATFORM.sendToClient(player, new ChatBoxPayload.OpenScreen(dialogues, group, index));
+        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues.toString(), group, String.valueOf(index)));
     }
 
     public static void serverSkipDialogues(ServerPlayer player, Identifier dialogues, String group, Entity... targets) {
@@ -134,6 +134,17 @@ public class ChatBoxCommandUtil {
         chatBoxScreen.addChatOptions(option);
     }
 
+    public static void serverSetChatOption(ServerPlayer player, int index, String text, String tip, Boolean lock, Boolean hide) {
+        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(String.valueOf(index), text, tip, String.valueOf(lock), String.valueOf(hide)));
+    }
+
+    public static void clientSetChatOption(int index, String text, String tip, boolean lock, boolean hide) {
+        var options = chatBoxScreen.chatOptions;
+        if (index < 0 || index >= options.size()) return;
+        var option = options.get(index);
+        option.setOptionChat(text).setOptionTooltip(tip).setIsLock(lock).hideOption(hide);
+    }
+
     public static void serverClearChatOption(ServerPlayer player) {
         simplePayloadS2C(player, CLEAR_CHAT_OPTION, "");
     }
@@ -142,21 +153,12 @@ public class ChatBoxCommandUtil {
         chatBoxScreen.chatOptions.clear();
     }
 
-    // 服务端并不能获取当前客户端的选项信息，故不提供服务端解锁以及隐藏选项的方法
-    public static void clientUnlockChatOption(int index) {
-        List<ChatOption> options = chatBoxScreen.chatOptions;
-        if (index < 0 || index >= options.size()) return;
-        options.get(index).setIsLock(false);
-    }
-
-    public static void clientHideChatOption(int index) {
-        List<ChatOption> options = chatBoxScreen.chatOptions;
-        if (index < 0 || index >= options.size()) return;
-        options.get(index).renderIndex = -1;
-    }
-
     public static void addPlaceholderResolver(String key, Function<Entity, String> resolver) {
-        addPropertyResolver(key, resolver);
+        PlaceholderUtil.addPropertyResolver(key, resolver);
+    }
+
+    public static String parseTargetPlaceholders(ServerPlayer player, String input) {
+        return PlaceholderUtil.parseTargetPlaceholders(serverGetChatTargets(player), input);
     }
 
     public static void simplePayloadS2C(ServerPlayer player, String name, String value) {

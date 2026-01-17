@@ -1,11 +1,11 @@
 package com.zhenshiz.chatbox.data;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
 
 import static com.zhenshiz.chatbox.component.AbstractComponent.getResponsiveHeight;
 import static com.zhenshiz.chatbox.component.AbstractComponent.getResponsiveWidth;
@@ -44,8 +44,8 @@ public class Attachment {
         var a = mapParameter();
         String type = this.type.toLowerCase();
         switch (type) {
-            case "texture" -> RenderUtil.renderImage(guiGraphics, Identifier.parse(value), ox + a.x, oy + a.y, 1, 1, a.width, a.height, RenderUtil.getColor(-1, opacity, brightness));
-            case "text" -> RenderUtil.drawStringAlign(guiGraphics, value, (int) (ox + a.x), (int) (oy + a.y), (int) (float) a.width, AbstractComponent.AlignX.of(textAlign), RenderUtil.getColor(textColor, opacity, brightness), lineBreak);
+            case "texture" -> RenderUtil.renderImage(guiGraphics, ChatBox.parseId(value), ox + a.x, oy + a.y, 1, 1, a.width, a.height, RenderUtil.getColor(-1, opacity, brightness));
+            case "text" -> RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(value), (int) (ox + a.x), (int) (oy + a.y), (int) (float) a.width, AbstractComponent.AlignX.of(textAlign), RenderUtil.getColor(textColor, opacity, brightness), lineBreak);
         }
     }
 }

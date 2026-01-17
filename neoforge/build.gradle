@@ -24,7 +24,7 @@ dependencies {
 
     compileOnly("com.terraformersmc:modmenu:18.0.0-alpha.3")
 
-    compileOnly("maven.modrinth:watermedia:2.1.25")
+    compileOnly("maven.modrinth:watermedia:${watermedia_version}")
 }
 
 neoForge {

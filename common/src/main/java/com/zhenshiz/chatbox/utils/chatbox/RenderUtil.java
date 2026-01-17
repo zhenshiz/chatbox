@@ -15,6 +15,7 @@ import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.AbstractTexture;
@@ -489,13 +490,11 @@ public class RenderUtil {
             int partStart = 0;
             for (var part : font.getSplitter().splitLines(Component.nullToEmpty(noRuby), lineWidth, Style.EMPTY)) {
                 String textPart = part.getString();
-                // 换行符在第一个字符时，跳过
-                if (noRuby.length() > partStart && noRuby.charAt(partStart) == '\n') partStart++;
                 RubyPart[] rubyFromTo = rubyFromTo(partStart, partStart + textPart.length());
                 drawStringAlign(guiGraphics, part, startX, renderY, lineWidth, alignX, color, rubyFromTo);
                 if (rubyFromTo.length > 0) renderY += 6;
                 renderY += font.lineHeight;
-                partStart += textPart.length();
+                partStart += textPart.length() + 1;
             }
         }
     }
@@ -503,7 +502,11 @@ public class RenderUtil {
     public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
 
     public static void renderTooltip(GuiGraphics guiGraphics, Component tooltip, int x, int y) {
-        guiGraphics.renderTooltip(minecraft.font, List.of(new ClientTextTooltip(tooltip.getVisualOrderText())), x, y, DefaultTooltipPositioner.INSTANCE, null);
+        renderTooltip(guiGraphics, List.of(tooltip), x, y);
+    }
+
+    public static void renderTooltip(GuiGraphics guiGraphics, List<Component> tooltips, int x, int y) {
+        guiGraphics.renderTooltip(minecraft.font, tooltips.stream().map(c -> (ClientTooltipComponent) new ClientTextTooltip(c.getVisualOrderText())).toList(), x, y, DefaultTooltipPositioner.INSTANCE, null);
     }
 
     //cursor
@@ -535,8 +538,10 @@ public class RenderUtil {
     public static int getColor(int color, float opacity, float brightness) {
         opacity = opacity / 100f;
         brightness = brightness / 100f;
-        int brightnessInt = ARGB.setBrightness(color, brightness);
-        return ARGB.color((int) (opacity * 255), ARGB.red(brightnessInt), ARGB.green(brightnessInt), ARGB.blue(brightnessInt));
+        int r = Math.clamp((int) (ARGB.red(color) * brightness), 0, 255);
+        int g = Math.clamp((int) (ARGB.green(color) * brightness), 0, 255);
+        int b = Math.clamp((int) (ARGB.blue(color) * brightness), 0, 255);
+        return ARGB.color((int) (opacity * 255), r, g, b);
     }
 
     //private

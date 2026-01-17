@@ -18,7 +18,7 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
-    compileOnly("maven.modrinth:watermedia:2.1.25")
+    compileOnly("maven.modrinth:watermedia:${watermedia_version}")
 }
 
 loom {
