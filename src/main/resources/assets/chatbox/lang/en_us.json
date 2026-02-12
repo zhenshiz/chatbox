@@ -10,6 +10,7 @@
   "chatbox.configuration.historical_scroll_speed": "The speed of the historical record interface scroll wheel",
   "chatbox.configuration.sound_interruption_enabled": "Whether to interrupt currently playing sound when no new sound is available",
   "chatbox.configuration.char_per_second": "Characters displayed per second",
+  "chatbox.configuration.portrait_width_percent": "Picture portrait width scale percentage",
   "chatbox.configuration.is_stop_terra_dialog": "Whether to block TerraNpc's dialogue system",
 
   "chatbox.key.right_click": "Confirm",

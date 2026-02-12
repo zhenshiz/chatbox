@@ -10,6 +10,7 @@
   "chatbox.configuration.historical_scroll_speed": "历史记录界面滚轮速度",
   "chatbox.configuration.sound_interruption_enabled": "下句话如果没有新音效，是否中断前面正在播放的音效",
   "chatbox.configuration.char_per_second": "每秒显示的字符数",
+  "chatbox.configuration.portrait_width_percent": "图片立绘宽度缩放百分比",
   "chatbox.configuration.is_stop_terra_dialog": "是否阻拦TerraNpc的对话系统",
 
   "chatbox.key.right_click": "确定",

@@ -88,14 +88,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
         return (T) this;
     }
 
-    public static float getResponsiveWidth(float value) {
-        return RenderUtil.screenWidth() * value / 100;
-    }
-
-    public static float getResponsiveHeight(float value) {
-        return RenderUtil.screenHeight() * value / 100;
-    }
-
     public T of(ChatBoxTheme.Component c) {
         return setPosition(c.x, c.y).setSize(c.width, c.height).setScale(c.scale).setAlign(c.alignX, c.alignY)
                 .setBrightness(c.brightness).setOpacity(c.opacity).setRenderOrder(c.renderOrder).setAngle(c.angle).setHidden(c.hidden).setEvents(c.getEvents());

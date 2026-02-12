@@ -38,6 +38,7 @@ public class ChatBoxTheme {
         public String hoverTexture;
         public String selectTexture; // 与hoverTexture作用相同，填一个就行
         public Integer itemCount;
+        public Integer customItemData;
         public String animation;
         public List<Keyframe> customAnimation;
         public Boolean loop;

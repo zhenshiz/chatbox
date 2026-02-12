@@ -14,6 +14,9 @@ public class Config {
     //每秒显示的字符数
     public static final ModConfigSpec.IntValue charPerSecond;
 
+    //图片类型立绘的宽度缩放比例，200表示是原本的两倍宽，50表示原本的一半宽
+    public static final ModConfigSpec.IntValue portraitWidthPercent;
+
     //是否阻拦TerraNpc的对话系统
     public static ModConfigSpec.BooleanValue isStopTerraDialog = null;
 
@@ -23,6 +26,7 @@ public class Config {
         historicalScrollSpeed = CONFIG_BUILDER.defineInRange("historical_scroll_speed", 10, 1, Integer.MAX_VALUE);
         soundInterruptionEnabled = CONFIG_BUILDER.define("sound_interruption_enabled", true);
         charPerSecond = CONFIG_BUILDER.defineInRange("char_per_second", 20, 1, Integer.MAX_VALUE);
+        portraitWidthPercent = CONFIG_BUILDER.defineInRange("portrait_width_percent", 100, 1, 200);
         if (ChatBox.isTerraEntityLoaded()) {
             isStopTerraDialog = CONFIG_BUILDER.define("is_stop_terra_dialog", false);
         }

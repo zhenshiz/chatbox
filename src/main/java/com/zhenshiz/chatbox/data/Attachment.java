@@ -2,13 +2,12 @@ package com.zhenshiz.chatbox.data;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
+import com.zhenshiz.chatbox.component.IPosition;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.gui.GuiGraphics;
-
-import static com.zhenshiz.chatbox.component.AbstractComponent.getResponsiveHeight;
-import static com.zhenshiz.chatbox.component.AbstractComponent.getResponsiveWidth;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,21 +21,22 @@ public class Attachment {
     public String textAlign = "left";
     public Integer textColor = -1;
     public Boolean lineBreak = false;
+    public Boolean parseText = true;
 
     public Attachment mapParameter() {
         return new Attachment(this.type, this.value,
-                getResponsiveWidth(this.x), getResponsiveHeight(this.y),
-                getResponsiveWidth(this.width), getResponsiveHeight(this.height),
-                this.textAlign, this.textColor, this.lineBreak
+                IPosition.calWidth(this.x), IPosition.calHeight(this.y),
+                IPosition.calWidth(this.width), IPosition.calHeight(this.height),
+                this.textAlign, this.textColor, this.lineBreak, this.parseText
         );
     }
 
     public static Attachment ofTexture(String texture, Float x, Float y, Float width, Float height) {
-        return new Attachment("texture", texture, x, y, width, height, "left", -1, false);
+        return new Attachment("texture", texture, x, y, width, height, "left", -1, false, true);
     }
 
-    public static Attachment ofText(String text, Float x, Float y, Float width, String textAlign, int color, boolean lineBreak) {
-        return new Attachment("text", text, x, y, width, 0f, textAlign, color, lineBreak);
+    public static Attachment ofText(String text, Float x, Float y, Float width, String textAlign, int color, boolean lineBreak, boolean parseText) {
+        return new Attachment("text", text, x, y, width, 0f, textAlign, color, lineBreak, parseText);
     }
 
     public void render(GuiGraphics guiGraphics, float ox, float oy) {
@@ -45,7 +45,10 @@ public class Attachment {
         String type = this.type.toLowerCase();
         switch (type) {
             case "texture" -> RenderUtil.renderImageInner(guiGraphics, ChatBox.parseId(value), ox + a.x, oy + a.y, 1, 1, a.width, a.height);
-            case "text" -> RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(value), (int) (ox + a.x), (int) (oy + a.y), (int) (float) a.width, AbstractComponent.AlignX.of(textAlign), textColor, lineBreak);
+            case "text" -> {
+                String text = parseText ? ChatBoxUtil.parseText(RenderUtil.translated(value), lineBreak) : value;
+                RenderUtil.drawStringAlign(guiGraphics, text, (int) (ox + a.x), (int) (oy + a.y), (int) (float) a.width, AbstractComponent.AlignX.of(textAlign), textColor, lineBreak);
+            }
         }
     }
 }

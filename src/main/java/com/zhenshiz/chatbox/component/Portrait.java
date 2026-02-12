@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.component;
 
+import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.data.Attachment;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.data.Keyframe;
@@ -7,8 +8,10 @@ import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
@@ -17,6 +20,7 @@ import java.util.List;
 public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     public Type type = Type.TEXTURE;
     public int itemCount = 1;
+    public Integer customItemData;
     //是否正在执行动画
     private boolean isAnimation = false;
     //是否循环播放动画
@@ -37,7 +41,7 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     public T ofPortrait(ChatBoxTheme.Portrait p) {
         return of(p).setType(p.type)
                 .setTexture(p.value).setTexture(p.texture).setHoverTexture(p.selectTexture).setHoverTexture(p.hoverTexture)
-                .setItemCount(p.itemCount).setAnimationType(p.animation).setKeyframes(p.customAnimation).setLoop(p.loop).setAttachments(p.attachment);
+                .setItemCount(p.itemCount).setCustomItemData(p.customItemData).setAnimationType(p.animation).setKeyframes(p.customAnimation).setLoop(p.loop).setAttachments(p.attachment);
     }
 
     public T setType(String type) {
@@ -47,6 +51,11 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
 
     public T setItemCount(Integer itemCount) {
         if (notNull(itemCount)) this.itemCount = itemCount;
+        return (T) this;
+    }
+
+    public T setCustomItemData(Integer customItemData) {
+        this.customItemData = customItemData;
         return (T) this;
     }
 
@@ -132,8 +141,9 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
 
     @Override
     public float realWidth() {
-        if (type == Type.PLAYER_HEAD) return getResponsiveWidth(width) + getResponsiveHeight(height);
+        if (type == Type.PLAYER_HEAD) return IPosition.calWidth(width) + IPosition.calHeight(height);
         if (type == Type.ITEM) return 16;
+        if (getClass().equals(Portrait.class)) return IPosition.calWidth(width) * Config.portraitWidthPercent.get() / 100.0F;
         return super.realWidth();
     }
     @Override
@@ -155,6 +165,7 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
             case ITEM -> {
                 var stack = notNull(texture) ?
                         new ItemStack(BuiltInRegistries.ITEM.get(texture), this.itemCount) : ItemStack.EMPTY;
+                if (customItemData != null) stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(customItemData));
                 RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderItem(guiGraphics, stack, (int) realX(), (int) realY(), this.scale, this.angle, this.attachments));
             }
         }
