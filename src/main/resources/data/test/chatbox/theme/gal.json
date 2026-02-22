@@ -34,6 +34,13 @@
       "hoverTexture": "coal",
       "itemCount": 64,
       "renderOrder": -10
+    },
+    "player": {
+      "type": "entity", "texture": "@s",
+      "alignX": "center", "alignY": "center",
+      "x": -30, "y": -4, "width": 80, "height": 120,
+      "yOffset": 0,
+      "stareAt": "point", "stareAtX": 50, "stareAtY": 50
     }
   },
   "option": {

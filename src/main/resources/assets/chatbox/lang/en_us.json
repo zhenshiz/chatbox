@@ -29,7 +29,7 @@
   "chatbox.test.text.3": "The dialog box has two modes.\n1. Screen Mode: Players can interact with the dialog using the mouse, but cannot perform other in-game actions.\n2. Render Layer Mode: <ruby 48 though many dialog interactions are unavailable>Players can perform most normal gameplay actions, making it more suitable for adventure scenarios.",
   "chatbox.test.text.4": "Each dialog line can trigger sound effects and execute commands.\nDialog text supports translation keys, formatting, and placeholders.\nExamples: §1Col§2or§3ed §4Text, §f§lBold, §oItalic§r. @@s refers to the current player's name: @s.",
   "chatbox.test.text.5": "Options support locking, hiding, dialog jumping, hover tooltips, and can also execute commands.",
-  "chatbox.test.text.6": "Illustrations come in three types, supporting render attachments, animations, and component render events.\nWhat are component render events? Try clicking the illustration in the bottom-left corner!",
+  "chatbox.test.text.6": "Illustrations come in 4 types, supporting render attachments, animations, and component render events.\nWhat are component render events? Try clicking the illustration in the bottom-left corner!",
   "chatbox.test.text.7": "As a dialog mod, it also includes auto-play, Ctrl to fast-forward, history log, and right-click to hide the dialog box.",
   "chatbox.test.text.8": "In Screen Mode, press F3 to enter debug mode. You can use this to visually adjust component properties.",
   "chatbox.test.text.9": "Additionally, this mod can play videos via watermedia;\nprovides events and methods for KubeJS for customization;\nand integrates with other mods...",

@@ -8,8 +8,10 @@ import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
 import org.apache.commons.lang3.ArrayUtils;
@@ -18,9 +20,6 @@ import java.util.List;
 
 @SuppressWarnings({"unchecked", "UnusedReturnValue"})
 public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
-    public Type type = Type.TEXTURE;
-    public int itemCount = 1;
-    public Integer customItemData;
     //是否正在执行动画
     private boolean isAnimation = false;
     //是否循环播放动画
@@ -38,25 +37,19 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     //渲染附件
     public Attachment[] attachments = new Attachment[0];
 
+    protected T ofCommon(ChatBoxTheme.Portrait p) {
+        return of(p).setTexture(p.value).setTexture(p.texture).setHoverTexture(p.selectTexture).setHoverTexture(p.hoverTexture)
+                .setAnimationType(p.animation).setKeyframes(p.customAnimation).setLoop(p.loop).setAttachments(p.attachment);
+    }
+
     public T ofPortrait(ChatBoxTheme.Portrait p) {
-        return of(p).setType(p.type)
-                .setTexture(p.value).setTexture(p.texture).setHoverTexture(p.selectTexture).setHoverTexture(p.hoverTexture)
-                .setItemCount(p.itemCount).setCustomItemData(p.customItemData).setAnimationType(p.animation).setKeyframes(p.customAnimation).setLoop(p.loop).setAttachments(p.attachment);
-    }
-
-    public T setType(String type) {
-        if (notNull(type)) this.type = Type.of(type);
-        return (T) this;
-    }
-
-    public T setItemCount(Integer itemCount) {
-        if (notNull(itemCount)) this.itemCount = itemCount;
-        return (T) this;
-    }
-
-    public T setCustomItemData(Integer customItemData) {
-        this.customItemData = customItemData;
-        return (T) this;
+        String type = notNull(p.type) ? p.type.toLowerCase() : "texture";
+        return switch (type) {
+            case "player_head" -> (T) new PlayerHead().ofCommon(p);
+            case "item" -> (T) new Item().ofCommon(p).ofItem(p);
+            case "entity" -> (T) new Entity().ofCommon(p).ofEntity(p);
+            default -> ofCommon(p);
+        };
     }
 
     public T setAnimationType(String animationType) {
@@ -141,34 +134,14 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
 
     @Override
     public float realWidth() {
-        if (type == Type.PLAYER_HEAD) return IPosition.calWidth(width) + IPosition.calHeight(height);
-        if (type == Type.ITEM) return 16;
         if (getClass().equals(Portrait.class)) return IPosition.calWidth(width) * Config.portraitWidthPercent.get() / 100.0F;
         return super.realWidth();
-    }
-    @Override
-    public float realHeight() {
-        if (type != Type.TEXTURE) return realWidth();
-        return super.realHeight();
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         renderInner(mouseX, mouseY);
-        var texture = isSelect ? getHoverTexture() : getTexture();
-        switch (type) {
-            case TEXTURE -> renderImage(guiGraphics, texture, this.attachments);
-            case PLAYER_HEAD -> {
-                var text = (value.isEmpty() && notNull(texture)) ? texture.getPath() : value;
-                RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(text), (int) realX(), (int) realY(), (int) realWidth(), this.scale, this.angle, this.attachments));
-            }
-            case ITEM -> {
-                var stack = notNull(texture) ?
-                        new ItemStack(BuiltInRegistries.ITEM.get(texture), this.itemCount) : ItemStack.EMPTY;
-                if (customItemData != null) stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(customItemData));
-                RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderItem(guiGraphics, stack, (int) realX(), (int) realY(), this.scale, this.angle, this.attachments));
-            }
-        }
+        renderImage(guiGraphics, isSelect ? getHoverTexture() : getTexture(), this.attachments);
     }
 
     //执行自定义动画
@@ -186,17 +159,88 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
         }
     }
 
-    public enum Type {
-        TEXTURE,
-        PLAYER_HEAD,
-        ITEM;
+    public static class PlayerHead extends Portrait<PlayerHead> {
+        @Override
+        public float realWidth() {return IPosition.calWidth(width) + IPosition.calHeight(height);}
+        @Override
+        public float realHeight() {return realWidth();}
 
-        public static Type of(String type) {
-            try {
-                return valueOf(type.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return TEXTURE;
+        @Override
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+            renderInner(mouseX, mouseY);
+            var texture = isSelect ? getHoverTexture() : getTexture();
+            var text = (value.isEmpty() && notNull(texture)) ? texture.getPath() : value;
+            RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(text), (int) realX(), (int) realY(), (int) realWidth(), this.scale, this.angle, this.attachments));
+        }
+    }
+
+    public static class Item extends Portrait<Item> {
+        public int itemCount = 1;
+        public Integer customItemData;
+
+        public float realWidth() {return 16;}
+        public float realHeight() {return 16;}
+
+        public Item ofItem(ChatBoxTheme.Portrait p) {
+            if (notNull(p.itemCount)) itemCount = p.itemCount;
+            if (notNull(p.customItemData)) customItemData = p.customItemData;
+            return this;
+        }
+
+        @Override
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+            renderInner(mouseX, mouseY);
+            var texture = isSelect ? getHoverTexture() : getTexture();
+            var stack = notNull(texture) ? new ItemStack(BuiltInRegistries.ITEM.get(texture), this.itemCount) : ItemStack.EMPTY;
+            if (customItemData != null) stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(customItemData));
+            RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderItem(guiGraphics, stack, (int) realX(), (int) realY(), this.scale, this.angle, this.attachments));
+        }
+    }
+
+    public static class Entity extends Portrait<Entity> {
+        public float yOffset = 0;
+        public String stareAt = "point";
+        public Float stareAtX;
+        public Float stareAtY;
+
+        public Entity ofEntity(ChatBoxTheme.Portrait p) {
+            String target = notNull(p.value) ? p.value : p.texture;
+            if (notNull(target)) value = target;
+            if (notNull(p.yOffset)) yOffset = p.yOffset;
+            if (notNull(p.stareAt)) stareAt = p.stareAt;
+            if (notNull(p.stareAtX)) stareAtX = p.stareAtX;
+            if (notNull(p.stareAtY)) stareAtY = p.stareAtY;
+            return this;
+        }
+
+        public float realWidth() {return width;}
+        public float realHeight() {return height;}
+
+        @Override
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+            renderInner(mouseX, mouseY);
+            String e = value.toLowerCase();
+            if (e.isEmpty()) return;
+            LivingEntity entity = null;
+            if (e.equals("@s")) entity = minecraft.player;
+            if (e.startsWith("target")) {
+                try {
+                    int index = e.length() == 6 ? 0 : Integer.parseInt(e.substring(6)) - 1;
+                    entity = (LivingEntity) ChatBoxUtil.chatTargets.get(index);
+                } catch (Exception exc) {
+                    return; // 每帧都渲染就不输出错误信息了，防止污染日志
+                }
             }
+            if (entity == null) return;
+            float stareX, stareY;
+            if (stareAt.equalsIgnoreCase("mouse") && ChatBoxUtil.isScreen) {
+                stareX = mouseX; stareY = mouseY;
+            } else if (stareAt.equalsIgnoreCase("point") && notNull(stareAtX) && notNull(stareAtY)) {
+                stareX = IPosition.calWidth(stareAtX); stareY = IPosition.calHeight(stareAtY);
+            } else {
+                stareX = (float) (x1() + x2()) / 2; stareY = (float) (y1() + y2()) / 2;
+            }
+            InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, x1(), y1(), x2(), y2(), (int) (55 * scale), yOffset, stareX, stareY, entity);
         }
     }
 }
