@@ -42,17 +42,17 @@ public class ChatOption extends Portrait<ChatOption> {
     }
 
     public ChatOption setOptionChat(String optionChat) {
-        if (notNull(optionChat)) this.optionChat = RenderUtil.translated(optionChat);
+        if (notNull(optionChat)) this.optionChat = optionChat;
         return this;
     }
 
     public ChatOption setOptionTooltip(String optionTooltip) {
-        if (notNull(optionTooltip)) this.optionTooltip = RenderUtil.translated(optionTooltip);
+        if (notNull(optionTooltip)) this.optionTooltip = parseText(RenderUtil.translated(optionTooltip));
         return this;
     }
 
     public ChatOption setClickEvent(String type, String value) {
-        if (notNull(type) && !type.equals("JUMP")) addEvent("ON_CLICK", type, value);
+        if (notNull(type) && !type.equalsIgnoreCase("JUMP")) addEvent("ON_CLICK", type, value);
         return this;
     }
 
@@ -123,11 +123,11 @@ public class ChatOption extends Portrait<ChatOption> {
         }
 
         //render image
-        renderImage(guiGraphics, texture, addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false)));
+        renderImage(guiGraphics, texture, addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false, true)));
 
         //render tooltip
         if (!this.optionTooltip.isEmpty() && isSelect) {
-            guiGraphics.renderTooltip(minecraft.font, Component.nullToEmpty(this.optionTooltip), (int) realX(), (int) realY());
+            guiGraphics.renderTooltip(minecraft.font, Component.literal(parseText(optionTooltip)), (int) realX(), (int) realY());
         }
     }
 }

@@ -55,7 +55,7 @@ public class DialogBox extends Portrait<DialogBox> {
     }
 
     public DialogBox setName(String name) {
-        if (name != null) this.name = RenderUtil.translated(name);
+        if (name != null) this.name = name;
         return this;
     }
 
@@ -150,8 +150,8 @@ public class DialogBox extends Portrait<DialogBox> {
         renderInner(mouseX, mouseY);
         //chatBox image
         renderImage(guiGraphics, isSelect ? getHoverTexture() : getTexture(), addTempAttachment(
-                Attachment.ofText(parseText(this.name), this.nameX, this.nameY, this.lineWidth, this.textAlign.name(), -1, false),
-                Attachment.ofText(subString(parseText(this.text), charIndex), this.textX, this.textY, this.lineWidth, this.textAlign.name(), -1, true)
+                Attachment.ofText(this.name, this.nameX, this.nameY, this.lineWidth, this.textAlign.name(), -1, false, true),
+                Attachment.ofText(subString(parseText(this.text), charIndex), this.textX, this.textY, this.lineWidth, this.textAlign.name(), -1, true, false)
         ));
     }
 }

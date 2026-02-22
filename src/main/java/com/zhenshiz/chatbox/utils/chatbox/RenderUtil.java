@@ -15,6 +15,9 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import com.mojang.blaze3d.platform.Lighting;
+import org.joml.Vector3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
@@ -344,4 +347,55 @@ public class RenderUtil {
         return DefaultPlayerSkin.getDefaultSkin(Objects.requireNonNull(minecraft.getUser().getProfileId()));
     }
     *///?}
+
+    public static void renderEntityFollowsMouse(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int scale, float yOffset, float mouseX, float mouseY, LivingEntity entity) {
+        float f = (float)(x1 + x2) / 2.0F;
+        float g = (float)(y1 + y2) / 2.0F;
+        guiGraphics.enableScissor(x1, y1, x2, y2);
+        float h = (float)Math.atan((f - mouseX) / 40.0F);
+        float i = (float)Math.atan((g - mouseY) / 40.0F);
+        Quaternionf quaternionf = new Quaternionf().rotateZ((float)Math.PI);
+        Quaternionf quaternionf2 = new Quaternionf().rotateX(i * 20.0F * ((float)Math.PI / 180F));
+        quaternionf.mul(quaternionf2);
+        float j = entity.yBodyRot;
+        float k = entity.getYRot();
+        float l = entity.getXRot();
+        float m = entity.yHeadRotO;
+        float n = entity.yHeadRot;
+        entity.yBodyRot = 180.0F + h * 20.0F;
+        entity.setYRot(180.0F + h * 40.0F);
+        entity.setXRot(-i * 20.0F);
+        entity.yHeadRot = entity.getYRot();
+        entity.yHeadRotO = entity.getYRot();
+        float o = entity.getScale();
+        Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset * o, 0.0F);
+        float p = (float)scale / o;
+        renderEntity(guiGraphics, f, g, p, vector3f, quaternionf, quaternionf2, entity);
+        entity.yBodyRot = j;
+        entity.setYRot(k);
+        entity.setXRot(l);
+        entity.yHeadRotO = m;
+        entity.yHeadRot = n;
+        guiGraphics.disableScissor();
+    }
+
+    public static void renderEntity(GuiGraphics guiGraphics, float x, float y, float scale, Vector3f translate, Quaternionf pose, Quaternionf cameraOrientation, LivingEntity entity) {
+        PoseStack poseStack = guiGraphics.pose();
+        poseStack.pushPose();
+        poseStack.translate(x, y, (double)50.0F);
+        poseStack.scale(scale, scale, -scale);
+        poseStack.translate(translate.x, translate.y, translate.z);
+        poseStack.mulPose(pose);
+        Lighting.setupForEntityInInventory();
+        var dispatcher = minecraft.getEntityRenderDispatcher();
+        if (cameraOrientation != null) {
+            dispatcher.overrideCameraOrientation(cameraOrientation.conjugate().rotateY((float)Math.PI));
+        }
+        dispatcher.setRenderShadow(false);
+        dispatcher.render(entity, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, poseStack, guiGraphics.bufferSource(), 15728880);
+        guiGraphics.flush();
+        dispatcher.setRenderShadow(true);
+        poseStack.popPose();
+        Lighting.setupFor3DItems();
+    }
 }

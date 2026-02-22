@@ -7,19 +7,15 @@ public interface IPosition {
     static float calWidth(float  value) {return RenderUtil.screenWidth()  * value / 100;}
     static float calHeight(float value) {return RenderUtil.screenHeight() * value / 100;}
 
-    /**@return 屏幕长度百分比x坐标。*/
-    float xPos();
-    /**@return 屏幕宽度百分比y坐标。*/
-    float yPos();
     /**@return 屏幕长度百分比宽度。*/
     float getWidth();
     /**@return 屏幕宽度百分比高度。*/
     float getHeight();
 
     /**@return 未进行变换时的实际x坐标。*/
-    default float realX() {return calWidth(xPos());}
+    float realX();
     /**@return 未进行变换时的实际y坐标。*/
-    default float realY() {return calHeight(yPos());}
+    float realY();
     /**@return 未进行变换时的实际宽度。*/
     default float realWidth() {return calWidth(getWidth());}
     /**@return 未进行变换时的实际高度。*/

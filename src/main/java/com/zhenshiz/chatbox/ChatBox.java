@@ -27,13 +27,12 @@ import com.zhenshiz.chatbox.compat.terraentity.TerraEntityShop;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.common.Mod;
 *///?}
 
@@ -81,10 +80,10 @@ public class ChatBox/*? fabric {*/ implements ModInitializer/*?}*/ {
         MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
         MinecraftForge.EVENT_BUS.addListener(this::onWorldLoad);
 
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> {
+        if (FMLEnvironment.dist.isClient()) {
             ChatBoxClient.init();
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> new ConfigScreenHandler.ConfigScreenFactory((client, parent) -> AutoConfig.getConfigScreen(Config.class, parent).get()));
-        });
+        }
     }
 
     private void onRegisterCommands(RegisterCommandsEvent event) {

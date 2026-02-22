@@ -55,8 +55,8 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
                 String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
                 String keyF6 = Component.translatable("chatbox.key.f6").getString();
 
-                float x = xPos();
-                float y = yPos();
+                float x = realX();
+                float y = realY();
 
                 //right scroll
                 RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, mouse_right), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, 0f);

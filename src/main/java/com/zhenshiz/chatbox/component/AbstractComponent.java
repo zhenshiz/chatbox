@@ -88,14 +88,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
         return (T) this;
     }
 
-    public static float getResponsiveWidth(float value) {
-        return RenderUtil.screenWidth() * value / 100;
-    }
-
-    public static float getResponsiveHeight(float value) {
-        return RenderUtil.screenHeight() * value / 100;
-    }
-
     public T of(ChatBoxTheme.Component c) {
         return setPosition(c.x, c.y).setSize(c.width, c.height).setScale(c.scale).setAlign(c.alignX, c.alignY)
                 .setBrightness(c.brightness).setOpacity(c.opacity).setRenderOrder(c.renderOrder).setAngle(c.angle).setHidden(c.hidden)
@@ -120,8 +112,24 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
         return (T) this;
     }
 
-    public float xPos() {return alignX.getPositionX(this);}
-    public float yPos() {return alignY.getPositionY(this);}
+    @Override
+    public float realX() {
+        float w = IPosition.calWidth(x);
+        return switch (alignX) {
+            case LEFT -> w;
+            case CENTER -> w + (RenderUtil.screenWidth() - realWidth()) / 2;
+            case RIGHT -> w + RenderUtil.screenWidth() - realWidth();
+        };
+    }
+    @Override
+    public float realY() {
+        float h = IPosition.calHeight(y);
+        return switch (alignY) {
+            case TOP -> h;
+            case CENTER -> h + (RenderUtil.screenHeight() - realHeight()) / 2;
+            case BOTTOM -> h + RenderUtil.screenHeight() - realHeight();
+        };
+    }
 
     public T setBrightness(Float brightness) {
         if (checkSize(brightness)) this.brightness = brightness;
@@ -227,16 +235,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
         public static AlignX of(String value) {
             return valueOf(value.toUpperCase());
         }
-
-        public float getPositionX(AbstractComponent<?> abstractComponent) {
-            float x = abstractComponent.x;
-            float width = abstractComponent.width;
-            return switch (abstractComponent.alignX) {
-                case LEFT -> x;
-                case CENTER -> x + 50 - width / 2;
-                case RIGHT -> x + 100 - width;
-            };
-        }
     }
 
     public enum AlignY {
@@ -246,16 +244,6 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
 
         public static AlignY of(String value) {
             return valueOf(value.toUpperCase());
-        }
-
-        public float getPositionY(AbstractComponent<?> abstractComponent) {
-            float y = abstractComponent.y;
-            float height = abstractComponent.height;
-            return switch (abstractComponent.alignY) {
-                case TOP -> y;
-                case CENTER -> y + 50 - height / 2;
-                case BOTTOM -> y + 100 - height;
-            };
         }
     }
 }

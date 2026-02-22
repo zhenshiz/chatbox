@@ -43,6 +43,11 @@ public class ChatBoxTheme {
         public List<Keyframe> customAnimation;
         public Boolean loop;
         public Attachment[] attachment;
+        /*=====以下是实体渲染相关参数=====*/
+        public Float yOffset;
+        public String stareAt;
+        public Float stareAtX;
+        public Float stareAtY;
 
         public com.zhenshiz.chatbox.component.Portrait<?> setPortraitTheme() {
             return new com.zhenshiz.chatbox.component.Portrait<>().ofPortrait(this);
