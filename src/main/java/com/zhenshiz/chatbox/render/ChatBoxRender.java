@@ -40,13 +40,13 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderTick(ClientTickEvent.Post event) {
-        if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
         // 客户端每5 tick请求同步对话目标实体
         if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
             SimplePayload.simplePayloadC2S(SimplePayload.REQUEST_SYNC, "");
         }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
+            if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
         }
     }
 

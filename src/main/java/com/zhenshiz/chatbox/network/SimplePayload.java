@@ -1,11 +1,13 @@
 package com.zhenshiz.chatbox.network;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.component.ComponentEvent;
+import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
+import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,6 +39,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
 
     public static final String REQUEST_SYNC         = "request_sync";
     public static final String SKIP_CHAT_C2S        = "skip_chat_c2s";
+    public static final String TEST_CONDITION       = "test_condition";
 
     public static final String SKIP_CHAT_S2C        = "skip_chat_s2c";
     public static final String OPEN_DIALOG          = "open_dialog";
@@ -48,6 +51,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     public static final String ADD_CHAT_OPTION      = "add_chat_option";
     public static final String SET_CHAT_OPTION      = "set_chat_option";
     public static final String CLEAR_CHAT_OPTION    = "clear_chat_option";
+    public static final String MVEL_TEST            = "mvel_test";
 
     private static final Map<String, Consumer<String>> handlersS2C = new HashMap<>();
 
@@ -97,6 +101,15 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             if (parsed.length != 3) return;
             onPlayerSkipChat(player, ChatBox.parseId(parsed[0]), parsed[1], Integer.parseInt(parsed[2]));
         });
+        addHandlerC2S(TEST_CONDITION, (player, s) -> {
+            String[] parsed = StrUtil.parse(s);
+            if (parsed.length == 1) MVELUtil.eval(player, parsed[0], null);
+            else if (parsed.length != 3) return;
+            String condition = parsed[0];
+            if (condition.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, condition) == 1 ||
+                    condition.startsWith("server:") && MVELUtil.eval(player, condition, null) instanceof Boolean b && b)
+                simplePayloadS2C(player, TEST_CONDITION, StrUtil.merge(parsed[1], parsed[2]));
+        });
 
         addHandlerS2C(SKIP_CHAT_S2C, s -> {
             String[] parsed = StrUtil.parse(s);
@@ -121,9 +134,13 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         addHandlerS2C(SET_CHAT_OPTION, s -> {
             String[] parts = StrUtil.parse(s);
             if (parts.length != 5) return;
-            clientSetChatOption(Integer.parseInt(parts[0]), parts[1], parts[2], Boolean.parseBoolean(parts[3]), Boolean.parseBoolean(parts[4]));
+            Boolean isLock = parts[3].equals("null") ? null : Boolean.parseBoolean(parts[3]);
+            Boolean hidden = parts[4].equals("null") ? null : Boolean.parseBoolean(parts[4]);
+            clientSetChatOption(Integer.parseInt(parts[0]), parts[1], parts[2], isLock, hidden);
         });
         addHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
+        addHandlerS2C(MVEL_TEST, s -> MVELUtil.commandTest(ChatBoxUtil.minecraft.player, s));
+        addHandlerS2C(TEST_CONDITION, s -> ChatBoxUtil.chatBoxScreen.executeEvent(s));
     }
 
     private static void onPlayerSkipChat(ServerPlayer player, ResourceLocation rl, String group, int index) {
@@ -133,7 +150,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
 
             var options = dialog.options;
             if (options != null) for (var option : options) {
-                String parsedText = null; String parsedTip = null; Boolean bl = null;
+                String parsedText = null; String parsedTip = null;
                 var text = option.text;
                 if (text != null && !text.isEmpty()) {
                     parsedText = parsePlaceholders(player, text);
@@ -144,10 +161,8 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
                     parsedTip = parsePlaceholders(player, tip);
                     if (parsedTip.equals(tip)) parsedTip = null;
                 }
-                var unlockCommand = option.unlockCommand; // 解锁命令测试通过后，取消锁定和隐藏
-                if (unlockCommand != null && unlockCommand.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, unlockCommand) == 1) bl = false;
-                if (parsedText != null || parsedTip != null || bl != null)
-                    serverSetChatOption(player, options.indexOf(option), parsedText, parsedTip, bl, bl);
+                if (parsedText != null || parsedTip != null)
+                    serverSetChatOption(player, options.indexOf(option), parsedText, parsedTip, null, null);
             }
 
             var dialogBox = dialog.dialogBox;

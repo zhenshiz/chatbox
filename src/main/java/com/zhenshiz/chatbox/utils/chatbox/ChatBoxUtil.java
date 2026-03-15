@@ -7,7 +7,7 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
-import com.zhenshiz.chatbox.data.Keyframe;
+import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -16,6 +16,7 @@ import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -23,10 +24,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.common.NeoForge;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ChatBoxUtil {
-    private static final Minecraft minecraft = Minecraft.getInstance();
+    public static final Minecraft minecraft = Minecraft.getInstance();
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //所有的对话框主题
     public static final Map<ResourceLocation, ChatBoxTheme> themeMap = new HashMap<>();
@@ -88,8 +92,7 @@ public class ChatBoxUtil {
         List<Portrait<?>> portraits = chatBoxScreen.portraits;
         List<ChatBoxDialogues.Dialogues> dialogues = dialoguesMap.get(newRl).dialogues.get(newGroup);
         // 如果恰好是下一句对话，直接设置
-        if (dialoguesResourceLocation != null && group != null && index != null &&
-                newRl == dialoguesResourceLocation && Objects.equals(newGroup, group) && newIndex == index + 1) {
+        if (newRl.equals(dialoguesResourceLocation) && newGroup.equals(group) && index != null && newIndex == index + 1) {
             return dialogues.get(newIndex).setPortraitDialogues(portraits);
         }
         // 否则，从当前对话开始，往前找到第一个需要清除旧立绘的对话，记录下索引。（新索引等于旧索引也如此）
@@ -144,7 +147,7 @@ public class ChatBoxUtil {
             historicalDialogue.historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
 
             NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
-            SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, String.valueOf(index)));
+            SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, index));
 
             ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {
@@ -174,7 +177,7 @@ public class ChatBoxUtil {
     public static void onCloseDialogBox() {
         if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
         NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets));
-        SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation.toString(), group, "-1"));
+        SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, "-1"));
     }
 
     //切换对话框主题
@@ -214,17 +217,13 @@ public class ChatBoxUtil {
 
     //解析文本
     public static String parseText(String input, boolean isLineBreak) {
-        if (minecraft.player != null) {
-            // @s 替换成当前玩家id
-            input = input.replaceAll("(?<!@)@s", Objects.requireNonNull(minecraft.player.getDisplayName()).getString());
+        // @s 替换成当前玩家id
+        if (minecraft.player != null) input = input.replaceAll("(?<!@)@s", minecraft.player.getDisplayName().getString());
 
-            input = PlaceholderUtil.parseTargetPlaceholders(chatTargets, input);
+        input = MVELUtil.parseTargetPlaceholders(minecraft.player, input);
 
-            if (!isLineBreak) input = input.replaceAll("\n", "");
-
-            // 将@@ 替换为 @
-            return input.replaceAll("@@", "@");
-        }
-        return input;
+        if (!isLineBreak) input = input.replaceAll("\n", "");
+        // 将@@ 替换为 @
+        return input.replaceAll("@@", "@");
     }
 }

@@ -1,7 +1,10 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.data.Attachment;
+import com.zhenshiz.chatbox.component.data.CompEvtWrapper;
+import com.zhenshiz.chatbox.component.data.ComponentEvent;
+import com.zhenshiz.chatbox.component.data.IPosition;
+import com.zhenshiz.chatbox.component.data.Attachment;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -13,7 +16,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,22 +48,35 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     //组件的纹理集
     public static final String ROOT = "root";
     public static final String HOVER = "hover";
-    public Map<String, ResourceLocation> textures = new HashMap<>();
-    public String value = ""; //防止解析ResourceLocation出错，存储原始字符串
-    // 组件id，即主题文件中定义的组件标识，用于移除组件等操作
+    public static final String LOCK = "lock";
+    public Map<String, String> textures = new HashMap<>();
+    @Getter // 组件id，即主题文件中定义的组件标识，用于移除组件等操作
     public String id = "";
 
     // 是否隐藏，被隐藏的组件不会被渲染，不会触发事件；选项被指令隐藏的逻辑不由这个值控制，右键隐藏部分组件也不由这个值控制
     public boolean hidden = false;
+    //是否上锁
+    public boolean isLock = false;
     // 是否被鼠标选中，用于触发被选中时的事件
     public boolean isSelect = false;
     // 是否渲染已开始，用于触发渲染开始时的事件
     protected boolean renderStarted = false;
-    public List<ComponentEvent> events = new ArrayList<>();
+    public CompEvtWrapper events = new CompEvtWrapper();
 
     public T setHidden(Boolean hidden) {
         if (notNull(hidden)) this.hidden = hidden;
         return (T) this;
+    }
+
+    public T setIsLock(Boolean isLock) {
+        if (notNull(isLock)) this.isLock = isLock;
+        return (T) this;
+    }
+
+    /**取消锁定和隐藏状态，选项做了特殊处理*/
+    public T setNormal() {
+        if (this instanceof ChatOption option) option.hideOption(false); else setHidden(false);
+        return setIsLock(false);
     }
 
     public T setIsSelect(boolean isSelect) {
@@ -70,21 +85,18 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     }
 
     public T setEvents(List<ComponentEvent> events) {
-        this.events.clear();
-        for (ComponentEvent event : events) {
-            event.setComponent(this);
-            this.events.add(event);
-        }
+        this.events.set(events, this);
         return (T) this;
     }
 
     public int fireEvent(String trigger) {
-        if (hidden) return 0;
-        return ComponentEvent.fireAll(events, trigger);
+        //如果组件被隐藏或者上锁，并且事件是点击事件，则不触发事件
+        if ((hidden || isLock) && trigger.toUpperCase().contains("CLICK")) return 0;
+        return events.fireAll(trigger);
     }
 
     public T addEvent(String trigger, String type, String target) {
-        this.events.add(ComponentEvent.of(trigger, type, target, this));
+        this.events.add(trigger, type, target, this);
         return (T) this;
     }
 
@@ -156,25 +168,28 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     }
 
     public T setTexture(String name, String texture) {
-        if (notNull(name) && notNull(texture)) {
-            try {
-                this.textures.put(name, ChatBox.parseId(texture));
-            } catch (Exception e) {
-                this.value = texture;
-            }
-        }
+        if (notNull(name) && notNull(texture)) this.textures.put(name, texture);
         return (T) this;
     }
-    @Nullable
-    public ResourceLocation getTexture(String name) {return textures.get(name);}
+    public @Nullable String getTexture(String name) {return textures.get(name);}
 
     public T setTexture(String texture) {return setTexture(ROOT, texture);}
-    @Nullable
-    public ResourceLocation getTexture() {return getTexture(ROOT);}
+    public @Nullable String getTexture() {return getTexture(ROOT);}
 
     public T setHoverTexture(String texture) {return setTexture(HOVER, texture);}
-    @Nullable
-    public ResourceLocation getHoverTexture() {return textures.getOrDefault(HOVER, getTexture());}
+    public @Nullable String getHoverTexture() {return textures.getOrDefault(HOVER, getTexture());}
+
+    public T setLockTexture(String texture) {return setTexture(LOCK, texture);}
+    public @Nullable String getLockTexture() {return textures.getOrDefault(LOCK, getTexture());}
+
+    /**组件当前应显示的纹理，锁定的优先级最高*/
+    public @Nullable String getRenderTexture() {
+        return isLock ? getLockTexture() : isSelect ? getHoverTexture() : getTexture();
+    }
+    public @Nullable ResourceLocation getRenderResource() {
+        String texture = getRenderTexture();
+        return notNull(texture) ? ChatBox.parseId(texture) : null;
+    }
 
     public T setId(String id) {
         if (notNull(id)) this.id = id;
@@ -199,7 +214,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
                 StrUtil.format("\"width\": {}, \"height\": {}", width, height),
                 StrUtil.format("\"scale\": {}, \"angle\": {}", scale, angle),
                 StrUtil.format("\"brightness\": {}, \"opacity\": {}", brightness, opacity),
-                StrUtil.format("\"renderOrder\": {}, \"id\": {}", renderOrder, id)
+                StrUtil.format("\"renderOrder\": {}, \"id\": {}", renderOrder, getId())
         };
     }
 

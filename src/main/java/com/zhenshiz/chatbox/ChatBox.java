@@ -5,9 +5,10 @@ import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ICommand;
 import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.compat.terraentity.TerraEntityShop;
-import com.zhenshiz.chatbox.component.ComponentEvent;
+import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
@@ -43,6 +44,7 @@ public class ChatBox {
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
         ChatBoxTriggerCount.ATTACHMENT_TYPES.register(modEventBus);
         ComponentEvent.registerDefaultEvents();
+        MVELUtil.init();
         if (isTerraEntityLoaded()) TerraEntityShop.register();
 
         if (dist == Dist.CLIENT) {

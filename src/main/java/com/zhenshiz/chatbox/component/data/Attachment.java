@@ -1,8 +1,7 @@
-package com.zhenshiz.chatbox.data;
+package com.zhenshiz.chatbox.component.data;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
-import com.zhenshiz.chatbox.component.IPosition;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import lombok.AllArgsConstructor;

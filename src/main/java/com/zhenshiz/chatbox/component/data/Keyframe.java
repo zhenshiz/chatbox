@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.data;
+package com.zhenshiz.chatbox.component.data;
 
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.utils.math.EasingUtil;
@@ -81,7 +81,8 @@ public class Keyframe {
         Float angle = applyProgress(start.angle, this.angle, progress);
         portrait.setPosition(x, y).setScale(scale).setBrightness(brightness).setOpacity(opacity).setAngle(angle);
         if (time >= this.time) {
-            portrait.setTexture(texture).setAttachments(attachment)
+            if (attachment != null && attachment.length > 0) portrait.setAttachments(attachment);
+            portrait.setTexture(texture)
                     .setStart(portrait.x, portrait.y, portrait.scale, portrait.brightness, portrait.opacity, portrait.angle);
             portrait.nextKeyframe();
         }
