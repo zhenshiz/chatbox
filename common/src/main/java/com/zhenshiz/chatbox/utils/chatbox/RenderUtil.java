@@ -1,23 +1,24 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.zhenshiz.chatbox.component.AbstractComponent;
-import com.zhenshiz.chatbox.data.Attachment;
+import com.zhenshiz.chatbox.component.data.Attachment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.locale.Language;
@@ -56,14 +57,13 @@ public class RenderUtil {
     public static final RenderPipeline QUADS = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation("pipeline/global_fill_pipeline")
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
-            .withBlend(BlendFunction.TRANSLUCENT)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withCull(false)
-            .withDepthWrite(false)
-            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withDepthStencilState(DepthStencilState.DEFAULT)
             .build();
 
-    private static void submitSimpleGuiElement(GuiGraphics guiGraphics, Consumer<VertexConsumer> builder, @Nullable ScreenRectangle bounds) {
-        guiGraphics.guiRenderState.submitGuiElement(new GuiElementRenderState() {
+    private static void submitSimpleGuiElement(GuiGraphicsExtractor guiGraphics, Consumer<VertexConsumer> builder, @Nullable ScreenRectangle bounds) {
+        guiGraphics.guiRenderState.addGuiElement(new GuiElementRenderState() {
             public void buildVertices(@NotNull VertexConsumer consumer) {builder.accept(consumer);}
             public @NotNull RenderPipeline pipeline() {return QUADS;}
             public @NotNull TextureSetup textureSetup() {return TextureSetup.noTexture();}
@@ -75,13 +75,13 @@ public class RenderUtil {
     //fill
 
     //矩形
-    public static void fillRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
+    public static void fillRect(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int color) {
         guiGraphics.fill(x, y, x + w, y + h, color);
     }
 
     //todo 凡是没有使用的方法，都是没有修好的，勿用（真用到了再修）
     //圆弧
-    public static void fillArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
+    public static void fillArc(GuiGraphicsExtractor guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
         submitSimpleGuiElement(guiGraphics, consumer -> {
             Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
             consumer.addVertexWith2DPose(pose, (float) cX, (float) cY).setColor(color);
@@ -96,12 +96,12 @@ public class RenderUtil {
     }
 
     //圆
-    public static void fillCircle(GuiGraphics guiGraphics, int cX, int cY, int radius, int color) {
+    public static void fillCircle(GuiGraphicsExtractor guiGraphics, int cX, int cY, int radius, int color) {
         fillArc(guiGraphics, cX, cY, radius, 0, 360, color);
     }
 
     //环形扇区
-    public static void fillAnnulusArc(GuiGraphics guiGraphics, int cx, int cy, int radius, int start, int end, int thickness, int color) {
+    public static void fillAnnulusArc(GuiGraphicsExtractor guiGraphics, int cx, int cy, int radius, int start, int end, int thickness, int color) {
         submitSimpleGuiElement(guiGraphics, consumer -> {
             Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
             for (int i = start - 90; i <= end - 90; i++) {
@@ -119,12 +119,12 @@ public class RenderUtil {
     }
 
     //环形圆
-    public static void fillAnnulus(GuiGraphics guiGraphics, int cx, int cy, int radius, int thickness, int color) {
+    public static void fillAnnulus(GuiGraphicsExtractor guiGraphics, int cx, int cy, int radius, int thickness, int color) {
         fillAnnulusArc(guiGraphics, cx, cy, radius, 0, 360, thickness, color);
     }
 
     //实心圆角矩形
-    public static void fillRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
+    public static void fillRoundRect(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
         submitSimpleGuiElement(guiGraphics, consumer -> {
@@ -155,7 +155,7 @@ public class RenderUtil {
     }
 
     //圆角阴影边框
-    public static void fillRoundShadow(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int thickness, int innerColor, int outerColor) {
+    public static void fillRoundShadow(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int r, int thickness, int innerColor, int outerColor) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
         submitSimpleGuiElement(guiGraphics, consumer -> {
@@ -188,7 +188,7 @@ public class RenderUtil {
     }
 
     //上圆角矩形
-    public static void fillRoundTabTop(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
+    public static void fillRoundTabTop(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
         submitSimpleGuiElement(guiGraphics, consumer -> {
@@ -219,7 +219,7 @@ public class RenderUtil {
     }
 
     //下圆角矩形
-    public static void fillRoundTabBottom(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
+    public static void fillRoundTabBottom(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
         submitSimpleGuiElement(guiGraphics, consumer -> {
@@ -250,19 +250,19 @@ public class RenderUtil {
     }
 
     //水平方向的胶囊状线条
-    public static void fillRoundHorLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
+    public static void fillRoundHorLine(GuiGraphicsExtractor guiGraphics, int x, int y, int length, int thickness, int color) {
         fillRoundRect(guiGraphics, x, y, length, thickness, thickness / 2, color);
     }
 
     //垂直方向的胶囊状线条
-    public static void fillRoundVerLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
+    public static void fillRoundVerLine(GuiGraphicsExtractor guiGraphics, int x, int y, int length, int thickness, int color) {
         fillRoundRect(guiGraphics, x, y, thickness, length, thickness / 2, color);
     }
 
     //draw
 
     //矩形
-    public static void drawRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
+    public static void drawRect(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int color) {
         drawHorLine(guiGraphics, x, y, w, color);
         drawVerLine(guiGraphics, x, y + 1, h - 2, color);
         drawVerLine(guiGraphics, x + w - 1, y + 1, h - 2, color);
@@ -270,7 +270,7 @@ public class RenderUtil {
     }
 
     //盒子
-    public static void drawBox(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
+    public static void drawBox(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int color) {
         drawLine(guiGraphics, x, y, x + w, y, color);
         drawLine(guiGraphics, x, y + h, x + w, y + h, color);
         drawLine(guiGraphics, x, y, x, y + h, color);
@@ -278,21 +278,21 @@ public class RenderUtil {
     }
 
     //横线
-    public static void drawHorLine(GuiGraphics guiGraphics, int x, int y, int length, int color) {
+    public static void drawHorLine(GuiGraphicsExtractor guiGraphics, int x, int y, int length, int color) {
         fillRect(guiGraphics, x, y, length, 1, color);
     }
 
     //竖线
-    public static void drawVerLine(GuiGraphics guiGraphics, int x, int y, int length, int color) {
+    public static void drawVerLine(GuiGraphicsExtractor guiGraphics, int x, int y, int length, int color) {
         fillRect(guiGraphics, x, y, 1, length, color);
     }
 
     //一条线
-    public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
+    public static void drawLine(GuiGraphicsExtractor guiGraphics, int x1, int y1, int x2, int y2, int color) {
         drawLine(guiGraphics, x1, y1, x2, y2, 0.5F, color);
     }
 
-    public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, float thickness, int color) {
+    public static void drawLine(GuiGraphicsExtractor guiGraphics, int x1, int y1, int x2, int y2, float thickness, int color) {
         float dx = x2 - x1;
         float dy = y2 - y1;
         float angle = (float) Math.atan2(dy, dx);
@@ -309,7 +309,7 @@ public class RenderUtil {
     }
 
     //扇形
-    public static void drawArc(GuiGraphics guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
+    public static void drawArc(GuiGraphicsExtractor guiGraphics, int cX, int cY, int radius, int start, int end, int color) {
         submitSimpleGuiElement(guiGraphics, consumer -> {
             Matrix3x2f pose = new Matrix3x2f(guiGraphics.pose());
             for (int i = start - 90; i <= end - 90; i++) {
@@ -322,12 +322,12 @@ public class RenderUtil {
     }
 
     //圆
-    public static void drawCircle(GuiGraphics guiGraphics, int cX, int cY, int radius, int color) {
+    public static void drawCircle(GuiGraphicsExtractor guiGraphics, int cX, int cY, int radius, int color) {
         drawArc(guiGraphics, cX, cY, radius, 0, 360, color);
     }
 
     //圆角矩形
-    public static void drawRoundRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int r, int color) {
+    public static void drawRoundRect(GuiGraphicsExtractor guiGraphics, int x, int y, int w, int h, int r, int color) {
         r = Mth.clamp(r, 0, Math.min(w, h) / 2);
         int finalR = r;
         submitSimpleGuiElement(guiGraphics, consumer -> {
@@ -356,22 +356,22 @@ public class RenderUtil {
     }
 
     //圆角横线
-    public static void drawRoundHorLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
+    public static void drawRoundHorLine(GuiGraphicsExtractor guiGraphics, int x, int y, int length, int thickness, int color) {
         drawRoundRect(guiGraphics, x, y, length, thickness, thickness / 2, color);
     }
 
     //圆角竖线
-    public static void drawRoundVerLine(GuiGraphics guiGraphics, int x, int y, int length, int thickness, int color) {
+    public static void drawRoundVerLine(GuiGraphicsExtractor guiGraphics, int x, int y, int length, int thickness, int color) {
         drawRoundRect(guiGraphics, x, y, thickness, length, thickness / 2, color);
     }
 
     // image
-    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float uw, float uh, float width, float height, int color) {
+    public static void renderImage(GuiGraphicsExtractor guiGraphics, Identifier identifier, float x, float y, float uw, float uh, float width, float height, int color) {
         AbstractTexture texture = minecraft.getTextureManager().getTexture(identifier);
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), new Matrix3x2f(guiGraphics.pose()), x, y, width, height, uw, uh, color));
+        guiGraphics.guiRenderState.addGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), new Matrix3x2f(guiGraphics.pose()), x, y, width, height, uw, uh, color));
     }
 
-    public static void renderImage(GuiGraphics guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
+    public static void renderImage(GuiGraphicsExtractor guiGraphics, Identifier identifier, float x, float y, float width, float height, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + width / 2, y + height / 2).scaleAround(scale, x + width / 2, y + height / 2);
         if (identifier != null) renderImage(guiGraphics, identifier, x, y, 1, 1, width, height, getColor(-1, opacity, brightness));
@@ -379,7 +379,7 @@ public class RenderUtil {
         guiGraphics.pose().popMatrix();
     }
 
-    public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
+    public static void renderPlayerHead(GuiGraphicsExtractor guiGraphics, String input, int x, int y, int size, float scale, float opacity, float brightness, float angle, Attachment... attachments) {
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + (float) size / 2, y + (float) size / 2).scaleAround(scale, x + (float) size / 2, y + (float) size / 2);
         var skin = getSkin(input).body().texturePath();
@@ -390,24 +390,24 @@ public class RenderUtil {
         guiGraphics.pose().popMatrix();
     }
 
-    public static void renderItem(GuiGraphics guiGraphics, ItemStack item, int x, int y, float scale, float angle, Attachment... attachments) {
+    public static void renderItem(GuiGraphicsExtractor guiGraphics, ItemStack item, int x, int y, float scale, float angle, Attachment... attachments) {
         guiGraphics.pose().pushMatrix();
         // 应用旋转
         guiGraphics.pose().rotateAbout((float) Math.toRadians(angle), x + 8f, y + 8f).scaleAround(scale, x + 8f, y + 8f);
-        guiGraphics.renderItem(item, x, y);
-        guiGraphics.renderItemDecorations(minecraft.font, item, x, y);
+        guiGraphics.fakeItem(item, x, y);
+        guiGraphics.itemDecorations(minecraft.font, item, x, y);
         for (var attachment : attachments) attachment.render(guiGraphics, x, y, 100, 100);
         guiGraphics.pose().popMatrix();
     }
 
     //text
-    public static void drawStringAlign(GuiGraphics guiGraphics, String text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, boolean lineBreak) {
+    public static void drawStringAlign(GuiGraphicsExtractor guiGraphics, String text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, boolean lineBreak) {
         var withRuby = new StringWithRuby(text);
         if (lineBreak) withRuby.drawLineBreak(guiGraphics, startX, startY, lineWidth, alignX, color);
         else drawStringAlign(guiGraphics, Component.nullToEmpty(withRuby.noRuby), startX, startY, lineWidth, alignX, color, withRuby.rubyPartArrays());
     }
 
-    public static void drawStringAlign(GuiGraphics guiGraphics, FormattedText text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, RubyPart... rubyParts) {
+    public static void drawStringAlign(GuiGraphicsExtractor guiGraphics, FormattedText text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, RubyPart... rubyParts) {
         if (ARGB.alpha(color) == 0) return;
         var font = minecraft.font;
         int renderX = startX; int renderY = startY;
@@ -428,12 +428,12 @@ public class RenderUtil {
                 var pose = guiGraphics.pose();
                 pose.pushMatrix();
                 pose.scaleAround(0.7f, 0.7f, scaleX, renderY + 5);
-                guiGraphics.drawString(font, rubyComponent, rubyX, renderY - 1, color, false);
+                guiGraphics.text(font, rubyComponent, rubyX, renderY - 1, color, false);
                 pose.popMatrix();
             }
             renderY += 6;
         }
-        guiGraphics.drawString(font, Language.getInstance().getVisualOrder(text), renderX, renderY, color, false);
+        guiGraphics.text(font, Language.getInstance().getVisualOrder(text), renderX, renderY, color, false);
     }
 
     public record RubyPart(int index, int chars, String ruby) {}
@@ -484,7 +484,7 @@ public class RenderUtil {
             return rubyParts.stream().filter(part -> part.index >= start && part.index < end).map(p -> new RubyPart(p.index - start, p.chars, p.ruby)).toArray(RubyPart[]::new);
         }
 
-        public void drawLineBreak(GuiGraphics guiGraphics, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color) {
+        public void drawLineBreak(GuiGraphicsExtractor guiGraphics, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color) {
             var font = minecraft.font;
             int renderY = startY;
             int partStart = 0;
@@ -501,12 +501,12 @@ public class RenderUtil {
 
     public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
 
-    public static void renderTooltip(GuiGraphics guiGraphics, Component tooltip, int x, int y) {
+    public static void renderTooltip(GuiGraphicsExtractor guiGraphics, Component tooltip, int x, int y) {
         renderTooltip(guiGraphics, List.of(tooltip), x, y);
     }
 
-    public static void renderTooltip(GuiGraphics guiGraphics, List<Component> tooltips, int x, int y) {
-        guiGraphics.renderTooltip(minecraft.font, tooltips.stream().map(c -> (ClientTooltipComponent) new ClientTextTooltip(c.getVisualOrderText())).toList(), x, y, DefaultTooltipPositioner.INSTANCE, null);
+    public static void renderTooltip(GuiGraphicsExtractor guiGraphics, List<Component> tooltips, int x, int y) {
+        guiGraphics.tooltip(minecraft.font, tooltips.stream().map(c -> (ClientTooltipComponent) new ClientTextTooltip(c.getVisualOrderText())).toList(), x, y, DefaultTooltipPositioner.INSTANCE, null);
     }
 
     //cursor

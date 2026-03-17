@@ -7,7 +7,7 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
@@ -22,6 +22,9 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public Identifier rightClickTexture;
     public Identifier scrollTexture;
     public static final String ctrl = Util.getPlatform() == Util.OS.OSX ? "Cmd" : "Ctrl";
+
+    @Override
+    public String getId() {return "key_prompt";}
 
     public KeyPromptRender setMouseTextureSize(Float width, Float height) {
         if (width != null) this.mouseTextureWidth = width;
@@ -45,7 +48,7 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         if (this.visible) {
             Font font = minecraft.font;
 
@@ -55,8 +58,8 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
             String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
             String keyF6 = Component.translatable("chatbox.key.f6").getString();
 
-            float x = xPos();
-            float y = yPos();
+            float x = realX();
+            float y = realY();
 
             //right scroll
             RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, mouse_right), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 100, 0f);
@@ -88,7 +91,7 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
         }
     }
 
-    public static void drawKeyBoardKey(GuiGraphics guiGraphics, int x, int y, String key, boolean pressed) {
+    public static void drawKeyBoardKey(GuiGraphicsExtractor guiGraphics, int x, int y, String key, boolean pressed) {
         Font font = minecraft.font;
 
         // 按键尺寸
@@ -115,34 +118,34 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
         guiGraphics.fill(x, y + height - 1, x + width, y + height, bottomColor); // 底部线
         guiGraphics.fill(x + width - 1, y, x + width, y + height, bottomColor); // 右边线
 
-        guiGraphics.drawCenteredString(font, key, x + width / 2, y + (height - 8) / 2, 0xFFFFFFFF);
+        guiGraphics.centeredText(font, key, x + width / 2, y + (height - 8) / 2, 0xFFFFFFFF);
     }
 
-    public static void drawText(GuiGraphics guiGraphics, float x, float y, String text) {
+    public static void drawText(GuiGraphicsExtractor guiGraphics, float x, float y, String text) {
         Font font = Minecraft.getInstance().font;
         // 渲染文字描边（四周偏移1像素）
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 text,
                 (int) (x - 1), (int) y,
                 0xFF000000,
                 true
         );
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 text,
                 (int) (x + 1), (int) y,
                 0xFF000000,
                 true
         );
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 text,
                 (int) x, (int) (y - 1),
                 0xFF000000,
                 true
         );
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 text,
                 (int) x, (int) (y + 1),
@@ -151,7 +154,7 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
         );
 
         // 渲染主体文字
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 text,
                 (int) x, (int) y,

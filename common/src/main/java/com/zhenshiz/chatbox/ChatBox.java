@@ -1,9 +1,10 @@
 package com.zhenshiz.chatbox;
 
 import com.mojang.logging.LogUtils;
-import com.zhenshiz.chatbox.component.ComponentEvent;
+import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.platform.IPlatformHelper;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.resources.Identifier;
@@ -20,13 +21,14 @@ public class ChatBox {
     public static void init() {
         LOGGER.info("Ciallo～(∠·ω< )⌒★");
         ComponentEvent.registerDefaultEvents();
+        MVELUtil.init();
     }
 
     public static boolean isClothConfigLoaded() {
         return PLATFORM.isModLoaded("cloth_config") || PLATFORM.isModLoaded("cloth-config");
     }
 
-    public static boolean isWaterMediaLoaded() {return false /*PLATFORM.isModLoaded("watermedia")*/;}
+    public static boolean isWaterMediaLoaded() {return PLATFORM.isModLoaded("watermedia");}
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MOD_ID, path);

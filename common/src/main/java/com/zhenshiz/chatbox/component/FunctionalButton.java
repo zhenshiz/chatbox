@@ -3,8 +3,7 @@ package com.zhenshiz.chatbox.component;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
@@ -12,20 +11,21 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
     //按钮类型
     public final Type type;
 
-    public static final Identifier
-            log         = ChatBox.id("textures/button/default_log.png"),
-            fast        = ChatBox.id("textures/button/default_fastforward.png"),
-            auto        = ChatBox.id("textures/button/default_autoplay.png"),
-            log_hover   = ChatBox.id("textures/button/default_hover_log.png"),
-            fast_hover  = ChatBox.id("textures/button/default_hover_fastforward.png"),
-            auto_hover  = ChatBox.id("textures/button/default_hover_autoplay.png");
+    public static final String
+            log         = "chatbox:textures/button/default_log.png",
+            fast        = "chatbox:textures/button/default_fastforward.png",
+            auto        = "chatbox:textures/button/default_autoplay.png",
+            log_hover   = "chatbox:textures/button/default_hover_log.png",
+            fast_hover  = "chatbox:textures/button/default_hover_fastforward.png",
+            auto_hover  = "chatbox:textures/button/default_hover_autoplay.png";
 
     public FunctionalButton(String type) {
         this.type = Type.of(type);
+        setId(this.type.name().toLowerCase());
     }
 
     @Override
-    public Identifier getTexture() {
+    public String getTexture() {
         var texture = super.getTexture();
         if (notNull(texture)) return texture;
         return switch (type) {
@@ -36,7 +36,7 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
     }
 
     @Override
-    public Identifier getHoverTexture() {
+    public String getHoverTexture() {
         var texture = getTexture(HOVER);
         if (notNull(texture)) return texture;
         return switch (type) {
@@ -65,12 +65,12 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         renderInner(mouseX, mouseY);
-        Identifier texture = getTexture();
+        String texture = getRenderTexture();
         if (isSelect || type == Type.AUTOPLAY && chatBoxScreen.autoPlay
                 || type == Type.FASTFORWARD && chatBoxScreen.fastForward) texture = getHoverTexture();
-        renderImage(guiGraphics, texture, attachments);
+        renderImage(guiGraphics, ChatBox.parseId(texture), attachments);
 
         if (isSelect) {
             String key = switch (type) {

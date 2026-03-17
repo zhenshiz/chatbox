@@ -8,8 +8,8 @@ import com.zhenshiz.chatbox.fabric.Network;
 import com.zhenshiz.chatbox.fabric.platform.FabricPlatformHelper;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.world.level.Level;
 
 public class ChatBoxFabric implements ModInitializer {
@@ -20,7 +20,7 @@ public class ChatBoxFabric implements ModInitializer {
         SettingLoader.chatBoxLoader();
         Network.register();
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);
-        ServerWorldEvents.LOAD.register((server, world) -> {
+        ServerLevelEvents.LOAD.register((server, world) -> {
             //只需要保存在主世界的data目录下即可
             if (world.dimension() == Level.OVERWORLD) ChatBox.setTriggerCounts(world.getDataStorage().computeIfAbsent(ChatBoxTriggerCount.getType()));
         });

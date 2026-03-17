@@ -1,20 +1,21 @@
 package com.zhenshiz.chatbox.component;
 
-import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.TextureFormat;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.utils.chatbox.FloatBlitRenderState;
+import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
-import org.watermedia.api.media.MRL;
-import org.watermedia.api.media.players.MediaPlayer;
+import org.watermedia.api.image.ImageAPI;
+import org.watermedia.api.player.videolan.VideoPlayer;
+import org.watermedia.videolan4j.player.base.State;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -37,18 +38,24 @@ public class Video extends AbstractComponent<Video> {
     private float volume;
     private final boolean loop;
     // 是否成功播放，只要视频进入PLAYING状态，就为true，如果出现异常导致视频播放失败，就会在关闭视频时重新开始
-    private boolean success;
+    private boolean success = false;
+    private int retry = 0;
 
     // CONTROL
     private final boolean canControl;
     public final boolean canSkip;
 
     // TOOLS
-    private final Minecraft minecraft = Minecraft.getInstance();
-    private final MediaPlayer player;
+    private static final Minecraft minecraft = Minecraft.getInstance();
+    private final VideoPlayer player;
 
     // VIDEO INFO
-    WatermediaTexture videoTexture;
+    private final URI uri;
+    int videoTexture = -1;
+
+    static final Identifier PAUSED = ChatBox.id("textures/video/paused.png");
+    static final Identifier STEP30 = ChatBox.id("textures/video/step30.png");
+    static final Identifier STEP10 = ChatBox.id("textures/video/step10.png");
 
     public Video(URI uri, boolean canControl, boolean canSkip, boolean loop) {
         //minecraft.getSoundManager().pause();
@@ -56,31 +63,34 @@ public class Video extends AbstractComponent<Video> {
         this.canControl = canControl;
         this.canSkip = canSkip;
         this.loop = loop;
+        this.uri = uri;
 
-        this.player = MRL.get(uri.toString()).createPlayer(Thread.currentThread(), minecraft, null, null, true, true);
+        this.player = new VideoPlayer(minecraft);
         ChatBox.LOGGER.info("Playing video ({}blocked) ({} with volume: {}", canControl ? "not " : "", uri, (int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
 
-        player.volume((int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
+        player.setVolume((int) (minecraft.options.getSoundSourceVolume(SoundSource.MASTER) * 100));
         started = true;
-        player.start();
-        success = false;
-        videoTexture = new WatermediaTexture(player);
+        player.start(uri);
+        setId("video");
     }
 
     public boolean isPlaying() {return started;}
 
+    public State getState() {
+        var raw = player.raw();
+        if (raw == null) return null;
+        return raw.mediaPlayer().status().state();
+    }
+
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         renderInner(mouseX, mouseY);
         if (!isPlaying()) return;
 
-        if (!success && player.playing()) success = true;
+        if (!success && getState() == State.PLAYING) { success = true; retry = 0; }
         tick++;
-        if (player.ended() || player.stopped()) {
-            if (loop) {
-                player.start();
-                return;
-            }
+        if (player.isBroken() || player.isEnded() || player.isStopped()) {
+            if (loop) { player.start(uri); return; }
             stop();
             return;
         }
@@ -90,74 +100,63 @@ public class Video extends AbstractComponent<Video> {
         actualWidth = realWidth();
         actualHeight = realHeight();
 
+        videoTexture = player.preRender();
+
         // RENDER VIDEO
-        if (player.playing() || player.paused()) {
-            drawTexture(guiGraphics, videoTexture, actualX, actualY, actualWidth, actualHeight, -1);
+        if (player.isPlaying() || player.isPaused()) {
+            if (player.dimension() == null) return; // Checking if video available
+            drawTexture(guiGraphics, videoTexture, actualX, actualY, actualWidth, actualHeight);
         }
 
         // RENDER GIF
-/*        if (!player.playing()) {
-            if (player.paused()) {
-                renderIcon(guiGraphics, IMG_PAUSED);
-            } else {
-                renderIcon(guiGraphics, ImageAPI.loadingGif());
+        if (!player.isPlaying()) {
+            if (player.isPaused())
+                renderIconAtCenter(guiGraphics, PAUSED, (int) (actualWidth / 2 - 18), (int) (actualHeight / 2 - 18), 36);
+            else {
+                var texture = getTextureId(ImageAPI.loadingGif().texture(tick, pPartialTick, true), 36, 36);
+                renderIconAtCenter(guiGraphics, texture, (int) (actualWidth / 2 - 18), (int) (actualHeight / 2 - 18), 36);
             }
         }
 
         renderStep10(guiGraphics, pPartialTick);
-        renderStep30(guiGraphics, pPartialTick);*/
+        renderStep30(guiGraphics, pPartialTick);
 
         // DEBUG RENDERING
-        // if (!FMLLoader.isProduction()) {
         if (ChatBox.PLATFORM.isDevelopmentEnvironment()) {
-            draw(guiGraphics, String.format("State: %s", player.status()), getHeightCenter(-12));
-            draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(player.time())), player.time(), FORMAT.format(new Date(player.duration())), player.duration()), getHeightCenter(0));
+            draw(guiGraphics, String.format("State: %s", player.getStateName()), -12);
+            draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(player.getTime())), player.getTime(), FORMAT.format(new Date(player.getDuration())), player.getDuration()), 0);
         }
     }
 
-    private int getHeightCenter(int offset) {
-        return (int) ((actualHeight / 2) + offset);
+    private void draw(GuiGraphicsExtractor guiGraphics, String text, int centerOffset) {
+        guiGraphics.text(minecraft.font, text, 5 + (int) actualX, centerOffset + (int) (actualHeight / 2 + actualY), 0xffffff);
     }
 
-/*    private void renderIcon(GuiGraphics guiGraphics, ImageRenderer image) {
-        int iconSize = 36;
-        float xOffset = actualWidth - iconSize + actualX;
-        float yOffset = actualHeight - iconSize + actualY;
-
-        drawTexture(guiGraphics, image.texture(tick, 1, true), xOffset, yOffset, iconSize, iconSize, -1);
+    private void renderIconAtCenter(GuiGraphicsExtractor graphics, Identifier texture, int xOffset, int yOffset, int size) {
+        float videoCX = actualX + actualWidth / 2;
+        float videoCY = actualY + actualHeight / 2;
+        float x = videoCX + (xOffset - size / 2f) * scale;
+        float y = videoCY + (yOffset - size / 2f) * scale;
+        drawTexture(graphics, texture, x, y, size, size);
     }
 
-    private void renderStep30(GuiGraphics guiGraphics, float pPartialTicks) {
+    private void renderStep30(GuiGraphicsExtractor guiGraphics, float pPartialTicks) {
         if (fadeStep30 == 0) return;
-        int texture = IMG_STEP30.texture(tick, 1, true);
-        float alpha = fadeStep30 * 100;
-        float x = (actualWidth / 2 + 70 + actualX);
-        float y = (actualHeight / 2 - 32 + actualY);
-        int size = 64;
-
-        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(-1, alpha, 100));
+        renderIconAtCenter(guiGraphics, STEP30, 100, 0, 64);
         fadeStep30 = Math.max(fadeStep30 - (pPartialTicks / 8), 0.0f);
     }
 
-    private void renderStep10(GuiGraphics guiGraphics, float pPartialTicks) {
+    private void renderStep10(GuiGraphicsExtractor guiGraphics, float pPartialTicks) {
         if (fadeStep10 == 0) return;
-        int texture = IMG_STEP10.texture(tick, 1, true);
-        float alpha = fadeStep10 * 100;
-        float x = (actualWidth / 2 - 134 + actualX);
-        float y = (actualHeight / 2 - 32 + actualY);
-        int size = 64;
-
-        drawTexture(guiGraphics, texture, x, y, size, size, RenderUtil.getColor(-1, alpha, 100));
+        renderIconAtCenter(guiGraphics, STEP10, -100, 0, 64);
         fadeStep10 = Math.max(fadeStep10 - (pPartialTicks / 8), 0.0f);
-    }*/
-
-    private void drawTexture(GuiGraphics guiGraphics, AbstractTexture texture, float x, float y, float width, float height, int color) {
-        // todo 1.21.8还没修好
-        guiGraphics.guiRenderState.submitGuiElement(new FloatBlitRenderState(guiGraphics, RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()), guiGraphics.pose(), x, y, width, height, 1, 1, color));
     }
 
-    private void draw(GuiGraphics guiGraphics, String text, int height) {
-        guiGraphics.drawString(minecraft.font, text, 5 + (int) actualX, height + (int) actualY, -1);
+    private void drawTexture(GuiGraphicsExtractor guiGraphics, int texture, float x, float y, float width, float height) {
+        drawTexture(guiGraphics, getTextureId(texture, (int) width, (int) height), x, y, width, height);
+    }
+    private void drawTexture(GuiGraphicsExtractor guiGraphics, Identifier texture, float x, float y, float width, float height) {
+        RenderUtil.renderImage(guiGraphics, texture, x, y, width, height, scale, opacity, brightness, angle);
     }
 
     public void keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
@@ -174,7 +173,7 @@ public class Video extends AbstractComponent<Video> {
             float actualVolume = minecraft.options.getSoundSourceVolume(SoundSource.MASTER);
             float newVolume = volume * actualVolume;
             ChatBox.LOGGER.info("Volume UP to: {}", newVolume);
-            player.volume((int) newVolume);
+            player.setVolume((int) newVolume);
         }
 
         // Down arrow key (Volume)
@@ -185,12 +184,13 @@ public class Video extends AbstractComponent<Video> {
             float actualVolume = minecraft.options.getSoundSourceVolume(SoundSource.MASTER);
             float newVolume = volume * actualVolume;
             ChatBox.LOGGER.info("Volume DOWN to: {}", newVolume);
-            player.volume((int) newVolume);
+            player.setVolume((int) newVolume);
         }
 
         // M to mute
         if (pKeyCode == 77) {
-            player.mute(!player.mute());
+            if (!player.isMuted()) player.mute();
+            else player.unmute();
         }
 
         // If control blocked can't modify the video time
@@ -199,26 +199,28 @@ public class Video extends AbstractComponent<Video> {
         // Right arrow key (Forwards)
         if (pKeyCode == 262) {
             // 如果设置循环且超出时长就跳到开头
-            long time = loop && player.time() + 30000 > player.duration() ? 0 : player.time() + 30000;
-            player.seek(time);
+            long time = loop && player.getTime() + 30000 > player.getDuration() ? 0 : player.getTime() + 30000;
+            player.seekTo(time);
             fadeStep30 = 1;
         }
 
         // Left arrow key (Backwards)
         if (pKeyCode == 263) {
-            player.seek(player.time() - 10000);
+            player.seekTo(player.getTime() - 10000);
             fadeStep10 = 1;
         }
 
         // Space (Pause / Play)
         if (pKeyCode == 32) {
-            player.pause(!player.pause());
+            if (!player.isPaused()) player.pause();
+            else player.play();
         }
     }
 
     private void stop() {
-        if (!success) { // 如果视频播放失败，就重新开始
-            player.start();
+        if (!success && retry < 5) { // 如果视频播放失败，就重新开始
+            retry++;
+            player.start(uri);
             return;
         }
         close();
@@ -231,73 +233,26 @@ public class Video extends AbstractComponent<Video> {
             started = false;
             player.stop();
             //minecraft.getSoundManager().resume();
+            GlStateManager._deleteTexture(videoTexture);
             player.release();
         }
     }
 
-    public static class WatermediaTexture extends AbstractTexture {
-        private final MediaPlayer player;
-        private NativeImage cachedImage; // 用于中转的像素缓存
-        private int lastKnownTextureId = -1; // 用于检测Watermedia纹理是否已更新
+    private static final Int2ObjectOpenHashMap<Identifier> TEXTURES = new Int2ObjectOpenHashMap<>();
 
-        public WatermediaTexture(MediaPlayer player) {
-            this.player = player;
-            // 初始化时创建一个空的NativeImage占位，尺寸后续调整
-            this.cachedImage = new NativeImage(1, 1, false);
-            this.createTexture();
-        }
+    private static Identifier getTextureId(int texture, int width, int height) {
+        if (texture == -1) return null;
+        return TEXTURES.computeIfAbsent(texture, i -> {
+            var id = ChatBox.id("video_texture_" + i);
+            minecraft.getTextureManager().register(id, new TextureWrapper(texture, width, height));
+            return id;
+        });
+    }
 
-        private void createTexture() {
-            GpuDevice device = RenderSystem.getDevice();
-            this.texture = device.createTexture(() -> "watermedia_texture", 5,
-                    TextureFormat.RGBA8, cachedImage.getWidth(), cachedImage.getHeight(), 1, 1
-            );
-            this.sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
-            this.textureView = device.createTextureView(this.texture);
-        }
-
-        // **核心方法：从Watermedia的OpenGL纹理同步数据**
-        public void updateFromPlayer() {
-            int currentGlTexture = player.texture();
-            if (currentGlTexture != this.lastKnownTextureId) {
-                this.lastKnownTextureId = currentGlTexture;
-
-                // 1. 从OpenGL纹理读取数据到NativeImage
-                updateNativeImageFromGL(currentGlTexture);
-
-                // 2. 上传到GpuTexture
-                if (this.texture != null) {
-                    RenderSystem.getDevice().createCommandEncoder().writeToTexture(this.texture, this.cachedImage);
-                }
-            }
-        }
-
-        private void updateNativeImageFromGL(int glTextureId) {
-            // **这是技术关键点，需要你实现**
-            int width = player.width();
-            int height = player.height();
-
-            // 如果尺寸变化，重新创建NativeImage
-            if (cachedImage == null || cachedImage.getWidth() != width || cachedImage.getHeight() != height) {
-                if (cachedImage != null) cachedImage.close();
-                this.cachedImage = new NativeImage(width, height, false);
-            }
-
-            // 方案1：使用glGetTexImage（标准OpenGL，但可能较慢）
-            // RenderSystem.bindTexture(glTextureId);
-            // glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cachedImage.getPointer());
-
-            // 方案2：使用更高效的PBO（Pixel Buffer Object）进行异步读取
-            // 推荐方案2以提升性能，但实现更复杂
-        }
-
-        @Override
-        public void close() {
-            if (cachedImage != null) {
-                cachedImage.close();
-                cachedImage = null;
-            }
-            super.close(); // 释放GpuTexture和GpuTextureView
+    private static class TextureWrapper extends AbstractTexture {
+        public TextureWrapper(int id, int width, int height) {
+            this.texture = new GlTexture(GpuTexture.USAGE_TEXTURE_BINDING, "texturewrapper_" + id, TextureFormat.RGBA8, width, height, 1, 1, id) {};
+            this.textureView = RenderSystem.getDevice().createTextureView(this.texture);
         }
     }
 }

@@ -23,10 +23,11 @@ dependencies {
     compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
     annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
 
-    compileOnly("maven.modrinth:watermedia:${watermedia_version}")
+    implementation("maven.modrinth:watermedia:${watermedia_version}")
     compileOnly("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
+    implementation("org.mvel:mvel2:2.5.0.Final")
 }
 
 configurations {

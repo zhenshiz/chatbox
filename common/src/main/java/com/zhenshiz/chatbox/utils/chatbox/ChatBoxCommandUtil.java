@@ -6,6 +6,7 @@ import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,7 +49,7 @@ public class ChatBoxCommandUtil {
     public static void serverSkipDialogues(ServerPlayer player, Identifier dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues.toString(), group, String.valueOf(index)));
+        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues, group, index));
     }
 
     public static void serverSkipDialogues(ServerPlayer player, Identifier dialogues, String group, Entity... targets) {
@@ -135,10 +136,10 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverSetChatOption(ServerPlayer player, int index, String text, String tip, Boolean lock, Boolean hide) {
-        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(String.valueOf(index), text, tip, String.valueOf(lock), String.valueOf(hide)));
+        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(index, text, tip, lock, hide));
     }
 
-    public static void clientSetChatOption(int index, String text, String tip, boolean lock, boolean hide) {
+    public static void clientSetChatOption(int index, String text, String tip, Boolean lock, Boolean hide) {
         var options = chatBoxScreen.chatOptions;
         if (index < 0 || index >= options.size()) return;
         var option = options.get(index);
@@ -153,12 +154,12 @@ public class ChatBoxCommandUtil {
         chatBoxScreen.chatOptions.clear();
     }
 
-    public static void addPlaceholderResolver(String key, Function<Entity, String> resolver) {
-        PlaceholderUtil.addPropertyResolver(key, resolver);
+    public static void addPlaceholderResolver(String key, Function<Entity, Object> resolver) {
+        MVELUtil.addPropertyResolver(key, resolver);
     }
 
     public static String parseTargetPlaceholders(ServerPlayer player, String input) {
-        return PlaceholderUtil.parseTargetPlaceholders(serverGetChatTargets(player), input);
+        return MVELUtil.parseTargetPlaceholders(player, input);
     }
 
     public static void simplePayloadS2C(ServerPlayer player, String name, String value) {

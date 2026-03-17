@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.zhenshiz.chatbox.ChatBox;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,7 +27,7 @@ public class ChatBoxTriggerCount extends SavedData {
     private final Map<UUID, Map<Identifier, Integer>> maxTriggerCounts = new HashMap<>();
 
     public static SavedDataType<ChatBoxTriggerCount> getType() {
-        return new SavedDataType<>("chatbox_trigger_count", ChatBoxTriggerCount::new, CODEC, null);
+        return new SavedDataType<>(ChatBox.id("chatbox_trigger_count"), ChatBoxTriggerCount::new, CODEC, null);
     }
 
     public ChatBoxTriggerCount() {setDirty();}

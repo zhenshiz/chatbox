@@ -2,7 +2,7 @@ package com.zhenshiz.chatbox.fabric.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class ChatBoxRenderEvent {
     public static Event<Pre> PRE = EventFactory.createArrayBacked(Pre.class,
@@ -24,10 +24,10 @@ public class ChatBoxRenderEvent {
         /**
          * @return true 取消对话框的渲染
          */
-        boolean pre(GuiGraphics guiGraphics);
+        boolean pre(GuiGraphicsExtractor guiGraphics);
     }
 
     public interface Post {
-        void post(GuiGraphics guiGraphics);
+        void post(GuiGraphicsExtractor guiGraphics);
     }
 }

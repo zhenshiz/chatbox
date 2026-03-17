@@ -9,7 +9,8 @@ import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 
 import java.io.File;
-import java.nio.file.Path;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,44 +43,41 @@ public class ChatBoxDialogues {
 
         public List<Portrait<?>> setPortraitDialogues(List<Portrait<?>> portraitList) {
             if (clearOldPortrait) portraitList.clear();
-            else if (!CollUtil.isEmpty(removePortrait)) {
+            else if (!CollUtil.isEmpty(removePortrait))
                 portraitList.removeIf(portrait -> removePortrait.contains(portrait.id));
-            }
 
-            if (CollUtil.notEmpty(portrait)) portrait.forEach(e -> addPortrait(e, portraitList));
+            if (CollUtil.notEmpty(portrait)) for (JsonElement jsonElement : portrait) {
+                Object o = getValue(jsonElement);
+                if (o == null) continue;
+                var portraits = ChatBoxUtil.chatBoxTheme.portrait;
+
+                Portrait<?> portrait = null;
+                if (o instanceof String s && !s.isEmpty()) {
+                    try {
+                        portrait = portraits.get(s).setPortraitTheme().setId(s);
+                    } catch (Exception e) {
+                        ChatBox.LOGGER.error("Portrait {} not found", s);
+                    }
+                } else if (o instanceof ReplacePortrait rp) {
+                    try {
+                        portrait = rp.replace(portraits.get(rp.id)).setPortraitTheme().setId(rp.id);
+                        if (rp.replace) portraitList.removeIf(p -> p.id.equals(rp.id));
+                    } catch (Exception e) {
+                        ChatBox.LOGGER.error("Portrait {} not found", rp.id);
+                    }
+                }
+                if (portrait != null) portraitList.add(portrait);
+            }
             return portraitList;
         }
 
-        public static Object getValue(JsonElement value) {
+        private static Object getValue(JsonElement value) {
             try {
                 if (value.isJsonPrimitive()) return value.getAsString();
                 if (value.isJsonObject()) return ChatBoxUtil.GSON.fromJson(value, ReplacePortrait.class);
             } catch (Exception ignored) {
             }
             return null;
-        }
-
-        public static void addPortrait(JsonElement value, List<Portrait<?>> portraitList) {
-            Object o = getValue(value);
-            if (o == null || o instanceof String s && s.isEmpty()) return;
-            var portraits = ChatBoxUtil.chatBoxTheme.portrait;
-
-            Portrait<?> portrait = null;
-            if (o instanceof String s) {
-                try {
-                    portrait = portraits.get(s).setPortraitTheme().setId(s);
-                } catch (Exception e) {
-                    ChatBox.LOGGER.error("Portrait {} not found", s);
-                }
-            } else if (o instanceof ReplacePortrait rp) {
-                try {
-                    portrait = rp.replace(portraits.get(rp.id)).setPortraitTheme().setId(rp.id);
-                    if (rp.replace) portraitList.removeIf(p -> p.id.equals(rp.id));
-                } catch (Exception e) {
-                    ChatBox.LOGGER.error("Portrait {} not found", rp.id);
-                }
-            }
-            if (portrait != null) portraitList.add(portrait);
         }
 
         public static class DialogBox {
@@ -122,14 +120,16 @@ public class ChatBoxDialogues {
 
             public com.zhenshiz.chatbox.component.Video setVideo() {
                 if (!ChatBox.isWaterMediaLoaded()) return null;
-                Path gameDir = ChatBox.PLATFORM.getGameDirectory().toPath();
-                File file = new File(gameDir.toString(), path);
+                URI uri;
+                File file = new File(ChatBox.PLATFORM.getGameDirectory(), path);
                 if (!file.exists()) file = new File(path);
-                if (!file.exists()) {
-                    ChatBox.LOGGER.error("video {} not found", path);
+                try {
+                    if (file.exists()) uri = file.toURI();
+                    else uri = new URI(path);
+                } catch (URISyntaxException e) {
                     return null;
                 }
-                return new com.zhenshiz.chatbox.component.Video(file.toURI(), canControl, canSkip, loop).of(this);
+                return new com.zhenshiz.chatbox.component.Video(uri, canControl, canSkip, loop).of(this);
             }
         }
 
@@ -153,12 +153,8 @@ public class ChatBoxDialogues {
                 ChatOption chatOption = ChatBoxUtil.chatBoxTheme.option.newOption().setOptionTooltip(option.tooltip)
                         .setOptionChat(option.text)
                         .setNext(option.next)
-                        .setClickEvent(option.click.type, option.click.value);
-                if (option.unlockCommand != null && option.unlockCommand.startsWith("execute")) {
-                    if (option.isLock) chatOption.setIsLock(true);
-                    else chatOption.hideOption(true);
-                }
-
+                        .setClickEvent(option.click.type, option.click.value)
+                        .setCondition(option.unlockCommand, option.isLock);
                 chatOptions.add(chatOption);
             }
             return chatOptions;

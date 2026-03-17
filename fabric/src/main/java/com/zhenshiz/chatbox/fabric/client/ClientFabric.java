@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.fabric.client;
 
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.fabric.event.InputEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -8,7 +9,7 @@ import com.zhenshiz.chatbox.render.ChatBoxRender;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 
 public class ClientFabric implements ClientModInitializer {
     @Override
@@ -27,7 +28,7 @@ public class ClientFabric implements ClientModInitializer {
     }
 
     private void registerRenderEvents() {
-        HudRenderCallback.EVENT.register(ChatBoxRender::onHudRender);
+        HudElementRegistry.addLast(ChatBox.id("chatbox_hud"), ChatBoxRender::onHudRender);
         ClientTickEvents.END_CLIENT_TICK.register(ChatBoxRender::onEndTick);
         InputEvent.KEY.register(ChatBoxRender::onKey);
         InputEvent.MouseButton.POST.register(ChatBoxRender::mousePost);

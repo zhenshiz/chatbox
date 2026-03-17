@@ -14,6 +14,7 @@
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "音效中断",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "下句话如果没有新音效，是否中断前面正在播放的音效",
   "text.autoconfig.chatbox_config.option.charPerSecond":"每秒显示的字符数",
+  "text.autoconfig.chatbox_config.option.portraitWidthPercent":"图片立绘宽度缩放百分比",
 
   "chatbox.key.right_click": "确定",
   "chatbox.key.scroll": "切换选项",
@@ -31,7 +32,7 @@
   "chatbox.test.text.3": "对话框有两种模式。\n一是屏幕模式，玩家可以用鼠标与对话框交互，但是无法进行其他游戏操作。\n二是渲染层模式，<ruby 16 当然很多对话框的交互就没有了>玩家可以正常进行绝大部分游戏操作，更适合冒险情景。",
   "chatbox.test.text.4": "每进入一句对话都可以播放音效和执行指令。\n对话框文本支持翻译键、格式化和一些占位符。\n如§1彩§2色§3文§4本、§f§l粗体、§o斜体§r，<ruby 10 那怎么显示@@s的呢？你猜>@@s指代当前玩家名字：@s。",
   "chatbox.test.text.5": "选项支持锁定、隐藏、跳转对话、悬浮提示，也能执行指令。",
-  "chatbox.test.text.6": "立绘有三种类型，支持添加渲染附件、动画以及组件渲染事件。\n你问什么是组件渲染事件？比如你点一下左下角的立绘试试看？",
+  "chatbox.test.text.6": "立绘有4种类型，支持添加渲染附件、动画以及组件渲染事件。\n你问什么是组件渲染事件？比如你点一下左下角的立绘试试看？",
   "chatbox.test.text.7": "作为对话框模组，自动播放、ctrl快进、历史记录、右键隐藏对话框等功能也是有的。",
   "chatbox.test.text.8": "在屏幕模式下，按F3键可以进入<ruby 2 调戏>调试模式。你可以用这个功能可视化调节组件的属性。",
   "chatbox.test.text.9": "此外，本模组还可以依赖watermedia播放视频；\n给KubeJS提供了一些事件和方法便于魔改；\n以及其他模组联动……",

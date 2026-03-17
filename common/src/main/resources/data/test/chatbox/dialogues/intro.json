@@ -9,7 +9,8 @@
           "name": "chatbox.test.name.1",
           "text": "chatbox.test.text.1"
         },
-        "portrait": ["authors"]
+        "portrait": ["authors"],
+        "video": {"path": "D:/photos/OP00.mp4", "loop": true}
       },
       {
         "dialogBox": {
@@ -65,7 +66,8 @@
           {
             "text": "chatbox.test.option.5", "next": "this",
             "click": {"type": "command", "value": "give @s minecraft:dead_bush 64"},
-            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:dead_bush\"}]}]"
+            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:dead_bush\"}]}]",
+            "提示": "都看到这里了，那注意看另一个主题的对话，跟这里写法不一样哦！"
           },
           {
             "text": "chatbox.test.option.6", "next": "4",
@@ -99,7 +101,8 @@
             "customAnimation": [{"time": 600, "angle": -360, "scale": 2, "opacity": 0}],
             "loop": true
           },
-          "item"
+          "item",
+          "player"
         ]
       },
       {

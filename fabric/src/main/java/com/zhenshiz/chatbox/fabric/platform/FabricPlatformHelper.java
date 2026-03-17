@@ -6,7 +6,7 @@ import com.zhenshiz.chatbox.platform.IPlatformHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,12 +33,12 @@ public class FabricPlatformHelper implements IPlatformHelper {
     public void sendToClient(ServerPlayer player, CustomPacketPayload packet) {ServerPlayNetworking.send(player, packet);}
 
     @Override
-    public boolean postRenderEventPre(GuiGraphics guiGraphics) {
+    public boolean postRenderEventPre(GuiGraphicsExtractor guiGraphics) {
         return ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics);
     }
 
     @Override
-    public void postRenderEventPost(GuiGraphics guiGraphics) {
+    public void postRenderEventPost(GuiGraphicsExtractor guiGraphics) {
         ChatBoxRenderEvent.POST.invoker().post(guiGraphics);
     }
 

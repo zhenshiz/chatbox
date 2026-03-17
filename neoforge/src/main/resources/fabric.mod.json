@@ -36,5 +36,10 @@
   "suggests": {
     "modmenu": "*",
     "cloth-config": "*"
-  }
+  },
+  "jars": [
+    {
+      "file": "META-INF/jarjar/mvel2-2.5.0.Final.jar"
+    }
+  ]
 }

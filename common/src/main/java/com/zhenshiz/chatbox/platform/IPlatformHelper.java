@@ -1,6 +1,6 @@
 package com.zhenshiz.chatbox.platform;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,9 +28,9 @@ public interface IPlatformHelper {
 
     void sendToClient(ServerPlayer player, CustomPacketPayload packet);
 
-    boolean postRenderEventPre(GuiGraphics guiGraphics);
+    boolean postRenderEventPre(GuiGraphicsExtractor guiGraphics);
 
-    void postRenderEventPost(GuiGraphics guiGraphics);
+    void postRenderEventPost(GuiGraphicsExtractor guiGraphics);
 
     void postSkipChatEvent(Player player, Identifier identifier, String group, Integer index, List<Entity> targets);
 }

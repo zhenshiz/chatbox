@@ -3,6 +3,8 @@ package com.zhenshiz.chatbox.screen;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
 import com.zhenshiz.chatbox.component.*;
+import com.zhenshiz.chatbox.component.data.CompEvtWrapper;
+import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
@@ -13,14 +15,14 @@ import com.zhenshiz.chatbox.utils.common.StrUtil;
 import lombok.Setter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -51,7 +53,9 @@ public class ChatBoxScreen extends Screen {
     private long updateDuration = 16;
     private long lastUpdateTime = 0;
 
-    public List<ComponentEvent> events = new ArrayList<>();
+    // 用于记录当前对话框已经存在了多少tick了，每跳转一次对话就会重置为0
+    public int tick = 0;
+    public CompEvtWrapper events = new CompEvtWrapper();
 
     @Setter private boolean debug = false;
     @Setter private AbstractComponent<?> underCursor = null;
@@ -154,41 +158,64 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setEvents(List<ChatBoxTheme.RenderEvent> events) {
-        this.events.clear();
-        if (events != null) for (var event : events) {
-            this.events.add(ComponentEvent.of(event));
-        }
+        if (events != null) this.events.set(events.stream().map(ComponentEvent::of).toList(), null);
+        tick = 0;
         return this;
     }
 
     public ChatBoxScreen fireEvent(String trigger) {
-        ComponentEvent.fireAll(events, trigger);
+        events.fireAll(trigger);
         return this;
     }
 
-    public void setComponentHidden(String values, boolean hidden, @Nullable AbstractComponent<?> component) {
+    /**把当前所有的组件合并到一个列表里面，便于遍历*/
+    private List<AbstractComponent<?>> allComponents() {
+        List<AbstractComponent<?>> components = new ArrayList<>(16);
+        components.addAll(portraits);
+        components.addAll(chatOptions);
+        components.add(dialogBox);
+        components.addAll(functionalButtons);
+        if (video != null) components.add(video);
+        components.add(keyPromptRender);
+        return components;
+    }
+
+    /**组件事件的条件发送到服务端测试通过后，通过这个方法直接执行，直接调用应该是无效的，因为你填不来参数*/
+    public void executeEvent(String path) {
+        var parts = StrUtil.parse(path);
+        if (parts.length != 2) return;
+        int id = Integer.parseInt(parts[0]); int index = Integer.parseInt(parts[1]);
+        for (var c : allComponents()) if (c.events.execute(id, index)) break;
+        events.execute(id, index);
+    }
+
+    /**通过以;分隔的字符串描述获取所有匹配条件的组件列表，支持通过组件的id进行匹配*/
+    public List<AbstractComponent<?>> getCompByDesc(String values) {return getCompByDesc(values, null);}
+    public List<AbstractComponent<?>> getCompByDesc(String values, @Nullable AbstractComponent<?> component) {
+        List<AbstractComponent<?>> list = new ArrayList<>();
         for (String value : values.split(";")) {
             if (value.isBlank()) continue;
             value = value.trim();
             String lower = value.toLowerCase();
-            // 如果为@s且组件不为空，则隐藏组件自身
-            if (component != null && lower.equals("@s")) {
-                component.setHidden(hidden);
-                continue;
-            }
-            if (lower.contains("@")) { // 包含@符号以及关键字即可，增加容错
-                if (lower.contains("dialog")) dialogBox.setHidden(hidden);
-                if (lower.contains("options")) chatOptions.forEach(option -> option.setHidden(hidden));
-                if (lower.contains("portraits")) portraits.forEach(portrait -> portrait.setHidden(hidden));
-                if (lower.contains("buttons")) functionalButtons.forEach(button -> button.setHidden(hidden));
-                if (lower.contains("video") && video != null) video.setHidden(hidden);
-                if (lower.contains("key")) keyPromptRender.setHidden(hidden);
-            } else {
-                for (var portrait : portraits) {
-                    if (portrait.id.equals(value)) portrait.setHidden(hidden);
-                }
-            }
+            if (component != null && lower.equals("@s")) list.add(component);
+            else if (lower.contains("@")) { // 包含@符号以及关键字即可，增加容错
+                if (lower.contains("dialog")) list.add(dialogBox);
+                if (lower.contains("options")) list.addAll(chatOptions);
+                if (lower.contains("portraits")) list.addAll(portraits);
+                if (lower.contains("buttons")) list.addAll(functionalButtons);
+                if (lower.contains("video") && video != null) list.add(video);
+                if (lower.contains("key")) list.add(keyPromptRender);
+            } else for (var c : allComponents()) if (c.getId().equals(value)) list.add(c);
         }
+        return list;
+    }
+
+    public void setComponentHidden(String values, boolean hidden, @Nullable AbstractComponent<?> component) {
+        getCompByDesc(values, component).forEach(c -> c.setHidden(hidden));
+    }
+
+    public void setComponentLock(String values, boolean isLock, @Nullable AbstractComponent<?> component) {
+        getCompByDesc(values, component).forEach(c -> c.setIsLock(isLock));
     }
 
     /**@return 不因指令隐藏的选项数量*/
@@ -218,7 +245,7 @@ public class ChatBoxScreen extends Screen {
         return list;
     }
 
-    public void renderInner(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
+    public void renderInner(GuiGraphicsExtractor guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
         long currentTime = System.currentTimeMillis();
         boolean shouldUpdatePortrait = Math.abs(currentTime - lastUpdateTime) >= updateDuration;
         if (shouldUpdatePortrait) lastUpdateTime = currentTime;
@@ -258,9 +285,9 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void extractRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderInner(guiGraphics, pMouseX, pMouseY, pPartialTick, true);
-        super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.extractRenderState(guiGraphics, pMouseX, pMouseY, pPartialTick);
         if (debug) {
             var font = minecraft.font;
             if (underCursor != null && hasControlDown()) {
@@ -275,7 +302,7 @@ public class ChatBoxScreen extends Screen {
                     if (debugTips.indexOf(debugTip) == 4) debugTip = Component.literal(debugTip.getString().replace("%s", debugKeys.get(debugIndex))).withStyle(ChatFormatting.AQUA);
                     // 绘制文本背景
                     guiGraphics.fill(1, y - 1, 1 + font.width(debugTip) + 2, y + font.lineHeight, 0xFF202020);
-                    guiGraphics.drawString(font, debugTip, 2, y, -1, false);
+                    guiGraphics.text(font, debugTip, 2, y, -1, false);
                     y += 10;
                 }
             }
@@ -295,7 +322,7 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean bl) {
+    public boolean mouseClicked(@NonNull MouseButtonEvent mouseButtonEvent, boolean bl) {
         if (debug && hasControlDown()) return true;
         var pButton = mouseButtonEvent.button();
         if (hideDialogBox) {
@@ -387,7 +414,7 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent mouseButtonEvent, double dragX, double dragY) {
+    public boolean mouseDragged(@NonNull MouseButtonEvent mouseButtonEvent, double dragX, double dragY) {
         if (debug && hasControlDown() && underCursor != null) {
             float addX = (float) dragX * 100 / RenderUtil.screenWidth();
             float addY = (float) dragY * 100 / RenderUtil.screenHeight();
@@ -418,6 +445,11 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public void tick() {
+        tick++;
+        allComponents().forEach(c -> {
+            c.fireEvent("TICK");
+            if (tick == 3) c.fireEvent("CHECK");
+        });
         if (hideDialogBox) return; //如果隐藏对话框，则不tick
         if (!shouldGotoNext()) fastForward = false;
 
@@ -459,6 +491,6 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
     }
 }

@@ -18,8 +18,8 @@ public class SettingLoader {
 
     public static void chatBoxLoader() {
         ResourceLoader loader = ResourceLoader.get(PackType.SERVER_DATA);
-        loader.registerReloader(ChatBox.id("chatbox/dialogues"), new ChatBoxDialoguesLoader());
-        loader.registerReloader(ChatBox.id("chatbox/theme"), new ChatBoxThemeLoader());
+        loader.registerReloadListener(ChatBox.id("chatbox/dialogues"), new ChatBoxDialoguesLoader());
+        loader.registerReloadListener(ChatBox.id("chatbox/theme"), new ChatBoxThemeLoader());
     }
 
     public static void initializeChatBoxScreen(ServerPlayer player) {

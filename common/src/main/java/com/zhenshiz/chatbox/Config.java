@@ -14,4 +14,7 @@ public class Config {
     @ConfigEntry.BoundedDiscrete(min = 1, max = 721)
     public int charPerSecond = 20;
 
+    @ConfigEntry.BoundedDiscrete(min = 1, max = 200)
+    public int portraitWidthPercent = 100;
+
 }

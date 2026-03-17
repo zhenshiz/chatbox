@@ -22,9 +22,11 @@ dependencies {
 
     compileOnly("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}")
 
-    compileOnly("com.terraformersmc:modmenu:18.0.0-alpha.3")
+    compileOnly("com.terraformersmc:modmenu:18.0.0-alpha.6")
 
     compileOnly("maven.modrinth:watermedia:${watermedia_version}")
+
+    implementation("org.mvel:mvel2:2.5.0.Final")
 }
 
 neoForge {

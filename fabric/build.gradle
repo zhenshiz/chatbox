@@ -19,6 +19,8 @@ dependencies {
     }
 
     compileOnly("maven.modrinth:watermedia:${watermedia_version}")
+
+    include(implementation("org.mvel:mvel2:2.5.0.Final"))
 }
 
 loom {

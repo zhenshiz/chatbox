@@ -65,14 +65,15 @@
           {
             "text": "chatbox.test.option.5", "next": "this",
             "click": {"type": "command", "value": "give @s minecraft:dead_bush 64"},
-            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:dead_bush\"}]}]"
+            "unlockCommand": "player.hasItem('minecraft:dead_bush')",
+            "提示": "都看到这里了，那注意看另一个主题的对话，跟这里写法不一样哦！"
           },
           {
             "text": "chatbox.test.option.6", "next": "4",
             "tooltip": "chatbox.test.tooltip.1",
             "click": {"type": "command", "value": "give @s minecraft:dead_bush"},
             "isLock": true,
-            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:netherite_sword\",Slot:0b}]}]"
+            "unlockCommand": "player.getItemBySlot(0).id == 'minecraft:netherite_sword'"
           },
           {
             "text": "chatbox.test.option.1"
@@ -102,7 +103,8 @@
             "customAnimation": [{"time": 600, "angle": -360, "scale": 2, "opacity": 0}],
             "loop": true
           },
-          "item"
+          "item",
+          "player"
         ]
       },
       {

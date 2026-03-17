@@ -4,7 +4,7 @@ import com.zhenshiz.chatbox.neoforge.event.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.neoforge.event.SkipChatEvent;
 import com.zhenshiz.chatbox.platform.IPlatformHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,12 +37,12 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     public void sendToClient(ServerPlayer player, CustomPacketPayload packet) {PacketDistributor.sendToPlayer(player, packet);}
 
     @Override
-    public boolean postRenderEventPre(GuiGraphics guiGraphics) {
+    public boolean postRenderEventPre(GuiGraphicsExtractor guiGraphics) {
         return NeoForge.EVENT_BUS.post(new ChatBoxRenderEvent.Pre(guiGraphics)).isCanceled();
     }
 
     @Override
-    public void postRenderEventPost(GuiGraphics guiGraphics) {
+    public void postRenderEventPost(GuiGraphicsExtractor guiGraphics) {
         NeoForge.EVENT_BUS.post(new ChatBoxRenderEvent.Post(guiGraphics));
     }
 

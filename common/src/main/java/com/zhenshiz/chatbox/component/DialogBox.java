@@ -2,16 +2,15 @@ package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
-import com.zhenshiz.chatbox.data.Attachment;
+import com.zhenshiz.chatbox.component.data.Attachment;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 public class DialogBox extends Portrait<DialogBox> {
-    public static final Identifier dialog_box = ChatBox.id("textures/chatbox/default_dialog_box.png");
+    public static final String dialog_box = "chatbox:textures/chatbox/default_dialog_box.png";
     //对话框文本
     private String text = "";
     //文本x位置
@@ -36,7 +35,10 @@ public class DialogBox extends Portrait<DialogBox> {
     private int charIndex;
 
     @Override
-    public Identifier getTexture() {return BeanUtil.getValueOrDefault(super.getTexture(), dialog_box);}
+    public String getId() {return "dialog_box";}
+
+    @Override
+    public String getTexture() {return BeanUtil.getValueOrDefault(super.getTexture(), dialog_box);}
 
     public DialogBox setText(String text) {
         if (text != null) {
@@ -55,7 +57,7 @@ public class DialogBox extends Portrait<DialogBox> {
     }
 
     public DialogBox setName(String name) {
-        if (name != null) this.name = RenderUtil.translated(name);
+        if (name != null) this.name = name;
         return this;
     }
 
@@ -146,12 +148,12 @@ public class DialogBox extends Portrait<DialogBox> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         renderInner(mouseX, mouseY);
         //chatBox image
-        renderImage(guiGraphics, isSelect ? getHoverTexture() : getTexture(), addTempAttachment(
-                Attachment.ofText(parseText(this.name), this.nameX, this.nameY, this.lineWidth, this.textAlign.name(), -1, false),
-                Attachment.ofText(subString(parseText(this.text), charIndex), this.textX, this.textY, this.lineWidth, this.textAlign.name(), -1, true)
+        renderImage(guiGraphics, getRenderResource(), addTempAttachment(
+                Attachment.ofText(this.name, this.nameX, this.nameY, this.lineWidth, this.textAlign.name(), -1, false, true),
+                Attachment.ofText(subString(parseText(this.text), charIndex), this.textX, this.textY, this.lineWidth, this.textAlign.name(), -1, true, false)
         ));
     }
 }

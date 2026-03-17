@@ -6,7 +6,7 @@ import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.lwjgl.glfw.GLFW;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
@@ -22,7 +22,7 @@ public class ChatBoxRender {
     //当前选择的选项序号
     public static int selectIndex = 0;
 
-    public static void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    public static void onHudRender(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
         float partialTick = deltaTracker.getGameTimeDeltaTicks();
         if (isRenderChatBox()) {
             chatBoxScreen.renderInner(guiGraphics, 0, 0, partialTick, false);
@@ -30,13 +30,13 @@ public class ChatBoxRender {
     }
 
     public static void onEndTick(Minecraft minecraft) {
-        if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
         // 客户端每5 tick请求同步对话目标实体
         if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
             ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_SYNC, "");
         }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
+            if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
         }
     }
 
