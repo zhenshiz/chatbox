@@ -22,6 +22,9 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public ResourceLocation scrollTexture;
     public static final String ctrl = Minecraft.ON_OSX ? "Cmd" : "Ctrl";
 
+    @Override
+    public String getId() {return "key_prompt";}
+
     public KeyPromptRender setMouseTextureSize(Float width, Float height) {
         if (width != null) this.mouseTextureWidth = width;
         if (height != null) this.mouseTextureHeight = height;

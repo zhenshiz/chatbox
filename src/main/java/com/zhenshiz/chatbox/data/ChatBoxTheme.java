@@ -1,8 +1,10 @@
 package com.zhenshiz.chatbox.data;
 
 import com.zhenshiz.chatbox.component.ChatOption;
-import com.zhenshiz.chatbox.component.ComponentEvent;
+import com.zhenshiz.chatbox.component.data.Attachment;
+import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.component.FunctionalButton;
+import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -37,6 +39,8 @@ public class ChatBoxTheme {
         public String texture; // 与value作用相同，填一个就行，如果你非要两个都写……What can I say
         public String hoverTexture;
         public String selectTexture; // 与hoverTexture作用相同，填一个就行
+        public Boolean isLock;
+        public String lockTexture;
         public Integer itemCount;
         public Integer customItemData;
         public String animation;
@@ -58,14 +62,12 @@ public class ChatBoxTheme {
         {
             this.renderOrder = 10;
         }
-        public String lockTexture;
         public Float optionChatX = DEFAULT_FLOAT;
         public Float optionChatY = DEFAULT_FLOAT;
         public String textAlign = "left";
 
         public ChatOption newOption() {
             return new ChatOption().ofPortrait(this)
-                    .setLockTexture(this.lockTexture)
                     .setOptionChatPosition(this.optionChatX, this.optionChatY)
                     .setTextAlign(this.textAlign);
         }
@@ -126,6 +128,7 @@ public class ChatBoxTheme {
 
     public static class RenderEvent {
         public String trigger = "on_start";
+        public String condition = "";
         public String type = "";
         public String value = "";
     }

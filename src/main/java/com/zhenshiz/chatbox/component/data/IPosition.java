@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.component;
+package com.zhenshiz.chatbox.component.data;
 
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 

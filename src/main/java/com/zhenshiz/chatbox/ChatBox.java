@@ -3,13 +3,15 @@ package com.zhenshiz.chatbox;
 import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
-import com.zhenshiz.chatbox.component.ComponentEvent;
+import com.zhenshiz.chatbox.component.data.ComponentEvent;
 //? >= 1.21
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.network.Packets;
 import com.zhenshiz.chatbox.platform.Platform;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +49,8 @@ public class ChatBox/*? fabric {*/ implements ModInitializer/*?}*/ {
     private static ChatBoxTriggerCount triggerCounts;
     @Nullable
     public static PluginHelper pluginHelper;
+    //? >= 1.21
+    @Nullable public static MinecraftServer server;
 
     //? fabric
     public void onInitialize() {
@@ -55,6 +59,7 @@ public class ChatBox/*? fabric {*/ implements ModInitializer/*?}*/ {
         LOGGER.info("Ciallo～(∠·ω< )⌒★");
         ComponentEvent.registerDefaultEvents();
         Packets.register();
+        MVELUtil.init();
         //? fabric {
         ChatBoxSettingLoader.chatBoxLoader();
         CommandRegistrationCallback.EVENT.register(ChatBoxCommand::register);

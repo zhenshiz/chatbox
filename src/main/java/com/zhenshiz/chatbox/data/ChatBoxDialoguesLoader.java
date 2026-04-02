@@ -118,6 +118,7 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
     //解析判据必须要用到registryAccess，fabric我目前没想到别的解决办法
     //? >= 1.21 {
     public static void loadCriteria(MinecraftServer server) {
+        ChatBox.server = server;
         for (var entry : parsedDialogues.entrySet()) {
             ResourceLocation rl = entry.getKey();
             JsonElement criteriaElement = entry.getValue().criteria;

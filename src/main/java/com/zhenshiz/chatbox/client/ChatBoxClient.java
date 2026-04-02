@@ -43,12 +43,7 @@ public class ChatBoxClient implements ClientModInitializer {
         InputEvent.MouseButton.POST.register(ChatBoxRender::mousePost);
         InputEvent.MOUSE_SCROLLING.register(ChatBoxRender::onMouseScroll);
     }
-}
 //?}
-
-//? neoforge {
-//?}
-
 //? forge {
 /*import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.Config;
@@ -96,5 +91,5 @@ public class ChatBoxClient {
     public static void mouseScroll(InputEvent.MouseScrollingEvent event) {
         if (ChatBoxRender.onMouseScroll(0, event.getScrollDelta(), event.isLeftDown(), event.isMiddleDown(), event.isRightDown(), event.getMouseX(), event.getMouseY())) event.setCanceled(true);
     }
-}
 *///?}
+}

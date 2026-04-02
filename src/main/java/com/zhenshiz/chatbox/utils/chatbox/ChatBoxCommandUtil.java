@@ -8,6 +8,7 @@ import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 //? forge {
 /*import dev.latvian.mods.kubejs.typings.Info;
 import dev.latvian.mods.rhino.util.HideFromJS;
@@ -58,7 +59,7 @@ public class ChatBoxCommandUtil {
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues.toString(), group, String.valueOf(index)));
+        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues, group, index));
     }
 
     //? forge
@@ -202,12 +203,12 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("服务端设置选项")*/
     public static void serverSetChatOption(ServerPlayer player, int index, String text, String tip, Boolean lock, Boolean hide) {
-        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(String.valueOf(index), text, tip, String.valueOf(lock), String.valueOf(hide)));
+        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(index, text, tip, lock, hide));
     }
 
     //? forge
     /*@Info("客户端设置选项")*/
-    public static void clientSetChatOption(int index, String text, String tip, boolean lock, boolean hide) {
+    public static void clientSetChatOption(int index, String text, String tip, Boolean lock, Boolean hide) {
         var options = chatBoxScreen.chatOptions;
         if (index < 0 || index >= options.size()) return;
         var option = options.get(index);
@@ -233,16 +234,28 @@ public class ChatBoxCommandUtil {
     }
 
     //? forge
-    /*@Info("添加一个占位符解析器，在服务端任意位置使用")*/
-    public static void addPlaceholderResolver(String key, Function<Entity, String> resolver) {
-        PlaceholderUtil.addPropertyResolver(key, resolver);
+    /*@Info("添加一个用于MVEL解析的动态方法，建议在启动脚本中调用，不过由于傻逼kjs的问题，这个方法无法正常工作")*/
+    public static void addMvelMethod(String name, MVELUtil.DynamicMethod handler) {
+        MVELUtil.registerMethod(name, handler);
+    }
+
+    //? forge
+    /*@Info("添加一个用于MVEL解析的动态属性，建议在启动脚本中调用")*/
+    public static void addMvelProperty(String name, MVELUtil.DynamicProperty handler) {
+        MVELUtil.registerProperty(name, handler);
+    }
+
+    //? forge
+    /*@Info("添加一个占位符解析器，建议在启动脚本中调用")*/
+    public static void addPlaceholderResolver(String key, Function<Entity, Object> resolver) {
+        MVELUtil.addPropertyResolver(key, resolver);
     }
 
     //? forge
     /*@Info("解析对话目标信息占位符")*/
     public static String parseTargetPlaceholders(ServerPlayer player, String input) {
         input = parsePlaceholders(player, input);
-        return PlaceholderUtil.parseTargetPlaceholders(serverGetChatTargets(player), input);
+        return MVELUtil.parseTargetPlaceholders(player, input);
     }
 
     //? forge

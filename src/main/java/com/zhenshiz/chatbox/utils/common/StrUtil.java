@@ -312,15 +312,15 @@ public class StrUtil {
             this.currentPosition = 0;
         }
 
-        public StrMerger append(String str) {
-            if (str == null) str = "null";
+        public StrMerger append(Object str) {
+            String s = String.valueOf(str);
             // 先添加字符串的长度（使用4字节表示）
-            byte[] lengthBytes = intToBytes(str.length());
+            byte[] lengthBytes = intToBytes(s.length());
             for (byte b : lengthBytes) {
                 dataBuilder.append((char) (b & 0xFF));
             }
             // 再添加字符串内容
-            dataBuilder.append(str);
+            dataBuilder.append(s);
             return this;
         }
 
@@ -407,11 +407,9 @@ public class StrUtil {
         }
     }
 
-    public static String merge(String... strings) {
+    public static String merge(Object... strings) {
         StrMerger merger = new StrMerger();
-        for (String str : strings) {
-            merger.append(str);
-        }
+        for (var str : strings) merger.append(str);
         return merger.getMergedString();
     }
 

@@ -60,6 +60,9 @@ dependencies {
 
     modImplementation("maven.modrinth:watermedia:${property("deps.watermedia")}")
 
+    include("org.mvel:mvel2:2.5.0.Final")
+    implementation("org.mvel:mvel2:2.5.0.Final")
+
     val modules = listOf("transitive-access-wideners-v1", "registry-sync-v0", "resource-loader-v0")
     for (it in modules) modImplementation(fabricApi.module("fabric-$it", property("deps.fabric-api") as String))
 }

@@ -11,6 +11,7 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxThemeLoader;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -72,6 +73,24 @@ public class ChatBoxCommand {
                         )
                         .then(Commands.literal("isScreen")
                                 .then(Commands.argument("IsScreen", BoolArgumentType.bool()).executes(ChatBoxCommand::setIsScreen))
+                        )
+                )
+                .then(Commands.literal("mvelTest")
+                        .then(Commands.argument("expression", StringArgumentType.string())
+                                .then(Commands.argument("onServer", BoolArgumentType.bool())
+                                        .executes(context -> {
+                                            String expression = StringArgumentType.getString(context, "expression");
+                                            ServerPlayer player = context.getSource().getPlayer();
+                                            if (player == null) {
+                                                context.getSource().sendFailure(ERROR_PLAYER_ONLY);
+                                                return 0;
+                                            }
+                                            if (BoolArgumentType.getBool(context, "onServer")) {
+                                                MVELUtil.commandTest(player, expression);
+                                            } else ChatBoxCommandUtil.simplePayloadS2C(player, "mvel_test", expression);
+                                            return 1;
+                                        })
+                                )
                         )
                 )
         );

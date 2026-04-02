@@ -24,6 +24,9 @@ dependencies {
     modImplementation("me.shedaniel.cloth:cloth-config-forge:${property("deps.cloth-config")}")
     modImplementation("maven.modrinth:watermedia:${property("deps.watermedia")}")
 
+    jarJar("org.mvel:mvel2:2.5.0.Final")
+    implementation("org.mvel:mvel2:2.5.0.Final")
+
     compileOnly("maven.modrinth:rhino:${property("deps.rhino")}")
     compileOnly("maven.modrinth:kubejs:${property("deps.kubejs")}")
     compileOnly("maven.modrinth:terra-entity:${property("deps.terra-entity")}")

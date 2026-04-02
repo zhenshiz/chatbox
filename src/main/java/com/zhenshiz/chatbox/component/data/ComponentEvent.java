@@ -1,12 +1,14 @@
-package com.zhenshiz.chatbox.component;
+package com.zhenshiz.chatbox.component.data;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.component.AbstractComponent;
+import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
-import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,8 +20,7 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.function.Predicate;
 
 import static com.zhenshiz.chatbox.api.EventExecutor.*;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
@@ -31,59 +32,58 @@ import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 @NoArgsConstructor
 public class ComponentEvent {
     public static final String ON_START = "ON_START", ON_END = "ON_END", ON_CLICK = "ON_CLICK",
+            TICK = "TICK", CHECK = "CHECK",
             ON_MOUSE_OVER = "ON_MOUSE_OVER", ON_MOUSE_OUT = "ON_MOUSE_OUT", NONE = "NONE";
     public String trigger = NONE;
+    public String condition = ""; // 事件触发条件，默认为空字符串，表示无条件触发；无前缀默认执行MVEL；以execute开头表示执行指令
     public String type = "";
     public String value = "";
     @Setter
     @Nullable private AbstractComponent<?> component;
 
     public static ComponentEvent of(ChatBoxTheme.RenderEvent e) {
-        return of(e.trigger, e.type, e.value, null);
+        return of(e.trigger, e.condition, e.type, e.value, null);
     }
-    public static ComponentEvent of(String trigger, String type, String value, @Nullable AbstractComponent<?> component) {
-        return new ComponentEvent(ofTrigger(trigger), type, value, component);
-    }
-
-    /**
-     * 根据提供的触发时机，执行组件事件
-     * @return 若触发了组件事件，则返回true
-     */
-    public boolean fire(String trigger) {
-        if (Objects.equals(this.trigger, NONE) || !Objects.equals(this.trigger, trigger)) return false;
-        return executeEvent(this.component, this.type, this.value);
+    public static ComponentEvent of(String trigger, String condition, String type, String value, @Nullable AbstractComponent<?> component) {
+        return new ComponentEvent(ofTrigger(trigger), condition, type, value, component);
     }
 
-    /**
-     * 根据提供的触发时机，执行所有组件事件
-     * @return 成功执行的组件事件数量
-     */
-    public static int fireAll(List<ComponentEvent> events, String trigger) {
-        if (CollUtil.isEmpty(events)) return 0;
-        trigger = ofTrigger(trigger);
-        int count = 0;
-        for (ComponentEvent event : events) {
-            if (event.fire(trigger)) count++;
+    /**根据谓语条件触发事件，仍会验证事件本身的condition*/
+    protected boolean fire(Predicate<ComponentEvent> predicate, int id, int index) {
+        if (!predicate.test(this)) return false;
+        if (condition.isEmpty()) return execute();
+        if (condition.startsWith("execute") || condition.startsWith("server:")) {
+            ChatBoxCommandUtil.simplePayloadC2S("test_condition", StrUtil.merge(condition, id, index));
+            return true;
         }
-        return count;
+        return MVELUtil.evalClient(condition, component) instanceof Boolean b && b && execute();
     }
+
+    protected boolean execute() {return executeEvent(this.component, this.type, this.value);}
 
     public static String ofTrigger(String trigger) { // 增加容错处理
         String s = StrUtil.isEmpty(trigger) ? NONE : trigger.toUpperCase();
         if (s.contains("START")) return ON_START;
         if (s.contains("END")) return ON_END;
         if (s.contains("CLICK")) return ON_CLICK;
+        if (s.contains("TICK")) return TICK;
+        if (s.contains("CHECK")) return CHECK;
         if (s.contains("MOUSE")) {
             if (s.contains("OVER")) return ON_MOUSE_OVER;
             if (s.contains("OUT")) return ON_MOUSE_OUT;
         }
         ChatBox.LOGGER.warn("Unknown trigger: {}, available triggers: {}", trigger,
-                new String[]{ON_START, ON_END, ON_CLICK, ON_MOUSE_OVER, ON_MOUSE_OUT});
+                new String[]{ON_START, ON_END, ON_CLICK, TICK, CHECK, ON_MOUSE_OVER, ON_MOUSE_OUT});
         return NONE;
     }
 
     public static void registerDefaultEvents() {
         registerEvent("COMMAND", (c, s) -> {}, () -> true, ComponentEvent::executeCommands);
+        // 实际上是会在服务端执行的，只是不想再加一个事件类型了
+        registerClientEvent("MVEL", (c, s) -> {
+            if (s.startsWith("server:")) ChatBoxCommandUtil.simplePayloadC2S("test_condition", StrUtil.merge(s));
+            else MVELUtil.evalClient(s, c);
+        });
 
         registerClientEvent("JUMP", (c, next) -> { //跳转到指定的对话或者其它模块的对话
             if (next.equalsIgnoreCase("this")) return;
@@ -103,13 +103,17 @@ public class ComponentEvent {
         registerClientEvent("PLAY_SOUND", (c, s) -> SoundUtil.playSound(s));
         registerClientEvent("STOP_SOUND", (c, s) -> SoundUtil.stopSound(s));
 
-        registerClientEvent("SHOW", (c, values) -> chatBoxScreen.setComponentHidden(values, false, c));
-        registerClientEvent("HIDE", (c, values) -> chatBoxScreen.setComponentHidden(values, true, c));
+        registerClientEvent("SHOW", (c, s) -> chatBoxScreen.setComponentHidden(s, false, c));
+        registerClientEvent("HIDE", (c, s) -> chatBoxScreen.setComponentHidden(s, true, c));
         // 替换组件时，如果当前组件不为null，就隐藏当前组件，否则完全等价于SHOW事件
         registerClientEvent("REPLACE", (c, values) -> {
             if (c != null) c.setHidden(true);
             chatBoxScreen.setComponentHidden(values, false, null);
         });
+        registerClientEvent("LOCK", (c, s) -> chatBoxScreen.setComponentLock(s, true, c));
+        registerClientEvent("UNLOCK", (c, s) -> chatBoxScreen.setComponentLock(s, false, c));
+        registerClientEvent("SET_NORMAL", (c, s) ->
+                chatBoxScreen.getCompByDesc(s, c).forEach(AbstractComponent::setNormal));
 
         registerClientEvent("SET_AUTOPLAY", (c, s) -> chatBoxScreen.autoPlay = Boolean.parseBoolean(s));
 

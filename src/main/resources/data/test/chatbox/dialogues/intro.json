@@ -65,7 +65,8 @@
           {
             "text": "chatbox.test.option.5", "next": "this",
             "click": {"type": "command", "value": "give @s minecraft:dead_bush 64"},
-            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:dead_bush\"}]}]"
+            "unlockCommand": "execute if entity @s[nbt={Inventory:[{id:\"minecraft:dead_bush\"}]}]",
+            "提示": "都看到这里了，那注意看另一个主题的对话，跟这里写法不一样哦！"
           },
           {
             "text": "chatbox.test.option.6", "next": "4",

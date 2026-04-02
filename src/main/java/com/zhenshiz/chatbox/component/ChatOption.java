@@ -1,28 +1,24 @@
 package com.zhenshiz.chatbox.component;
 
-import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.data.Attachment;
+import com.zhenshiz.chatbox.component.data.Attachment;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 
 public class ChatOption extends Portrait<ChatOption> {
-    public static final ResourceLocation
-            root = ChatBox.id("textures/options/default_no_checked_option.png"),
-            hover = ChatBox.id("textures/options/default_checked_option.png"),
-            lock = ChatBox.id("textures/options/default_lock_checked_option.png");
+    public static final String
+            root = "chatbox:textures/options/default_no_checked_option.png",
+            hover = "chatbox:textures/options/default_checked_option.png",
+            lock = "chatbox:textures/options/default_lock_checked_option.png";
     //选项文本
     public String optionChat = "";
     //选项x位置
     public float optionChatX = 0;
     //选项y位置
     public float optionChatY = 0;
-    //是否上锁
-    public boolean isLock = false;
     //悬浮字体
     public String optionTooltip = "";
     //文本对齐
@@ -31,9 +27,9 @@ public class ChatOption extends Portrait<ChatOption> {
     public float originY = 0;
     //选项在chatBoxScreen被渲染时的索引，小于0不渲染也不能点击（隐藏）
     public int renderIndex = 0;
-    {
-        this.id = "options";
-    }
+
+    @Override
+    public String getId() {return "option" + ChatBoxUtil.chatBoxScreen.chatOptions.indexOf(this);}
 
     @Override
     public ChatOption setPosition(Float x, Float y) {
@@ -56,8 +52,11 @@ public class ChatOption extends Portrait<ChatOption> {
         return this;
     }
 
-    public ChatOption setIsLock(Boolean isLock) {
-        if (notNull(isLock)) this.isLock = isLock;
+    public ChatOption setCondition(String condition, boolean lockOrHide) {
+        if (notNull(condition) && !condition.isEmpty()) {
+            events.add("CHECK", condition, "SET_NORMAL", "@s", this);
+            if (lockOrHide) setIsLock(true); else hideOption(true);
+        }
         return this;
     }
 
@@ -87,14 +86,13 @@ public class ChatOption extends Portrait<ChatOption> {
     }
 
     @Override
-    public ResourceLocation getTexture() {return BeanUtil.getValueOrDefault(super.getTexture(), root);}
+    public String getTexture() {return BeanUtil.getValueOrDefault(super.getTexture(), root);}
 
     @Override
-    public ResourceLocation getHoverTexture() {return BeanUtil.getValueOrDefault(getTexture(HOVER), hover);}
+    public String getHoverTexture() {return BeanUtil.getValueOrDefault(getTexture(HOVER), hover);}
 
-    public ChatOption setLockTexture(String texture) {return setTexture("lock", texture);}
-
-    public ResourceLocation getLockTexture() {return BeanUtil.getValueOrDefault(getTexture("lock"), lock);}
+    @Override
+    public String getLockTexture() {return BeanUtil.getValueOrDefault(getTexture(LOCK), lock);}
 
     /**@return 是否成功点击*/
     public boolean click() {
@@ -112,18 +110,10 @@ public class ChatOption extends Portrait<ChatOption> {
         if (this.alignY == AlignY.CENTER) this.y -= (num - 1) * this.height / 2.0F;
         if (this.alignY == AlignY.BOTTOM) this.y -= (num - 1) * this.height;
 
-        int color = CommonColors.WHITE;
-        ResourceLocation texture = getTexture();
-        if (this.isLock) {
-            texture = getLockTexture();
-            color = CommonColors.GRAY;
-        } else if (isSelect) {
-            texture = getHoverTexture();
-            color = /*? >= 1.21 {*/CommonColors.YELLOW/*?} else {*//*-256*//*?}*/;
-        }
-
+        int color = isLock ? CommonColors.GRAY : isSelect ?
+                /*? >= 1.21 {*/CommonColors.YELLOW/*?} else {*//*-256*//*?}*/ : CommonColors.WHITE;
         //render image
-        renderImage(guiGraphics, texture, addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false, true)));
+        renderImage(guiGraphics, getRenderResource(), addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false, true)));
 
         //render tooltip
         if (!this.optionTooltip.isEmpty() && isSelect) {
