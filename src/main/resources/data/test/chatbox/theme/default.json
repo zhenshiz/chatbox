@@ -15,8 +15,11 @@
     "item": {
       "type": "item",
       "x": 75, "y": 25, "scale": 3,
-      "texture": "diamond",
-      "hoverTexture": "coal",
+      "texture": "diamond", "hoverTexture": "coal",
+      "isLock": true, "lockTexture": "barrier",
+      "renderEvents": [
+        {"trigger": "check", "condition": "player.hasItem('diamond')", "type": "set_normal", "value": "@s"}
+      ],
       "itemCount": 64,
       "renderOrder": -10
     },

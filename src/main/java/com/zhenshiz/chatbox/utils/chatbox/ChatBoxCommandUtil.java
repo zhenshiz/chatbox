@@ -218,7 +218,17 @@ public class ChatBoxCommandUtil {
         EventExecutor.registerEvent(type, executeOnClient, () -> shouldExecuteOnServer, executeOnServer);
     }
 
-    @Info("添加一个占位符属性解析器，在服务端任意位置使用")
+    @Info("添加一个用于MVEL解析的动态方法，建议在启动脚本中调用，不过由于傻逼kjs的问题，这个方法无法正常工作")
+    public static void addMvelMethod(String name, MVELUtil.DynamicMethod handler) {
+        MVELUtil.registerMethod(name, handler);
+    }
+
+    @Info("添加一个用于MVEL解析的动态属性，建议在启动脚本中调用")
+    public static void addMvelProperty(String name, MVELUtil.DynamicProperty handler) {
+        MVELUtil.registerProperty(name, handler);
+    }
+
+    @Info("添加一个占位符属性解析器，建议在启动脚本中调用")
     public static void addPlaceholderResolver(String key, Function<Entity, Object> resolver) {
         MVELUtil.addPropertyResolver(key, resolver);
     }

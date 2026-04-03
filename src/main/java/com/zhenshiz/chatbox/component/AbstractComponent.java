@@ -1,10 +1,10 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.component.data.Attachment;
 import com.zhenshiz.chatbox.component.data.CompEvtWrapper;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.component.data.IPosition;
-import com.zhenshiz.chatbox.component.data.Attachment;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;

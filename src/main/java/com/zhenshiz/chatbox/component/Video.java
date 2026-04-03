@@ -12,9 +12,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.sounds.SoundSource;
 import net.neoforged.fml.loading.FMLLoader;
 import org.watermedia.api.image.ImageAPI;
-import org.watermedia.api.image.ImageRenderer;
 import org.watermedia.api.player.videolan.VideoPlayer;
-import org.watermedia.core.tools.JarTool;
 import org.watermedia.videolan4j.player.base.State;
 
 import java.net.URI;
@@ -53,9 +51,9 @@ public class Video extends AbstractComponent<Video> {
     private final URI uri;
     int videoTexture = -1;
 
-    ImageRenderer IMG_PAUSED = ImageAPI.renderer(JarTool.readImage("/pictures/paused.png"), true);
-    ImageRenderer IMG_STEP30 = ImageAPI.renderer(JarTool.readImage("/pictures/step30.png"), true);
-    ImageRenderer IMG_STEP10 = ImageAPI.renderer(JarTool.readImage("/pictures/step10.png"), true);
+    static final ResourceLocation PAUSED = ChatBox.id("textures/video/paused.png");
+    static final ResourceLocation STEP30 = ChatBox.id("textures/video/step30.png");
+    static final ResourceLocation STEP10 = ChatBox.id("textures/video/step10.png");
 
     public Video(URI uri, boolean canControl, boolean canSkip, boolean loop) {
         //minecraft.getSoundManager().pause();
@@ -89,8 +87,8 @@ public class Video extends AbstractComponent<Video> {
 
         if (!success && getState() == State.PLAYING) { success = true; retry = 0; }
         tick++;
+        if (loop && player.getTime() >= player.getDuration() - 500) player.seekTo(0);
         if (player.isBroken() || player.isEnded() || player.isStopped()) {
-            if (loop) { player.start(uri); return; }
             stop();
             return;
         }
@@ -110,10 +108,11 @@ public class Video extends AbstractComponent<Video> {
 
         // RENDER GIF
         if (!player.isPlaying()) {
-            if (player.isPaused()) {
-                renderIcon(guiGraphics, IMG_PAUSED);
-            } else {
-                renderIcon(guiGraphics, ImageAPI.loadingGif());
+            if (player.isPaused())
+                renderIconAtCenter(guiGraphics, PAUSED, (int) (actualWidth / 2 - 18), (int) (actualHeight / 2 - 18), 36);
+            else {
+                var texture = getTextureId(ImageAPI.loadingGif().texture(tick, pPartialTick, true));
+                renderIconAtCenter(guiGraphics, texture, (int) (actualWidth / 2 - 18), (int) (actualHeight / 2 - 18), 36);
             }
         }
 
@@ -131,39 +130,32 @@ public class Video extends AbstractComponent<Video> {
         guiGraphics.drawString(minecraft.font, text, 5 + (int) actualX, centerOffset + (int) (actualHeight / 2 + actualY), 0xffffff);
     }
 
-    private void renderIcon(GuiGraphics guiGraphics, ImageRenderer image) {
-        int iconSize = 36;
-        float xOffset = actualWidth - iconSize + actualX;
-        float yOffset = actualHeight - iconSize + actualY;
-
-        drawTexture(guiGraphics, image.texture(tick, 1, true), xOffset, yOffset, iconSize, iconSize);
+    private void renderIconAtCenter(GuiGraphics graphics, ResourceLocation texture, int xOffset, int yOffset, int size) {
+        float videoCX = actualX + actualWidth / 2;
+        float videoCY = actualY + actualHeight / 2;
+        float x = videoCX + (xOffset - size / 2f) * scale;
+        float y = videoCY + (yOffset - size / 2f) * scale;
+        drawTexture(graphics, texture, x, y, size, size);
     }
 
     private void renderStep30(GuiGraphics guiGraphics, float pPartialTicks) {
         if (fadeStep30 == 0) return;
-        int texture = IMG_STEP30.texture(tick, 1, true);
-
-        float x = (actualWidth / 2 + 70 + actualX);
-        float y = (actualHeight / 2 - 32 + actualY);
-        int size = 64;
-        drawTexture(guiGraphics, texture, x, y, size, size);
+        renderIconAtCenter(guiGraphics, STEP30, 100, 0, 64);
         fadeStep30 = Math.max(fadeStep30 - (pPartialTicks / 8), 0.0f);
     }
 
     private void renderStep10(GuiGraphics guiGraphics, float pPartialTicks) {
         if (fadeStep10 == 0) return;
-        int texture = IMG_STEP10.texture(tick, 1, true);
-
-        float x = (actualWidth / 2 - 134 + actualX);
-        float y = (actualHeight / 2 - 32 + actualY);
-        int size = 64;
-        drawTexture(guiGraphics, texture, x, y, size, size);
+        renderIconAtCenter(guiGraphics, STEP10, -100, 0, 64);
         fadeStep10 = Math.max(fadeStep10 - (pPartialTicks / 8), 0.0f);
     }
 
     private void drawTexture(GuiGraphics guiGraphics, int texture, float x, float y, float width, float height) {
+        drawTexture(guiGraphics, getTextureId(texture), x, y, width, height);
+    }
+    private void drawTexture(GuiGraphics guiGraphics, ResourceLocation texture, float x, float y, float width, float height) {
         RenderUtil.renderOpacity(guiGraphics, brightness, opacity, () ->
-                RenderUtil.renderImage(guiGraphics, getTextureId(texture), x, y, width, height, scale, angle));
+                RenderUtil.renderImage(guiGraphics, texture, x, y, width, height, scale, angle));
     }
 
     public void keyPressed(int pKeyCode, int pScanCode, int pModifiers) {

@@ -5,7 +5,10 @@ import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
@@ -15,8 +18,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.scores.ScoreHolder;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
@@ -70,14 +76,16 @@ public class MVELUtil {
         registerMethod("getScore", MVELUtil::getScore);
         registerMethod("hasTag", MVELUtil::hasTag);
         registerMethod("tell", MVELUtil::tell);
+        registerMethod("getEnchantLevel", MVELUtil::getEnchantLevel);
+        registerMethod("enchant", MVELUtil::enchant);
 
         registerProperty("name", MVELUtil::getName);
         registerProperty("id", MVELUtil::getId);
+        addPropertyResolver("uuid", Entity::getUUID);
         addPropertyResolver("foodLevel", entity -> entity instanceof Player p ? p.getFoodData().getFoodLevel() : 0);
-        registerProperty("offHandItem", MVELUtil::getOffHandItem);
+        addPropertyResolver("offHandItem", e -> e instanceof LivingEntity le ? le.getOffhandItem() : null);
 /*        registerProperty("mainHandItem", MVELUtil::getMainHandItem);
         registerProperty("count", MVELUtil::getCount);
-        addPropertyResolver("uuid", Entity::getUUID);
         addPropertyResolver("tags", Entity::getTags);
         addPropertyResolver("health", entity -> entity instanceof LivingEntity le ? le.getHealth() : 0);
         addPropertyResolver("experienceLevel", entity -> entity instanceof Player p ? p.experienceLevel : 0);
@@ -97,7 +105,7 @@ public class MVELUtil {
     }
 
     public static @Nullable Object evalClient(String expression, Object thisObj) {
-        return eval(ChatBoxUtil.minecraft.player, expression, thisObj);
+        return eval(ChatBoxUtil.getPlayer(), expression, thisObj);
     }
     public static @Nullable Object eval(Player player, String expression, Object thisObj) {
         return eval(player, expression, thisObj, false);
@@ -156,8 +164,8 @@ public class MVELUtil {
 
     public static void commandTest(Player player, String expression) {
         var o = eval(player, expression, null, true);
-        if (player != null) player.displayClientMessage(
-                Component.literal("MVEL test: " + (o == null ? "null" : o.toString())), false);
+        if (player != null) player.displayClientMessage(Component.translatable("MVEL test: ").append(
+                Component.literal(o == null ? "null" : o.toString())), false);
     }
 
     private static String replaceTarget(String expression) {
@@ -184,16 +192,6 @@ public class MVELUtil {
     }
 
     @ChatBoxMvel
-    public static ItemStack getMainHandItem(Object o) {
-        return o instanceof LivingEntity le ? le.getMainHandItem() : null;
-    }
-
-    @ChatBoxMvel
-    public static ItemStack getOffHandItem(Object o) {
-        return o instanceof LivingEntity le ? le.getOffhandItem() : null;
-    }
-
-    @ChatBoxMvel
     public static ItemStack getItemBySlot(Object o, Object... args) {
         if (o instanceof LivingEntity le && args.length == 1 && args[0] instanceof String slot) {
             switch (slot.toLowerCase()) {
@@ -209,8 +207,44 @@ public class MVELUtil {
         return null;
     }
 
+    public static boolean isServerSide() {
+        if (!FMLEnvironment.dist.isClient()) return true;
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server != null && server.isSameThread();
+    }
+
+    public static @Nullable RegistryAccess getRegistry() {
+        if (isServerSide()) {
+            var server = ServerLifecycleHooks.getCurrentServer();
+            if (server != null) return server.registryAccess();
+        } else if (ChatBoxUtil.getLevel() != null) return ChatBoxUtil.getLevel().registryAccess();
+        return null;
+    }
+
+    public static @Nullable Holder<Enchantment> getEnchantment(String id) {
+        var registry = getRegistry();
+        return registry != null ? registry.registryOrThrow(Registries.ENCHANTMENT).getHolder(ChatBox.parseId(id)).orElse(null) : null;
+    }
+
     @ChatBoxMvel
-    public static Integer getCount(Object o) {return o instanceof ItemStack stack ? stack.getCount() : null;}
+    public static Integer getEnchantLevel(Object o, Object... args) {
+        if (o instanceof ItemStack stack && args.length == 1 && args[0] instanceof String id) {
+            var holder = getEnchantment(id);
+            return holder != null ? stack.getEnchantmentLevel(holder) : null;
+        }
+        return null;
+    }
+
+    @ChatBoxMvel
+    public static String enchant(Object o, Object... args) {
+        if (o instanceof ItemStack stack && args.length == 2 && args[0] instanceof String id && args[1] instanceof Integer level) {
+            var holder = getEnchantment(id);
+            if (holder == null) return "Enchantment " + id + " not found!";
+            stack.enchant(holder, level);
+            return "Success";
+        }
+        return "Wrong args";
+    }
 
     @ChatBoxMvel
     public static String getId(Object o) {

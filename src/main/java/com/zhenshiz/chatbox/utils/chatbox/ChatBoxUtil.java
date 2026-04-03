@@ -5,9 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.Portrait;
+import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
-import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -22,6 +22,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.ArrayList;
@@ -218,12 +220,16 @@ public class ChatBoxUtil {
     //解析文本
     public static String parseText(String input, boolean isLineBreak) {
         // @s 替换成当前玩家id
-        if (minecraft.player != null) input = input.replaceAll("(?<!@)@s", minecraft.player.getDisplayName().getString());
+        if (getPlayer() != null) input = input.replaceAll("(?<!@)@s", getPlayer().getDisplayName().getString());
 
-        input = MVELUtil.parseTargetPlaceholders(minecraft.player, input);
+        input = MVELUtil.parseTargetPlaceholders(getPlayer(), input);
 
         if (!isLineBreak) input = input.replaceAll("\n", "");
         // 将@@ 替换为 @
         return input.replaceAll("@@", "@");
     }
+
+    public static Player getPlayer() {return minecraft.player;}
+
+    public static Level getLevel() {return minecraft.level;}
 }
