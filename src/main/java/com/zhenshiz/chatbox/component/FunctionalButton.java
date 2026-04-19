@@ -70,7 +70,7 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
         String texture = getRenderTexture();
         if (isSelect || type == Type.AUTOPLAY && chatBoxScreen.autoPlay
                 || type == Type.FASTFORWARD && chatBoxScreen.fastForward) texture = getHoverTexture();
-        renderImage(guiGraphics, ChatBox.parseId(texture), attachments);
+        renderImage(guiGraphics, ChatBox.parseId(texture), getAttachments());
 
         if (isSelect) {
             String key = switch (type) {

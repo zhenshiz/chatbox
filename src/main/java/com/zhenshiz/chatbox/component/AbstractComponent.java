@@ -33,8 +33,10 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     public float y = 0;
     @Getter //宽度 百分比 >=100
     public float width = 10;
+    @Getter public Reference widthReference = Reference.SCREEN_WIDTH;
     @Getter //高度 百分比 >=100
     public float height = 10;
+    @Getter public Reference heightReference = Reference.SCREEN_HEIGHT;
     @Getter //缩放比例
     public float scale = 1;
     //亮度 百分比 >=0
@@ -102,6 +104,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
 
     public T of(ChatBoxTheme.Component c) {
         return setPosition(c.x, c.y).setSize(c.width, c.height).setScale(c.scale).setAlign(c.alignX, c.alignY)
+                .setReference(c.widthReference, c.heightReference)
                 .setBrightness(c.brightness).setOpacity(c.opacity).setRenderOrder(c.renderOrder).setAngle(c.angle).setHidden(c.hidden).setEvents(c.getEvents());
     }
 
@@ -114,6 +117,12 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     public T setSize(Float width, Float height) {
         if (checkSize(width)) this.width = width;
         if (checkSize(height)) this.height = height;
+        return (T) this;
+    }
+
+    public T setReference(String width, String height) {
+        if (notNull(width)) this.widthReference = Reference.of(width);
+        if (notNull(height)) this.heightReference = Reference.of(height);
         return (T) this;
     }
 

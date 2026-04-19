@@ -9,7 +9,10 @@ import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ChatBoxTheme {
     private final static Float DEFAULT_FLOAT = 0F;
@@ -25,7 +28,7 @@ public class ChatBoxTheme {
         for (FunctionButton button : this.functionalButton) {
             // 设置默认按钮位置
             int i = functionalButton.indexOf(button);
-            button.x = BeanUtil.getValueOrDefault(button.x, (float) ((Objects.equals(button.alignX, "left") ? 5 : -5) * i));
+            button.x = BeanUtil.getValueOrDefault(button.x, (button.alignX.equalsIgnoreCase("left") ? 5f : -5f) * i);
         }
         return this;
     }
@@ -137,7 +140,9 @@ public class ChatBoxTheme {
         public Float x;
         public Float y;
         public Float width;
+        public String widthReference;
         public Float height;
+        public String heightReference;
         public Float scale;
         public String alignX;
         public String alignY;

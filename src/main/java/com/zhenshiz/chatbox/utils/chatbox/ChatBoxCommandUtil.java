@@ -48,8 +48,7 @@ public class ChatBoxCommandUtil {
 
     @Info("客户端切换对话框主题样式")
     public static void clientToggleTheme(String theme) {
-        toggleTheme(ResourceLocation.parse(theme));
-        themeResourceLocation = theme;
+        toggleTheme(theme);
     }
 
     @Info("服务端跳转对话")

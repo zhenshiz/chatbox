@@ -53,7 +53,9 @@ public class ChatBoxScreen extends Screen {
 
     // 用于记录当前对话框已经存在了多少tick了，每跳转一次对话就会重置为0
     public int tick = 0;
-    public CompEvtWrapper events = new CompEvtWrapper();
+    // 跳转一句新的对话后设为false，开始渲染后为true
+    private boolean renderStarted = false;
+    @Nullable public CompEvtWrapper events;
 
     @Setter private boolean debug = false;
     @Setter private AbstractComponent<?> underCursor = null;
@@ -156,13 +158,16 @@ public class ChatBoxScreen extends Screen {
     }
 
     public ChatBoxScreen setEvents(List<ChatBoxTheme.RenderEvent> events) {
-        if (events != null) this.events.set(events.stream().map(ComponentEvent::of).toList(), null);
+        CompEvtWrapper wrapper = null;
+        if (events != null) wrapper = new CompEvtWrapper().set(events.stream().map(ComponentEvent::of).toList(), null);
+        this.events = wrapper;
+        renderStarted = false;
         tick = 0;
         return this;
     }
 
     public ChatBoxScreen fireEvent(String trigger) {
-        events.fireAll(trigger);
+        if (events != null) events.fireAll(trigger);
         return this;
     }
 
@@ -184,7 +189,7 @@ public class ChatBoxScreen extends Screen {
         if (parts.length != 2) return;
         int id = Integer.parseInt(parts[0]); int index = Integer.parseInt(parts[1]);
         for (var c : allComponents()) if (c.events.execute(id, index)) break;
-        events.execute(id, index);
+        if (events != null) events.execute(id, index);
     }
 
     /**通过以;分隔的字符串描述获取所有匹配条件的组件列表，支持通过组件的id进行匹配*/
@@ -244,6 +249,7 @@ public class ChatBoxScreen extends Screen {
     }
 
     public void renderInner(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
+        if (!renderStarted) { renderStarted = true; fireEvent("ON_START"); }
         long currentTime = System.currentTimeMillis();
         boolean shouldUpdatePortrait = Math.abs(currentTime - lastUpdateTime) >= updateDuration;
         if (shouldUpdatePortrait) lastUpdateTime = currentTime;

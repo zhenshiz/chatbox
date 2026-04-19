@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -12,6 +13,7 @@ import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
+import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -138,8 +140,7 @@ public class ChatBoxUtil {
                     .setAnimationFPS(chatBoxDialogues.animationFPS)
                     .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
                     .playVoice(dialog.sound)
-                    // 一切就绪，再触发ON_START事件
-                    .setEvents(dialog.renderEvents).fireEvent("ON_START");
+                    .setEvents(dialog.renderEvents);
 
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
                 //如果不是对话框和历史记录界面跳转，就清除历史记录
@@ -183,15 +184,16 @@ public class ChatBoxUtil {
     }
 
     //切换对话框主题
-    public static void toggleTheme(ResourceLocation themeResourceLocation) {
-        chatBoxTheme = themeMap.get(themeResourceLocation);
+    public static void toggleTheme(String location) {
+        chatBoxTheme = themeMap.get(ChatBox.parseId(location));
         if (chatBoxTheme == null) {
-            ChatBox.LOGGER.error("theme \"{}\" not found!", themeResourceLocation);
+            ChatBox.LOGGER.error("theme \"{}\" not found!", location);
             return;
         }
-        chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
+        chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(new DialogBox()))
                 .setFunctionalButtons(ChatBoxTheme.setButtonTheme(chatBoxTheme.functionalButton))
-                .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
+                .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(new KeyPromptRender()));
+        themeResourceLocation = location;
     }
 
     public static void setTheme(Map<ResourceLocation, String> map) {
