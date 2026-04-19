@@ -8,6 +8,7 @@ import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
+import lombok.Getter;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.LivingEntity;
@@ -36,8 +37,8 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     private int currentFrame = 0;
     //执行自定义动画的序号
     private int frameIndex = 0;
-    //渲染附件
-    public Attachment[] attachments = new Attachment[0];
+    @Getter //渲染附件
+    private Attachment[] attachments = new Attachment[0];
 
     protected T ofCommon(ChatBoxTheme.Portrait p) {
         return of(p).setTexture(p.value).setTexture(p.texture).setHoverTexture(p.selectTexture).setHoverTexture(p.hoverTexture)
@@ -118,11 +119,15 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
     }
 
     public T setAttachments(Attachment[] attachments) {
-        if (notNull(attachments)) this.attachments = attachments;
+        if (notNull(attachments)) {
+            for (var a : attachments) a.setComponent(this);
+            this.attachments = attachments;
+        }
         return (T) this;
     }
 
     public Attachment[] addTempAttachment(Attachment... attachments) {
+        for (var a : attachments) a.setComponent(this);
         return ArrayUtils.addAll(this.attachments, attachments);
     }
 
@@ -136,8 +141,9 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
 
     @Override
     public float realWidth() {
-        if (getClass().equals(Portrait.class)) return IPosition.calWidth(width) * ChatBoxClient.conf.portraitWidthPercent / 100.0F;
-        return super.realWidth();
+        float v = super.realWidth();
+        if (getClass().equals(Portrait.class)) return v * ChatBoxClient.conf.portraitWidthPercent / 100.0F;
+        return v;
     }
 
     @Override
@@ -171,7 +177,7 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
         public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
             renderInner(mouseX, mouseY);
             var text = BeanUtil.getValueOrDefault(getRenderTexture(), "@s");
-            RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(text), (int) realX(), (int) realY(), (int) realWidth(), this.scale, this.angle, this.attachments));
+            RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderPlayerHead(guiGraphics, parseText(text), (int) realX(), (int) realY(), (int) realWidth(), this.scale, this.angle, getAttachments()));
         }
     }
 
@@ -201,7 +207,7 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
                 tag.putInt("CustomModelData", customItemData);
                 stack.setTag(tag);
             }*///?}
-            RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderItem(guiGraphics, stack, (int) realX(), (int) realY(), this.scale, this.angle, this.attachments));
+            RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderItem(guiGraphics, stack, (int) realX(), (int) realY(), this.scale, this.angle, getAttachments()));
         }
     }
 

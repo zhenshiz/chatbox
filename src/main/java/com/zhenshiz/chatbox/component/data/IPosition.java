@@ -9,17 +9,19 @@ public interface IPosition {
 
     /**@return 屏幕长度百分比宽度。*/
     float getWidth();
+    Reference getWidthReference();
     /**@return 屏幕宽度百分比高度。*/
     float getHeight();
+    Reference getHeightReference();
 
     /**@return 未进行变换时的实际x坐标。*/
     float realX();
     /**@return 未进行变换时的实际y坐标。*/
     float realY();
     /**@return 未进行变换时的实际宽度。*/
-    default float realWidth() {return calWidth(getWidth());}
+    default float realWidth() {return getWidthReference().getLength(getWidth());}
     /**@return 未进行变换时的实际高度。*/
-    default float realHeight() {return calHeight(getHeight());}
+    default float realHeight() {return getHeightReference().getLength(getHeight());}
 
     float getScale();
 
@@ -35,5 +37,27 @@ public interface IPosition {
     /**@return 鼠标位置是否在矩形范围内。*/
     default boolean isSelect(int mouseX, int mouseY) {
         return mouseX >= x1() && mouseX <= x2() && mouseY >= y1() && mouseY <= y2();
+    }
+
+    enum Reference {
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
+        PIXEL;
+
+        public float getLength(float origin) {
+            return switch (this) {
+                case SCREEN_WIDTH -> calWidth(origin);
+                case SCREEN_HEIGHT -> calHeight(origin);
+                case PIXEL -> origin;
+            };
+        }
+
+        public static Reference of(String ref) {
+            try {
+                return valueOf(ref.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return SCREEN_HEIGHT;
+            }
+        }
     }
 }

@@ -50,8 +50,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("客户端切换对话框主题样式")*/
     public static void clientToggleTheme(String theme) {
-        toggleTheme(ResourceLocation.tryParse(theme));
-        themeResourceLocation = theme;
+        toggleTheme(theme);
     }
 
     //? forge

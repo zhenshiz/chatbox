@@ -25,7 +25,7 @@ public class ChatBoxTheme {
         for (FunctionButton button : this.functionalButton) {
             // 设置默认按钮位置
             int i = functionalButton.indexOf(button);
-            button.x = BeanUtil.getValueOrDefault(button.x, (float) ((Objects.equals(button.alignX, "left") ? 5 : -5) * i));
+            button.x = BeanUtil.getValueOrDefault(button.x, (button.alignX.equalsIgnoreCase("left") ? 5f : -5f) * i);
         }
         return this;
     }
@@ -137,7 +137,9 @@ public class ChatBoxTheme {
         public Float x;
         public Float y;
         public Float width;
+        public String widthReference;
         public Float height;
+        public String heightReference;
         public Float scale;
         public String alignX;
         public String alignY;
