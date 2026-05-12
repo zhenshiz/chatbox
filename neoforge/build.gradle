@@ -9,6 +9,7 @@ lombok {
 }
 
 repositories {
+    mavenLocal()
     maven {
         name = 'Fabric'
         url = uri('https://maven.fabricmc.net')
@@ -27,6 +28,9 @@ dependencies {
     compileOnly("maven.modrinth:watermedia:${watermedia_version}")
 
     implementation("org.mvel:mvel2:2.5.0.Final")
+
+    implementation files("libs/${graal_name}")
+    implementation files("libs/${nekojs_name}")
 }
 
 neoForge {

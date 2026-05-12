@@ -3,6 +3,7 @@ package com.zhenshiz.chatbox.fabric.platform;
 import com.zhenshiz.chatbox.fabric.event.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.fabric.event.SkipChatEvent;
 import com.zhenshiz.chatbox.platform.IPlatformHelper;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
@@ -22,6 +23,9 @@ public class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public boolean isDevelopmentEnvironment() {return FabricLoader.getInstance().isDevelopmentEnvironment();}
+
+    @Override
+    public boolean isClient() {return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;}
 
     @Override
     public File getGameDirectory() {return FabricLoader.getInstance().getGameDir().toFile();}

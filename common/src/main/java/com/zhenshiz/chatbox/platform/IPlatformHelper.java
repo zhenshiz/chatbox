@@ -22,6 +22,8 @@ public interface IPlatformHelper {
 
     boolean isDevelopmentEnvironment();
 
+    boolean isClient();
+
     File getGameDirectory();
 
     void sendToServer(CustomPacketPayload packet);

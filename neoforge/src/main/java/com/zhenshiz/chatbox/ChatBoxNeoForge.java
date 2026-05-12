@@ -1,7 +1,6 @@
 package com.zhenshiz.chatbox;
 
 import com.zhenshiz.chatbox.client.ChatBoxClient;
-import com.zhenshiz.chatbox.client.ClothLoader;
 import com.zhenshiz.chatbox.command.ChatBoxCommand;
 import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
 import com.zhenshiz.chatbox.neoforge.platform.NeoForgePlatformHelper;
@@ -28,7 +27,7 @@ public class ChatBoxNeoForge {
 
         if (dist.isClient()) {
             ChatBoxClient.init();
-            if (ChatBox.isClothConfigLoaded()) modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parent) -> AutoConfigClient.getConfigScreen(ClothLoader.class, parent).get());
+            modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parent) -> AutoConfigClient.getConfigScreen(Config.class, parent).get());
         }
     }
 

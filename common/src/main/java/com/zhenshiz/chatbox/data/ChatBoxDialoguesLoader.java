@@ -87,6 +87,7 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
     }
 
     public static void loadCriteria(MinecraftServer server) {
+        ChatBox.server = server;
         for (var entry : parsedDialogues.entrySet()) {
             Identifier rl = entry.getKey();
             JsonElement criteriaElement = entry.getValue().criteria;

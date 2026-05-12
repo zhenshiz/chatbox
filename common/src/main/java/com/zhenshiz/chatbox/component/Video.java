@@ -89,8 +89,8 @@ public class Video extends AbstractComponent<Video> {
 
         if (!success && getState() == State.PLAYING) { success = true; retry = 0; }
         tick++;
+        if (loop && player.getTime() >= player.getDuration() - 500) player.seekTo(0);
         if (player.isBroken() || player.isEnded() || player.isStopped()) {
-            if (loop) { player.start(uri); return; }
             stop();
             return;
         }

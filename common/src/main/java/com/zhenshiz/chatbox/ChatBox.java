@@ -8,6 +8,8 @@ import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 @SuppressWarnings({"SameParameterValue", "BooleanMethodIsAlwaysInverted"})
@@ -17,6 +19,7 @@ public class ChatBox {
     public static IPlatformHelper PLATFORM;
     @Getter @Setter
     private static ChatBoxTriggerCount triggerCounts;
+    @Nullable public static MinecraftServer server;
 
     public static void init() {
         LOGGER.info("Ciallo～(∠·ω< )⌒★");

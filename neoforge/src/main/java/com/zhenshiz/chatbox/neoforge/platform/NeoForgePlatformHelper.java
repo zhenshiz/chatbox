@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -24,6 +25,9 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public boolean isDevelopmentEnvironment() {return !FMLLoader.getCurrent().isProduction();}
+
+    @Override
+    public boolean isClient() {return FMLEnvironment.getDist().isClient();}
 
     @Override
     public File getGameDirectory() {return FMLLoader.getCurrent().getGameDir().toFile();}

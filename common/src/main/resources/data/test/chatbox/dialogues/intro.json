@@ -9,8 +9,7 @@
           "name": "chatbox.test.name.1",
           "text": "chatbox.test.text.1"
         },
-        "portrait": ["authors"],
-        "video": {"path": "D:/photos/OP00.mp4", "loop": true}
+        "portrait": ["authors"]
       },
       {
         "dialogBox": {

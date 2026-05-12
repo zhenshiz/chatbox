@@ -42,8 +42,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void clientToggleTheme(String theme) {
-        toggleTheme(Identifier.parse(theme));
-        themeIdentifier = theme;
+        toggleTheme(theme);
     }
 
     public static void serverSkipDialogues(ServerPlayer player, Identifier dialogues, String group, Integer index, List<Entity> targets) {
@@ -152,6 +151,14 @@ public class ChatBoxCommandUtil {
 
     public static void clientClearChatOption() {
         chatBoxScreen.chatOptions.clear();
+    }
+
+    public static void addMvelMethod(String name, MVELUtil.DynamicMethod handler) {
+        MVELUtil.registerMethod(name, handler);
+    }
+
+    public static void addMvelProperty(String name, MVELUtil.DynamicProperty handler) {
+        MVELUtil.registerProperty(name, handler);
     }
 
     public static void addPlaceholderResolver(String key, Function<Entity, Object> resolver) {

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -12,6 +13,7 @@ import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.render.ChatBoxRender;
+import com.zhenshiz.chatbox.render.KeyPromptRender;
 import com.zhenshiz.chatbox.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
@@ -22,6 +24,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 
@@ -119,10 +123,8 @@ public class ChatBoxUtil {
 
         if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
         String theme = chatBoxDialogues.theme;
-        if (theme != null && !theme.equals(themeIdentifier)) { //如果是同一个主题就不切换了
-            toggleTheme(Identifier.parse(theme));
-            themeIdentifier = theme;
-        }
+        //如果是同一个主题就不切换了
+        if (theme != null && !theme.equals(themeIdentifier)) toggleTheme(theme);
         List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
         if (CollUtil.isEmpty(dialogues)) {
             ChatBox.LOGGER.warn("group \"{}\" not found or is empty!", group);
@@ -144,7 +146,7 @@ public class ChatBoxUtil {
                     .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
                     .playVoice(dialog.sound)
                     // 一切就绪，再触发ON_START事件
-                    .setEvents(dialog.renderEvents).fireEvent("ON_START");
+                    .setEvents(dialog.renderEvents);
 
             if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
                 //如果不是对话框和历史记录界面跳转，就清除历史记录
@@ -190,11 +192,16 @@ public class ChatBoxUtil {
     }
 
     //切换对话框主题
-    public static void toggleTheme(Identifier themeIdentifier) {
-        chatBoxTheme = themeMap.get(themeIdentifier);
-        chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(chatBoxScreen.dialogBox))
+    public static void toggleTheme(String location) {
+        chatBoxTheme = themeMap.get(ChatBox.parseId(location));
+        if (chatBoxTheme == null) {
+            ChatBox.LOGGER.error("theme \"{}\" not found!", location);
+            return;
+        }
+        chatBoxScreen.setDialogBox(chatBoxTheme.dialogBox.setDialogBoxTheme(new DialogBox()))
                 .setFunctionalButtons(ChatBoxTheme.setButtonTheme(chatBoxTheme.functionalButton))
-                .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(chatBoxScreen.keyPromptRender));
+                .setKeyPromptRender(chatBoxTheme.keyPrompt.setKeyPromptTheme(new KeyPromptRender()));
+        themeIdentifier = location;
     }
 
     public static void setTheme(Map<Identifier, String> map) {
@@ -223,12 +230,16 @@ public class ChatBoxUtil {
     //解析文本
     public static String parseText(String input, boolean isLineBreak) {
         // @s 替换成当前玩家id
-        if (minecraft.player != null) input = input.replaceAll("(?<!@)@s", minecraft.player.getDisplayName().getString());
+        if (getPlayer() != null) input = input.replaceAll("(?<!@)@s", getPlayer().getDisplayName().getString());
 
-        input = MVELUtil.parseTargetPlaceholders(minecraft.player, input);
+        input = MVELUtil.parseTargetPlaceholders(getPlayer(), input);
 
         if (!isLineBreak) input = input.replaceAll("\n", "");
         // 将@@ 替换为 @
         return input.replaceAll("@@", "@");
     }
+
+    public static Player getPlayer() {return minecraft.player;}
+
+    public static Level getLevel() {return minecraft.level;}
 }

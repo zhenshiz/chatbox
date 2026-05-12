@@ -1,0 +1,16 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "org.mvel",
+        "artifact": "mvel2"
+      },
+      "version": {
+        "range": "[2.5.0.Final,)",
+        "artifactVersion": "2.5.0.Final"
+      },
+      "path": "META-INF/jarjar/mvel2-2.5.0.Final.jar",
+      "isObfuscated": false
+    }
+  ]
+}

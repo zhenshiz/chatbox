@@ -124,7 +124,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             clientSetChatOption(Integer.parseInt(parts[0]), parts[1], parts[2], isLock, hidden);
         });
         addSimpleHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
-        addSimpleHandlerS2C(MVEL_TEST, s -> MVELUtil.commandTest(ChatBoxUtil.minecraft.player, s));
+        addSimpleHandlerS2C(MVEL_TEST, s -> MVELUtil.commandTest(ChatBoxUtil.getPlayer(), s));
         addSimpleHandlerS2C(TEST_CONDITION, s -> ChatBoxUtil.chatBoxScreen.executeEvent(s));
     }
 
