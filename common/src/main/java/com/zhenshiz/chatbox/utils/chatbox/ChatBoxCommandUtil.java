@@ -26,9 +26,9 @@ import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 public class ChatBoxCommandUtil {
 
     public static void serverSyncEntityData(ServerPlayer player) {
-        LinkedHashMap<Integer, CompoundTag> entityTags = new LinkedHashMap<>();
+        var entityTags = new LinkedHashMap<Integer, CompoundTag>();
         for (Entity entity : serverGetChatTargets(player)) {
-            try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(entity.problemPath(), ChatBox.LOGGER)) {
+            try (var scopedCollector = new ProblemReporter.ScopedCollector(entity.problemPath(), ChatBox.LOGGER)) {
                 TagValueOutput tagValueOutput = TagValueOutput.createWithContext(scopedCollector, entity.registryAccess());
                 entity.saveWithoutId(tagValueOutput);
                 entityTags.put(entity.getId(), tagValueOutput.buildResult());
@@ -82,7 +82,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void clientNextDialogue() {
-        chatBoxScreen.dialogBoxClick();
+        if (chatBoxScreen.shouldGotoNext()) skipDialogues(dialoguesIdentifier, group, index + 1);
     }
 
     public static void serverAutoPlay(ServerPlayer player, boolean autoPlay) {

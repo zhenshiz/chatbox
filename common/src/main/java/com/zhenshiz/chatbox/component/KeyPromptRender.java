@@ -1,7 +1,6 @@
-package com.zhenshiz.chatbox.render;
+package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;

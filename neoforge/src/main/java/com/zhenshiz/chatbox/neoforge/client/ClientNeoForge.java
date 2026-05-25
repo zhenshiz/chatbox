@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.neoforge.client;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.render.ChatBoxRender;
+import com.zhenshiz.chatbox.client.ChatBoxRender;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;

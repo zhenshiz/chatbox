@@ -6,7 +6,6 @@ import com.zhenshiz.chatbox.component.data.CompEvtWrapper;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.component.data.IPosition;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
-import com.zhenshiz.chatbox.render.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -63,7 +62,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     public boolean isSelect = false;
     // 是否渲染已开始，用于触发渲染开始时的事件
     protected boolean renderStarted = false;
-    public CompEvtWrapper events = new CompEvtWrapper();
+    @Nullable public CompEvtWrapper events;
 
     public T setHidden(Boolean hidden) {
         if (notNull(hidden)) this.hidden = hidden;
@@ -86,19 +85,24 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
         return (T) this;
     }
 
+    public CompEvtWrapper getOrCreateEvents() {
+        if (events == null) events = new CompEvtWrapper();
+        return events;
+    }
+
     public T setEvents(List<ComponentEvent> events) {
-        this.events.set(events, this);
+        if (!events.isEmpty()) getOrCreateEvents().set(events, this);
         return (T) this;
     }
 
     public int fireEvent(String trigger) {
         //如果组件被隐藏或者上锁，并且事件是点击事件，则不触发事件
-        if ((hidden || isLock) && trigger.toUpperCase().contains("CLICK")) return 0;
+        if (events == null || (hidden || isLock) && trigger.toUpperCase().contains("CLICK")) return 0;
         return events.fireAll(trigger);
     }
 
     public T addEvent(String trigger, String type, String target) {
-        this.events.add(trigger, type, target, this);
+        getOrCreateEvents().add(trigger, type, target, this);
         return (T) this;
     }
 
@@ -177,7 +181,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     }
 
     public T setTexture(String name, String texture) {
-        if (notNull(name) && notNull(texture)) this.textures.put(name, texture);
+        if (notNull(name) && notNull(texture) && !texture.isEmpty()) this.textures.put(name, texture);
         return (T) this;
     }
     public @Nullable String getTexture(String name) {return textures.get(name);}
@@ -232,7 +236,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
             renderStarted = true;
             fireEvent("ON_START");
         }
-        if (!ChatBoxRender.isRenderChatBox()) {
+        if (ChatBoxUtil.isScreen) {
             if (isSelect(mouseX, mouseY)) {
                 if (!isSelect) {
                     setIsSelect(true);

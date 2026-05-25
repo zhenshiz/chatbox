@@ -5,17 +5,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.client.ChatBoxRender;
+import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
+import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.component.DialogBox;
+import com.zhenshiz.chatbox.component.KeyPromptRender;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
-import com.zhenshiz.chatbox.render.ChatBoxRender;
-import com.zhenshiz.chatbox.render.KeyPromptRender;
-import com.zhenshiz.chatbox.screen.ChatBoxScreen;
-import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
@@ -71,7 +71,7 @@ public class ChatBoxUtil {
             Entity entity = level.getEntity(id);
             if (entity != null) {
                 entity.entityTags().clear();
-                try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(entity.problemPath(), ChatBox.LOGGER)) {
+                try (var scopedCollector = new ProblemReporter.ScopedCollector(entity.problemPath(), ChatBox.LOGGER)) {
                     ValueInput input = TagValueInput.create(scopedCollector, entity.registryAccess(), tag);
                     // 读取标签和额外数据应该够了，有需要再加（不能直接entity.load(tag)）
                     input.read("Tags", Codec.STRING.sizeLimitedListOf(1024)).ifPresent(t -> entity.entityTags().addAll(t));
@@ -143,17 +143,13 @@ public class ChatBoxUtil {
                     .setIsPause(chatBoxDialogues.isPause)
                     .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip)
                     .setAnimationFPS(chatBoxDialogues.animationFPS)
-                    .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
-                    .playVoice(dialog.sound)
+                    .setAutoPlayTick(chatBoxDialogues.autoPlayTick).setStayTick(dialog.stayTick)
+                    .playVoice(dialog.sound).playBgm(dialog.bgm)
                     // 一切就绪，再触发ON_START事件
                     .setEvents(dialog.renderEvents);
 
-            if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
-                //如果不是对话框和历史记录界面跳转，就清除历史记录
-                historicalDialogue = new HistoricalDialogueScreen();
-            }
             //添加历史聊天记录
-            historicalDialogue.historicalDialogue.addHistoricalInfo(dialoguesIdentifier, group, index, dialogBox.name, dialogBox.text);
+            historicalDialogue.addHistoricalInfo(dialoguesIdentifier, group, index, dialogBox.name, dialogBox.text);
 
             //调试用
             //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesIdentifier + " " + group + " " + index);
@@ -170,22 +166,22 @@ public class ChatBoxUtil {
             }
             // 确认对话框加载完成后再设置客户端对话框信息
             setDialoguesInfo(dialoguesIdentifier, group, index);
-        } else {
-            if (isScreen) {
-                if (minecraft.screen != null) {
-                    minecraft.screen.onClose();
-                }
-            } else {
-                if (ChatBoxRender.isRenderChatBox()) ChatBoxRender.onClose();
-            }
-        }
+        } else closeDialogBox();
     }
 
     public static void skipDialogues(Identifier dialoguesIdentifier, String dialogBlock) {
         skipDialogues(dialoguesIdentifier, dialogBlock, 0);
     }
 
-    public static void onCloseDialogBox() {
+    public static void closeDialogBox() {
+        if (isScreen) minecraft.setScreen(null); else ChatBoxRender.shouldRender = false;
+        ChatBoxRender.isOpenChatBox = false;
+        chatBoxScreen.setDebug(false);
+        chatBoxScreen.autoPlay = false;
+        chatBoxScreen.fastForward = false;
+        chatBoxScreen.hideDialogBox = false;
+        chatBoxScreen.setVideo(null);
+        historicalDialogue.historicalDialogue.clearHistory();
         if (dialoguesIdentifier == null || group == null || minecraft.player == null) return;
         ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesIdentifier, group, -1, chatTargets);
         ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesIdentifier, group, "-1"));

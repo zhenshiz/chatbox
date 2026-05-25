@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.render;
+package com.zhenshiz.chatbox.client;
 
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -36,7 +36,7 @@ public class ChatBoxRender {
         }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
-            if (minecraft.player == null || minecraft.player.isDeadOrDying()) onClose();
+            if (minecraft.player == null || minecraft.player.isDeadOrDying()) ChatBoxUtil.closeDialogBox();
         }
     }
 
@@ -83,13 +83,4 @@ public class ChatBoxRender {
     }
 
     public static boolean isRenderChatBox() {return !ChatBoxUtil.isScreen && shouldRender;}
-
-    public static void onClose() {
-        isOpenChatBox = false;
-        shouldRender = false;
-        chatBoxScreen.autoPlay = false;
-        chatBoxScreen.fastForward = false; // 这行没必要
-        chatBoxScreen.setVideo(null);
-        ChatBoxUtil.onCloseDialogBox();
-    }
 }
