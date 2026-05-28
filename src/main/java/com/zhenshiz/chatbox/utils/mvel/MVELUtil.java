@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.utils.mvel;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -40,8 +41,11 @@ import java.util.regex.Pattern;
 
 public class MVELUtil {
     private static final Map<String, Object> defaultVars = Map.of("random", new Random());
+    private static final Map<String, Object> vars = new HashMap<>();
     private static final ParserContext ctx = new ParserContext();
     private static final Map<String, Serializable> compiledCache = new HashMap<>();
+    static final Pattern holderPattern = Pattern.compile("<(?:target|player)[^<>]*>");
+    static final Pattern mvelPattern = Pattern.compile("<<((?!<<|>>).)*>>");
 
     @FunctionalInterface
     public interface DynamicMethod {
@@ -113,7 +117,7 @@ public class MVELUtil {
     public static @Nullable Object eval(Player player, String expression, Object thisObj, boolean log) {
         if (expression.startsWith("server:")) expression = expression.substring(7).trim();
         String expr = expression;
-        Map<String, Object> vars = new HashMap<>(defaultVars);
+        vars.putAll(defaultVars);
         if (player != null) {
             vars.put("player", player);
             vars.put("gameTime", player.level().getGameTime());
@@ -139,10 +143,24 @@ public class MVELUtil {
     }
 
     public static String parseTargetPlaceholders(Player player, String input) {
-        Pattern pattern = Pattern.compile("<(?:target|player)[^<>]*>");
-        Matcher matcher = pattern.matcher(input);
         StringBuilder sb = new StringBuilder();
+        Matcher matcher = mvelPattern.matcher(input);
         int lastIndex = 0;
+        while (matcher.find()) {
+            // 追加匹配前的文本
+            sb.append(input, lastIndex, matcher.start());
+            lastIndex = matcher.end();
+            String mvel = matcher.group();
+            mvel = mvel.substring(2, mvel.length() - 2); // 去掉尖括号
+            sb.append(eval(player, mvel, null));
+        }
+        // 追加剩余文本
+        sb.append(input.substring(lastIndex));
+
+        input = sb.toString();
+        sb = new StringBuilder();
+        matcher = holderPattern.matcher(input);
+        lastIndex = 0;
         while (matcher.find()) {
             // 追加匹配前的文本
             sb.append(input, lastIndex, matcher.start());
@@ -181,6 +199,18 @@ public class MVELUtil {
         }
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    @ChatBoxMvel
+    public static Object removeVar(String... Vars) {
+        Object o = false;
+        for (String s : Vars) o = vars.remove(s);
+        return o;
+    }
+
+    @ChatBoxMvel
+    public static boolean executeCompEvt(String type, String value) {
+        return EventExecutor.executeEvent(null, type, value);
     }
 
     @ChatBoxMvel

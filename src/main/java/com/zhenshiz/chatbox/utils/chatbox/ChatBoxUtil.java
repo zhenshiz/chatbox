@@ -4,7 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.client.ChatBoxRender;
+import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
+import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.component.DialogBox;
+import com.zhenshiz.chatbox.component.KeyPromptRender;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
@@ -12,10 +16,6 @@ import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
-import com.zhenshiz.chatbox.render.ChatBoxRender;
-import com.zhenshiz.chatbox.render.KeyPromptRender;
-import com.zhenshiz.chatbox.screen.ChatBoxScreen;
-import com.zhenshiz.chatbox.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
@@ -138,16 +138,12 @@ public class ChatBoxUtil {
                     .setIsPause(chatBoxDialogues.isPause)
                     .setIsHistoricalSkip(chatBoxDialogues.isHistoricalSkip)
                     .setAnimationFPS(chatBoxDialogues.animationFPS)
-                    .setAutoPlayTick(chatBoxDialogues.autoPlayTick)
-                    .playVoice(dialog.sound)
+                    .setAutoPlayTick(chatBoxDialogues.autoPlayTick).setStayTick(dialog.stayTick)
+                    .playVoice(dialog.sound).playBgm(dialog.bgm)
                     .setEvents(dialog.renderEvents);
 
-            if (!(minecraft.screen instanceof ChatBoxScreen || minecraft.screen instanceof HistoricalDialogueScreen)) {
-                //如果不是对话框和历史记录界面跳转，就清除历史记录
-                historicalDialogue = new HistoricalDialogueScreen();
-            }
             //添加历史聊天记录
-            historicalDialogue.historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
+            historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
 
             NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
             SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, index));
@@ -162,22 +158,22 @@ public class ChatBoxUtil {
             }
             // 确认对话框加载完成后再设置客户端对话框信息
             setDialoguesInfo(dialoguesResourceLocation, group, index);
-        } else {
-            if (isScreen) {
-                if (minecraft.screen != null) {
-                    minecraft.screen.onClose();
-                }
-            } else {
-                if (ChatBoxRender.isRenderChatBox()) ChatBoxRender.onClose();
-            }
-        }
+        } else closeDialogBox();
     }
 
     public static void skipDialogues(ResourceLocation dialoguesResourceLocation, String dialogBlock) {
         skipDialogues(dialoguesResourceLocation, dialogBlock, 0);
     }
 
-    public static void onCloseDialogBox() {
+    public static void closeDialogBox() {
+        if (isScreen) minecraft.setScreen(null); else ChatBoxRender.shouldRender = false;
+        ChatBoxRender.isOpenChatBox = false;
+        chatBoxScreen.setDebug(false);
+        chatBoxScreen.autoPlay = false;
+        chatBoxScreen.fastForward = false;
+        chatBoxScreen.hideDialogBox = false;
+        chatBoxScreen.setVideo(null);
+        historicalDialogue.historicalDialogue.clearHistory();
         if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
         NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets));
         SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, "-1"));

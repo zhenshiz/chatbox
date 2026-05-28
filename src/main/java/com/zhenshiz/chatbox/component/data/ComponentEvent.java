@@ -6,7 +6,6 @@ import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.network.SimplePayload;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
@@ -24,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Predicate;
 
 import static com.zhenshiz.chatbox.api.EventExecutor.*;
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil.*;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 /**
@@ -98,7 +98,7 @@ public class ComponentEvent {
             }
         });
 
-        registerClientEvent("GOTO_NEXT", (c, s) -> chatBoxScreen.dialogBoxClick());
+        registerClientEvent("GOTO_NEXT", (c, s) -> clientNextDialogue());
 
         registerClientEvent("PLAY_VOICE", (c, voice) -> chatBoxScreen.playVoice(voice));
         registerClientEvent("PLAY_SOUND", (c, s) -> SoundUtil.playSound(s));
@@ -116,7 +116,7 @@ public class ComponentEvent {
         registerClientEvent("SET_NORMAL", (c, s) ->
                 chatBoxScreen.getCompByDesc(s, c).forEach(AbstractComponent::setNormal));
 
-        registerClientEvent("SET_AUTOPLAY", (c, s) -> chatBoxScreen.autoPlay = Boolean.parseBoolean(s));
+        registerClientEvent("SET_AUTOPLAY", (c, s) -> clientAutoPlay(Boolean.parseBoolean(s)));
 
         registerClientEvent("SCALE", (c, s) -> {
             if (c != null) c.setScale(Float.parseFloat(s));
@@ -141,7 +141,7 @@ public class ComponentEvent {
 
     public static int executeCommand(@NotNull MinecraftServer server, @Nullable Entity entity, String command) {
         if (entity instanceof ServerPlayer player) {
-            command = ChatBoxCommandUtil.parseTargetPlaceholders(player, command);
+            command = parseTargetPlaceholders(player, command);
             if (ChatBox.pluginHelper != null && !command.startsWith("execute"))
                 return ChatBox.pluginHelper.executeCommand(player.getUUID(), command);
         }

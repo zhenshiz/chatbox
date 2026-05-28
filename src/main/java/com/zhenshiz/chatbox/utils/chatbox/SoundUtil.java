@@ -52,6 +52,7 @@ public class SoundUtil {
     }
 
     public static boolean isSoundActive(String sound) {
+        if (StrUtil.isEmpty(sound)) return false;
         for (SoundInstance soundInstance : getInstanceToChannel().keySet()) {
             if (soundInstance.getSound().getLocation().toString().equals(sound)) return true;
         }
