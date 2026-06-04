@@ -102,7 +102,21 @@ public class MVELTransformer {
                 break;
             }
         }
-        return i + 1;
+        int start = i + 1;
+        // If there's a 'new' keyword immediately before (allowing whitespace), include it
+        int k = start - 1;
+        // skip whitespace between 'new' and the type
+        while (k >= 0 && Character.isWhitespace(s.charAt(k))) k--;
+        if (k >= 0) {
+            int wstart = k;
+            while (wstart >= 0 && Character.isJavaIdentifierPart(s.charAt(wstart))) wstart--;
+            wstart++;
+            if (wstart <= k) {
+                String word = s.substring(wstart, k + 1);
+                if ("new".equals(word)) start = wstart;
+            }
+        }
+        return start;
     }
 
     private static int findMatchingClosingParen(String s, int openIndex) {

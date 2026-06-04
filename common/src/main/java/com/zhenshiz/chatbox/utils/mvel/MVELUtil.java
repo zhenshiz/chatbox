@@ -3,9 +3,11 @@ package com.zhenshiz.chatbox.utils.mvel;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.component.AbstractComponent;
+import com.zhenshiz.chatbox.mixin.client.ClientAdvancementsAccessor;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -43,7 +45,7 @@ public class MVELUtil {
     private static final ParserContext ctx = new ParserContext();
     private static final Map<String, Serializable> compiledCache = new HashMap<>();
     static final Pattern holderPattern = Pattern.compile("<(?:target|player)[^<>]*>");
-    static final Pattern mvelPattern = Pattern.compile("<<((?!<<|>>).)*>>");
+    static final Pattern mvelPattern = Pattern.compile("<<((?!<<|>>).)*>>", Pattern.DOTALL);
 
     @FunctionalInterface
     public interface DynamicMethod {
@@ -80,15 +82,16 @@ public class MVELUtil {
         registerMethod("tell", MVELUtil::tell);
         registerMethod("getEnchantLevel", MVELUtil::getEnchantLevel);
         registerMethod("enchant", MVELUtil::enchant);
+        registerMethod("hasAdvancement", MVELUtil::hasAdvancement);
 
         registerProperty("name", MVELUtil::getName);
         registerProperty("id", MVELUtil::getId);
         addPropertyResolver("uuid", Entity::getUUID);
+        addPropertyResolver("tags", Entity::entityTags);
         addPropertyResolver("foodLevel", entity -> entity instanceof Player p ? p.getFoodData().getFoodLevel() : 0);
         addPropertyResolver("offHandItem", e -> e instanceof LivingEntity le ? le.getOffhandItem() : null);
 /*        registerProperty("mainHandItem", MVELUtil::getMainHandItem);
         registerProperty("count", MVELUtil::getCount);
-        addPropertyResolver("tags", Entity::entityTags);
         addPropertyResolver("health", entity -> entity instanceof LivingEntity le ? le.getHealth() : 0);
         addPropertyResolver("experienceLevel", entity -> entity instanceof Player p ? p.experienceLevel : 0);
         addPropertyResolver("x", Entity::getX);
@@ -198,6 +201,15 @@ public class MVELUtil {
         m.appendTail(sb);
         return sb.toString();
     }
+
+    @ChatBoxMvel
+    public static boolean hasVar(String name) {return vars.containsKey(name);}
+
+    @ChatBoxMvel
+    public static Object setVar(String name, Object object) {return vars.put(name, object);}
+
+    @ChatBoxMvel
+    public static Object setVarIfNoDef(String name, Object object) {return vars.putIfAbsent(name, object);}
 
     @ChatBoxMvel
     public static Object removeVar(String... Vars) {
@@ -327,6 +339,22 @@ public class MVELUtil {
             var text = Component.translatable(message);
             if (actionBar) player.sendOverlayMessage(text); else player.sendSystemMessage(text);
             return true;
+        }
+        return false;
+    }
+
+    @ChatBoxMvel
+    public static boolean hasAdvancement(Object o, Object... args) {
+        if (o instanceof Player p && args.length == 1 && args[0] instanceof String id) {
+            var parsedId = ChatBox.parseId(id);
+            if (p instanceof ServerPlayer player) {
+                var holder = player.level().getServer().getAdvancements().get(parsedId);
+                return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
+            } else if (p instanceof LocalPlayer player) {
+                var advancements = player.connection.getAdvancements();
+                var holder = advancements.get(parsedId);
+                return holder != null && ((ClientAdvancementsAccessor) advancements).getProgress().get(holder).isDone();
+            }
         }
         return false;
     }

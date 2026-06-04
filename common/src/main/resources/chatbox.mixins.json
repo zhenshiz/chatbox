@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
+    "client.ClientAdvancementsAccessor",
     "client.MinecraftMixin",
     "client.MouseHandlerMixin",
     "client.SoundEngineAccessor",
