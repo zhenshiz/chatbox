@@ -1,10 +1,13 @@
 package com.zhenshiz.chatbox.utils.mvel;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.component.AbstractComponent;
+import com.zhenshiz.chatbox.mixin.client.ClientAdvancementsAccessor;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,8 +42,11 @@ import java.util.regex.Pattern;
 
 public class MVELUtil {
     private static final Map<String, Object> defaultVars = Map.of("random", new Random());
+    private static final Map<String, Object> vars = new HashMap<>();
     private static final ParserContext ctx = new ParserContext();
     private static final Map<String, Serializable> compiledCache = new HashMap<>();
+    static final Pattern holderPattern = Pattern.compile("<(?:target|player)[^<>]*>");
+    static final Pattern mvelPattern = Pattern.compile("<<((?!<<|>>).)*>>", Pattern.DOTALL);
 
     @FunctionalInterface
     public interface DynamicMethod {
@@ -77,6 +83,7 @@ public class MVELUtil {
         registerMethod("tell", MVELUtil::tell);
         registerMethod("getEnchantLevel", MVELUtil::getEnchantLevel);
         registerMethod("enchant", MVELUtil::enchant);
+        registerMethod("hasAdvancement", MVELUtil::hasAdvancement);
 
         registerProperty("name", MVELUtil::getName);
         registerProperty("id", MVELUtil::getId);
@@ -112,7 +119,7 @@ public class MVELUtil {
     public static @Nullable Object eval(Player player, String expression, Object thisObj, boolean log) {
         if (expression.startsWith("server:")) expression = expression.substring(7).trim();
         String expr = expression;
-        Map<String, Object> vars = new HashMap<>(defaultVars);
+        vars.putAll(defaultVars);
         if (player != null) {
             vars.put("player", player);
             vars.put("gameTime", player.level().getGameTime());
@@ -138,10 +145,24 @@ public class MVELUtil {
     }
 
     public static String parseTargetPlaceholders(Player player, String input) {
-        Pattern pattern = Pattern.compile("<(?:target|player)[^<>]*>");
-        Matcher matcher = pattern.matcher(input);
         StringBuilder sb = new StringBuilder();
+        Matcher matcher = mvelPattern.matcher(input);
         int lastIndex = 0;
+        while (matcher.find()) {
+            // 追加匹配前的文本
+            sb.append(input, lastIndex, matcher.start());
+            lastIndex = matcher.end();
+            String mvel = matcher.group();
+            mvel = mvel.substring(2, mvel.length() - 2); // 去掉尖括号
+            sb.append(eval(player, mvel, null));
+        }
+        // 追加剩余文本
+        sb.append(input.substring(lastIndex));
+
+        input = sb.toString();
+        sb = new StringBuilder();
+        matcher = holderPattern.matcher(input);
+        lastIndex = 0;
         while (matcher.find()) {
             // 追加匹配前的文本
             sb.append(input, lastIndex, matcher.start());
@@ -180,6 +201,27 @@ public class MVELUtil {
         }
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    @ChatBoxMvel
+    public static boolean hasVar(String name) {return vars.containsKey(name);}
+
+    @ChatBoxMvel
+    public static Object setVar(String name, Object object) {return vars.put(name, object);}
+
+    @ChatBoxMvel
+    public static Object setVarIfNoDef(String name, Object object) {return vars.putIfAbsent(name, object);}
+
+    @ChatBoxMvel
+    public static Object removeVar(String... Vars) {
+        Object o = false;
+        for (String s : Vars) o = vars.remove(s);
+        return o;
+    }
+
+    @ChatBoxMvel
+    public static boolean executeCompEvt(String type, String value) {
+        return EventExecutor.executeEvent(null, type, value);
     }
 
     @ChatBoxMvel
@@ -311,6 +353,28 @@ public class MVELUtil {
             if (args.length >= 2 && args[1] instanceof Boolean b) actionBar = b;
             player.displayClientMessage(Component.translatable(message), actionBar);
             return true;
+        }
+        return false;
+    }
+
+    @ChatBoxMvel
+    public static boolean hasAdvancement(Object o, Object... args) {
+        if (o instanceof Player p && args.length == 1 && args[0] instanceof String id) {
+            var parsedId = ChatBox.parseId(id);
+            if (p instanceof ServerPlayer player) {
+                //? < 1.21
+                /*var holder = Objects.requireNonNull(player.getServer()).getAdvancements().getAdvancement(parsedId);*/
+                //? >= 1.21
+                var holder = Objects.requireNonNull(player.getServer()).getAdvancements().get(parsedId);
+                return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
+            } else if (p instanceof LocalPlayer player) {
+                var advancements = player.connection.getAdvancements();
+                //? < 1.21
+                /*var holder = advancements.getAdvancements().get(parsedId);*/
+                //? >= 1.21
+                var holder = advancements.get(parsedId);
+                return holder != null && ((ClientAdvancementsAccessor) advancements).getProgress().get(holder).isDone();
+            }
         }
         return false;
     }

@@ -1,6 +1,6 @@
 package com.zhenshiz.chatbox.mixin.client;
 
-import com.zhenshiz.chatbox.render.ChatBoxRender;
+import com.zhenshiz.chatbox.client.ChatBoxRender;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;

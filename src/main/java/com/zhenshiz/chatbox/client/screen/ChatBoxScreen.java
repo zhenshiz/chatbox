@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.screen;
+package com.zhenshiz.chatbox.client.screen;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxClient;
@@ -6,9 +6,7 @@ import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.component.data.CompEvtWrapper;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
-import com.zhenshiz.chatbox.render.ChatBoxRender;
-import com.zhenshiz.chatbox.render.KeyPromptRender;
-import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
+import com.zhenshiz.chatbox.component.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -24,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
+
+import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
 
 @SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
 public class ChatBoxScreen extends Screen {
@@ -45,12 +45,14 @@ public class ChatBoxScreen extends Screen {
     //是否隐藏对话框，if true，则不渲染对话框、聊天选项、功能按钮，且屏蔽交互
     public boolean hideDialogBox = false;
     public String voice = "";
+    public String bgm;
     // 用于限制立绘动画的参数，单位：毫秒
     private long updateDuration = 16;
     private long lastUpdateTime = 0;
 
     // 用于记录当前对话框已经存在了多少tick了，每跳转一次对话就会重置为0
     public int tick = 0;
+    public int stayTick = 0;
     // 跳转一句新的对话后设为false，开始渲染后为true
     private boolean renderStarted = false;
     @Nullable public CompEvtWrapper events;
@@ -138,6 +140,11 @@ public class ChatBoxScreen extends Screen {
         return this;
     }
 
+    public ChatBoxScreen setStayTick(int stayTick) {
+        this.stayTick = stayTick;
+        return this;
+    }
+
     public ChatBoxScreen setKeyPromptRender(KeyPromptRender keyPromptRender) {
         if (keyPromptRender != null) this.keyPromptRender = keyPromptRender;
         return this;
@@ -151,6 +158,21 @@ public class ChatBoxScreen extends Screen {
             SoundUtil.stopSound(this.voice);
             SoundUtil.playSound(voice);
             this.voice = voice;
+        }
+        return this;
+    }
+
+    public ChatBoxScreen playBgm(String bgm) {
+        if (bgm == null) return this;       // 传 null 无操作
+        if (bgm.isBlank()) {                // 传空字符串停止 BGM
+            SoundUtil.stopSound(this.bgm);
+            this.bgm = null;
+        } else if (bgm.equals(this.bgm)) {  // 传入和当前相同 BGM 判断该音效是否处于播放状态，未播放则重新播放，已播放无动作
+            if (!SoundUtil.isSoundActive(bgm)) SoundUtil.playSound(bgm);
+        } else {                            // 传入新的 BGM 停止旧的，播放新的
+            SoundUtil.stopSound(this.bgm);
+            SoundUtil.playSound(bgm);
+            this.bgm = bgm;
         }
         return this;
     }
@@ -186,7 +208,7 @@ public class ChatBoxScreen extends Screen {
         var parts = StrUtil.parse(path);
         if (parts.length != 2) return;
         int id = Integer.parseInt(parts[0]); int index = Integer.parseInt(parts[1]);
-        for (var c : allComponents()) if (c.events.execute(id, index)) break;
+        for (var c : allComponents()) if (c.events != null && c.events.execute(id, index)) break;
         if (events != null) events.execute(id, index);
     }
 
@@ -317,7 +339,11 @@ public class ChatBoxScreen extends Screen {
         return getRenderOptionCount() == 0;
     }
 
-    public void dialogBoxClick() {dialogBox.click(shouldGotoNext());}
+    public void dialogBoxClick() {
+        if (stayTick < 0 || stayTick > tick) return;
+        if (!dialogBox.isAllOver) dialogBox.setAllOver(true);
+        else if (shouldGotoNext()) skipDialogues(dialoguesResourceLocation, group, index + 1);
+    }
 
     private FunctionalButton getButton(FunctionalButton.Type type) {
         return functionalButtons.stream().filter(b -> b.type == type).findFirst().orElse(null);
@@ -432,20 +458,12 @@ public class ChatBoxScreen extends Screen {
     }
 
     @Override
-    public void onClose() {
-        setDebug(false);
-        ChatBoxRender.isOpenChatBox = false;
-        autoPlay = false;
-        fastForward = false;
-        hideDialogBox = false;
-        setVideo(null);
-        ChatBoxUtil.onCloseDialogBox();
-        super.onClose();
-    }
+    public void onClose() {closeDialogBox();}
 
     @Override
     public void tick() {
         tick++;
+        if (tick % 20 == 0) playBgm(bgm); // 每秒检测一次背景音乐是否还在播放
         allComponents().forEach(c -> {
             c.fireEvent("TICK");
             if (tick == 3) c.fireEvent("CHECK");
@@ -454,10 +472,10 @@ public class ChatBoxScreen extends Screen {
         if (!shouldGotoNext()) fastForward = false;
 
         dialogBox.tick();
-        if (shouldFastForward()) dialogBoxClick();
+        if (shouldFastForward()) { dialogBoxClick(); return; }
+        // MC不在暂停游戏时tick声音，那我自己tick一下
+        SoundUtil.tickWhenPaused();
         if (autoPlay) {
-            // MC不在暂停游戏时tick声音，那我自己tick一下
-            SoundUtil.tickWhenPaused();
             if (SoundUtil.isSoundActive(voice)) {
                 // 有语音播放时，自动播放间隔重置为20tick
                 if (tickAutoPlay > 20) setAutoPlayTick(20);
@@ -474,7 +492,7 @@ public class ChatBoxScreen extends Screen {
     private boolean shouldFastForward() {
         if (fastForward) return true;
         if (hasControlDown()) {
-            if (ChatBoxUtil.isScreen) return !debug && getButton(FunctionalButton.Type.FASTFORWARD) != null;
+            if (isScreen) return !debug && getButton(FunctionalButton.Type.FASTFORWARD) != null;
             else return keyPromptRender.visible;
         }
         return false;

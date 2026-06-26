@@ -9,6 +9,7 @@
     "SimpleCriterionTriggerMixin"
   ],
   "client": [
+    "client.ClientAdvancementsAccessor",
     "client.KeyboardHandlerMixin",
     "client.MinecraftMixin",
     "client.MouseHandlerMixin",

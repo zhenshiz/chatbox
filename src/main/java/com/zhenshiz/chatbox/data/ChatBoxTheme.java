@@ -5,7 +5,7 @@ import com.zhenshiz.chatbox.component.data.Attachment;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.component.FunctionalButton;
 import com.zhenshiz.chatbox.component.data.Keyframe;
-import com.zhenshiz.chatbox.render.KeyPromptRender;
+import com.zhenshiz.chatbox.component.KeyPromptRender;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 

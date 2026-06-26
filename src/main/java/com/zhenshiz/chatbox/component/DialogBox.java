@@ -7,8 +7,6 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
 import net.minecraft.client.gui.GuiGraphics;
 
-import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.*;
-
 public class DialogBox extends Portrait<DialogBox> {
     public static final String dialog_box = "chatbox:textures/chatbox/default_dialog_box.png";
     //对话框文本
@@ -44,7 +42,7 @@ public class DialogBox extends Portrait<DialogBox> {
         if (text != null) {
             // 获取翻译键的文本
             text = RenderUtil.translated(text);
-            if (ChatBox.isModLoaded("textanimator")) text = text.replaceAll("<typewriter>", "");
+            if (ChatBox.isModLoaded("textanimator")) text = text.replace("<typewriter>", "");
             this.text = text;
             this.textLength = getRealLength(parseText(text));
         }
@@ -120,16 +118,6 @@ public class DialogBox extends Portrait<DialogBox> {
         if (text == null || text.isEmpty()) return 0;
         return text.replaceAll("<[^<]*>", "")
                 .replace("\\", "").replace("§", "").length();
-    }
-
-    public void click(boolean gotoNext) {
-        if (!this.isAllOver) {
-            //未全部加载时，点击显示所有文本
-            this.charIndex = this.textLength - 1;
-            setAllOver(true);
-        } else if (gotoNext) {
-            skipDialogues(dialoguesResourceLocation, group, index + 1);
-        }
     }
 
     public void tick() {

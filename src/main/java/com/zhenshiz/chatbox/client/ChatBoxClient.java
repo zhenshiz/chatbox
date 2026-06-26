@@ -5,7 +5,6 @@ import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
-import com.zhenshiz.chatbox.render.ChatBoxRender;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
@@ -47,7 +46,6 @@ public class ChatBoxClient implements ClientModInitializer {
 //? forge {
 /*import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.Config;
-import com.zhenshiz.chatbox.render.ChatBoxRender;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.minecraft.client.Minecraft;

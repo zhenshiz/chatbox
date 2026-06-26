@@ -120,7 +120,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("客户端跳转下一条对话")*/
     public static void clientNextDialogue() {
-        chatBoxScreen.dialogBoxClick();
+        if (chatBoxScreen.shouldGotoNext()) skipDialogues(dialoguesResourceLocation, group, index + 1);
     }
 
     //? forge

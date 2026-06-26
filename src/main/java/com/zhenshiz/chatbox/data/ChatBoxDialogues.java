@@ -33,7 +33,9 @@ public class ChatBoxDialogues {
         public DialogBox dialogBox = new DialogBox();
         public List<JsonElement> portrait;
         public List<Option> options;
-        public String sound = "";
+        public String sound;
+        public String bgm;
+        public int stayTick = 0;
         public String command;
         public String backgroundImage;
         public Video video;

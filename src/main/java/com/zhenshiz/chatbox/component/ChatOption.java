@@ -54,7 +54,7 @@ public class ChatOption extends Portrait<ChatOption> {
 
     public ChatOption setCondition(String condition, boolean lockOrHide) {
         if (notNull(condition) && !condition.isEmpty()) {
-            events.add("CHECK", condition, "SET_NORMAL", "@s", this);
+            getOrCreateEvents().add("CHECK", condition, "SET_NORMAL", "@s", this);
             if (lockOrHide) setIsLock(true); else hideOption(true);
         }
         return this;
