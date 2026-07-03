@@ -9,11 +9,12 @@
     "SimpleCriterionTriggerMixin"
   ],
   "client": [
-    "MinecraftMixin",
-    "MouseHandlerMixin",
-    "SoundEngineAccessor",
-    "SoundInstanceAccessor",
-    "TETradeScreenMixin"
+    "client.ClientAdvancementsAccessor",
+    "client.MinecraftMixin",
+    "client.MouseHandlerMixin",
+    "client.SoundEngineAccessor",
+    "client.SoundInstanceAccessor",
+    "client.TETradeScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

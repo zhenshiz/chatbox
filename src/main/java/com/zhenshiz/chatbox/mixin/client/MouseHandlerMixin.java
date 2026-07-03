@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.mixin;
+package com.zhenshiz.chatbox.mixin.client;
 
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;

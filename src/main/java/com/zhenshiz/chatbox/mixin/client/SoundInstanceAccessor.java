@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.mixin;
+package com.zhenshiz.chatbox.mixin.client;
 
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.ChannelAccess;

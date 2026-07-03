@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.mixin;
+package com.zhenshiz.chatbox.mixin.client;
 
 import com.zhenshiz.chatbox.Config;
 import org.confluence.terraentity.client.gui.container.TETradeScreen;

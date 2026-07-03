@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.mixin;
+package com.zhenshiz.chatbox.mixin.client;
 
 import com.zhenshiz.chatbox.client.ChatBoxRender;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;

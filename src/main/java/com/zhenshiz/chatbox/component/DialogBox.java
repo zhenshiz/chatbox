@@ -42,7 +42,7 @@ public class DialogBox extends Portrait<DialogBox> {
         if (text != null) {
             // 获取翻译键的文本
             text = RenderUtil.translated(text);
-            if (ChatBox.isTextAnimatorLoaded()) text = text.replaceAll("<typewriter>", "");
+            if (ChatBox.isTextAnimatorLoaded()) text = text.replace("<typewriter>", "");
             this.text = text;
             this.textLength = getRealLength(parseText(text));
         }

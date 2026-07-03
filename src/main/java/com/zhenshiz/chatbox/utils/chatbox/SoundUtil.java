@@ -1,8 +1,8 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.mixin.SoundEngineAccessor;
-import com.zhenshiz.chatbox.mixin.SoundInstanceAccessor;
+import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
+import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -54,7 +54,7 @@ public class SoundUtil {
     public static boolean isSoundActive(String sound) {
         if (StrUtil.isEmpty(sound)) return false;
         for (SoundInstance soundInstance : getInstanceToChannel().keySet()) {
-            if (soundInstance.getSound().getLocation().toString().equals(sound)) return true;
+            if (soundInstance.getLocation().toString().equals(sound)) return true;
         }
         return false;
     }
@@ -62,7 +62,7 @@ public class SoundUtil {
     public static List<SoundInstance> getPlayingSounds(String sound) {
         List<SoundInstance> list = new ArrayList<>();
         for (SoundInstance soundInstance : getInstanceToChannel().keySet()) {
-            if (soundInstance.getSound().getLocation().toString().equals(sound)) list.add(soundInstance);
+            if (soundInstance.getLocation().toString().equals(sound)) list.add(soundInstance);
         }
         return list;
     }

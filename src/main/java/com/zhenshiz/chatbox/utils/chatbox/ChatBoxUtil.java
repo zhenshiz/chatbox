@@ -172,7 +172,7 @@ public class ChatBoxUtil {
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false;
         chatBoxScreen.hideDialogBox = false;
-        chatBoxScreen.setVideo(null);
+        chatBoxScreen.setVideo(null).playBgm(""); // 移除视频，停止bgm
         historicalDialogue.historicalDialogue.clearHistory();
         if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
         NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets));
@@ -222,9 +222,9 @@ public class ChatBoxUtil {
 
         input = MVELUtil.parseTargetPlaceholders(getPlayer(), input);
 
-        if (!isLineBreak) input = input.replaceAll("\n", "");
+        if (!isLineBreak) input = input.replace("\n", "");
         // 将@@ 替换为 @
-        return input.replaceAll("@@", "@");
+        return input.replace("@@", "@");
     }
 
     public static Player getPlayer() {return minecraft.player;}

@@ -1,4 +1,4 @@
-package com.zhenshiz.chatbox.mixin;
+package com.zhenshiz.chatbox.mixin.client;
 
 import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.client.sounds.SoundManager;
