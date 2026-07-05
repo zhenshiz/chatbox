@@ -480,9 +480,9 @@ public class ChatBoxScreen extends Screen {
         // MC不在暂停游戏时tick声音，那我自己tick一下
         SoundUtil.tickWhenPaused();
         if (autoPlay) {
-            if (tickAutoPlay > 20 && SoundUtil.isSoundActive(voice)) {
+            if (SoundUtil.isSoundActive(voice)) {
                 // 有语音播放时，自动播放间隔重置为20tick
-                setAutoPlayTick(20);
+                if (tickAutoPlay > 20) setAutoPlayTick(20);
                 return;
             }
             if (!dialogBox.isAllOver || video != null && video.isPlaying()) {

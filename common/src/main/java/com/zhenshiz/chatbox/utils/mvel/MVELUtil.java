@@ -46,6 +46,7 @@ public class MVELUtil {
     private static final Map<String, Serializable> compiledCache = new HashMap<>();
     static final Pattern holderPattern = Pattern.compile("<(?:target|player)[^<>]*>");
     static final Pattern mvelPattern = Pattern.compile("<<((?!<<|>>).)*>>", Pattern.DOTALL);
+    static final Pattern targetPattern = Pattern.compile("\\btarget(\\d+)?\\b");
 
     @FunctionalInterface
     public interface DynamicMethod {
@@ -189,8 +190,7 @@ public class MVELUtil {
 
     private static String replaceTarget(String expression) {
         if (!expression.contains("target")) return expression;
-        Pattern p = Pattern.compile("\\btarget(\\d+)?\\b");
-        Matcher m = p.matcher(expression);
+        Matcher m = targetPattern.matcher(expression);
         StringBuilder sb = new StringBuilder();
         while (m.find()) {
             if (m.group(1) != null) {
