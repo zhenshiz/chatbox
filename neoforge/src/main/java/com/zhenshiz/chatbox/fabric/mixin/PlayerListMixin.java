@@ -1,6 +1,6 @@
 package com.zhenshiz.chatbox.fabric.mixin;
 
-import com.zhenshiz.chatbox.fabric.SettingLoader;
+import com.zhenshiz.chatbox.fabric.ChatBoxServerEvents;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerListMixin {
 
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
-    public void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie commonListenerCookie, CallbackInfo ci) {
-        SettingLoader.initializeChatBoxScreen(player);
+    public void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
+        ChatBoxServerEvents.initializeChatBoxScreen(player);
     }
 }

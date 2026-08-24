@@ -3,7 +3,7 @@ package com.zhenshiz.chatbox.neoforge.nekojs;
 import com.tkisor.nekojs.api.NekoJSPlugin;
 import com.tkisor.nekojs.api.annotation.RegisterNekoJSPlugin;
 import com.tkisor.nekojs.api.data.Binding;
-import com.tkisor.nekojs.api.data.BindingsRegister;
+import com.tkisor.nekojs.api.data.BindingRegistry;
 import com.tkisor.nekojs.api.event.EventGroupRegistry;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 
@@ -16,7 +16,7 @@ public class ChatBoxJSPlugin implements NekoJSPlugin {
     }
 
     @Override
-    public void registerBindings(BindingsRegister registry) {
+    public void registerBinding(BindingRegistry registry) {
         registry.register(Binding.of("ChatBoxUtil", ChatBoxCommandUtil.class));
     }
 }

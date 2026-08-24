@@ -23,20 +23,20 @@ public class MouseMixin {
     @Shadow private double ypos;
 
     @Inject(method = "onButton", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getOverlay()Lnet/minecraft/client/gui/screens/Overlay;", ordinal = 0), cancellable = true)
-    private void mousePre(long l, MouseButtonInfo mouseButtonInfo, int action, CallbackInfo ci) {
-        if (InputEvent.MouseButton.PRE.invoker().mousePre(mouseButtonInfo.button(), action, mouseButtonInfo.modifiers())) {
+    private void mousePre(long handle, MouseButtonInfo rawButtonInfo, int action, CallbackInfo ci) {
+        if (InputEvent.MouseButton.PRE.invoker().mousePre(rawButtonInfo.button(), action, rawButtonInfo.modifiers())) {
             ci.cancel();
         }
     }
 
     @Inject(method = "onButton", at = @At(value = "TAIL"))
-    private void mousePost(long windowPointer, MouseButtonInfo mouseButtonInfo, int action, CallbackInfo ci) {
-        if (windowPointer == this.minecraft.getWindow().handle()) InputEvent.MouseButton.POST.invoker().mousePost(mouseButtonInfo.button(), action, mouseButtonInfo.modifiers());
+    private void mousePost(long handle, MouseButtonInfo rawButtonInfo, int action, CallbackInfo ci) {
+        if (handle == this.minecraft.getWindow().handle()) InputEvent.MouseButton.POST.invoker().mousePost(rawButtonInfo.button(), action, rawButtonInfo.modifiers());
     }
 
     @Inject(method = "onScroll", at= @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSpectator()Z"), cancellable = true)
-    private void onScroll(long windowPointer, double xOffset, double yOffset, CallbackInfo ci){
-        if (InputEvent.MOUSE_SCROLLING.invoker().onMouseScroll(xOffset, yOffset, isLeftPressed, isMiddlePressed, isRightPressed, xpos, ypos)) {
+    private void onScroll(long handle, double xoffset, double yoffset, CallbackInfo ci){
+        if (InputEvent.MOUSE_SCROLLING.invoker().onMouseScroll(xoffset, yoffset, isLeftPressed, isMiddlePressed, isRightPressed, xpos, ypos)) {
             ci.cancel();
         }
     }

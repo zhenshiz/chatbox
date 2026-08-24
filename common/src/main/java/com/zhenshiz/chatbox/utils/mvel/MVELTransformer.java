@@ -50,6 +50,11 @@ public class MVELTransformer {
                     if (idx < inQuote.length && inQuote[idx]) { idx = transformed.lastIndexOf(needle, idx - 1); continue; }
                     int propStart = idx + 1;
                     int propEnd = propStart + prop.length();
+                    // 新增检查：属性名后不能紧跟 Java 标识符字符（避免截断）
+                    if (propEnd < transformed.length() && Character.isJavaIdentifierPart(transformed.charAt(propEnd))) {
+                        idx = transformed.lastIndexOf(needle, idx - 1);
+                        continue;
+                    }
                     int j = propEnd;
                     while (j < transformed.length() && Character.isWhitespace(transformed.charAt(j))) j++;
                     if (j < transformed.length() && transformed.charAt(j) == '(' && !(j < inQuote.length && inQuote[j])) { idx = transformed.lastIndexOf(needle, idx - 1); continue; }

@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 public class SimpleCriterionTriggerMixin<T extends SimpleCriterionTrigger.SimpleInstance> {
 
     @Inject(method = "trigger", at = @At("TAIL"))
-    protected void trigger(ServerPlayer player, Predicate<T> testTrigger, CallbackInfo ci) {
-        ChatBoxDialoguesLoader.triggerDialog(player, testTrigger);
+    protected void trigger(ServerPlayer player, Predicate<T> matcher, CallbackInfo ci) {
+        ChatBoxDialoguesLoader.triggerDialog(player, matcher);
     }
 }

@@ -2,7 +2,7 @@ package com.zhenshiz.chatbox;
 
 import com.mojang.logging.LogUtils;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
-import com.zhenshiz.chatbox.data.ChatBoxTriggerCount;
+import com.zhenshiz.chatbox.data.ChatBoxSavedData;
 import com.zhenshiz.chatbox.platform.IPlatformHelper;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class ChatBox {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static IPlatformHelper PLATFORM;
     @Getter @Setter
-    private static ChatBoxTriggerCount triggerCounts;
+    private static ChatBoxSavedData savedData;
     @Nullable public static MinecraftServer server;
 
     public static void init() {

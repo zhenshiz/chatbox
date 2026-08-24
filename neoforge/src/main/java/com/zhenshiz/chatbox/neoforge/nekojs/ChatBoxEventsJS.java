@@ -12,6 +12,6 @@ public interface ChatBoxEventsJS {
 
     EventBusJS<ChatBoxRenderEvent.Pre, Void> RENDER_PRE = GROUP.client("renderPre", ChatBoxRenderEvent.Pre.class);
     EventBusJS<ChatBoxRenderEvent.Post, Void> RENDER_POST = GROUP.client("renderPost", ChatBoxRenderEvent.Post.class);
-    EventBusJS<SkipChatEvent, Void> SKIP_CHAT = GROUP.common("skipChat", SkipChatEvent.class);
+    EventBusJS<SkipChatEvent, Void> SKIP_CHAT = GROUP.server("skipChat", SkipChatEvent.class);
     EventBusForgeBridge FORGE_BRIDGE = EventBusForgeBridge.create(NeoForge.EVENT_BUS).bind(RENDER_PRE).bind(RENDER_POST).bind(SKIP_CHAT);
 }

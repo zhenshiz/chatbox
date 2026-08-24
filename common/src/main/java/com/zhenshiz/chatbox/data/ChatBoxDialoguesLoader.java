@@ -37,8 +37,6 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
     //套娃，第一个（Map）是文件，第二个是组，第三个是criteria，由于目前的组名下是一个数组，所以只能把判据绑定给同一个json文件里面的第一组对话。解决办法1.花大力气改json格式；2.告诉玩家一个json文件只允许一个组。
     private static final Map<Identifier, Map<String, Map<String, Criterion<?>>>> dialoguesCriteriaMap = new HashMap<>();
     private static final Codec<Map<String, Criterion<?>>> CRITERIA_CODEC = Codec.unboundedMap(Codec.STRING, Criterion.CODEC).validate(map -> map.isEmpty() ? DataResult.error(() -> "Advancement criteria cannot be empty") : DataResult.success(map)); //这个是Advancement类里面的
-    //记录对话最大触发次数的初始值，用于重设。
-    public static final Map<Identifier, Integer> defaultMaxTriggerCount = new HashMap<>();
 
     public ChatBoxDialoguesLoader() {
         super("chatbox/dialogues");
@@ -50,13 +48,11 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
         parsedDialogues.clear();
         dialoguesGroupMap.clear();
         dialoguesCriteriaMap.clear();
-        defaultMaxTriggerCount.clear();
         dialoguesMap.putAll(map);
         map.forEach((identifier, str) -> {
             ChatBoxDialogues chatBoxDialogues = GSON.fromJson(str, ChatBoxDialogues.class);
             parsedDialogues.put(identifier, chatBoxDialogues);
             dialoguesGroupMap.put(identifier, chatBoxDialogues.dialogues.keySet());
-            defaultMaxTriggerCount.put(identifier, chatBoxDialogues.maxTriggerCount);
         });
     }
 

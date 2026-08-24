@@ -19,7 +19,7 @@ config = "chatbox.mixins.json"
 [[dependencies."${mod_id}"]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26.1,)"
+versionRange = "[26.1.2.71,)"
 ordering = "NONE"
 side = "BOTH"
 
@@ -34,5 +34,12 @@ side = "BOTH"
 modId = "cloth_config"
 type = "required"
 versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "watermedia"
+type = "optional"
+versionRange = "[3.0.0.23,)"
 ordering = "NONE"
 side = "BOTH"

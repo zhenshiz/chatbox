@@ -38,7 +38,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverToggleTheme(ServerPlayer player, Identifier theme) {
-        simplePayloadS2C(player, SET_THEME, theme.toString());
+        simplePayloadS2C(player, SET_THEME, theme);
     }
 
     public static void clientToggleTheme(String theme) {
@@ -48,7 +48,7 @@ public class ChatBoxCommandUtil {
     public static void serverSkipDialogues(ServerPlayer player, Identifier dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues, group, index));
+        simplePayloadS2C(player, SKIP_CHAT_S2C, dialogues, group, index);
     }
 
     public static void serverSkipDialogues(ServerPlayer player, Identifier dialogues, String group, Entity... targets) {
@@ -68,7 +68,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverOpenChatBox(ServerPlayer player) {
-        simplePayloadS2C(player, OPEN_DIALOG, "");
+        simplePayloadS2C(player, OPEN_DIALOG);
     }
 
     public static void clientOpenChatBox() {
@@ -77,16 +77,18 @@ public class ChatBoxCommandUtil {
         }
     }
 
-    public static void serverNextDialogue(ServerPlayer player) {
-        simplePayloadS2C(player, NEXT_DIALOGUE, "");
+    public static void serverNextDialogue(ServerPlayer player, Integer delta) {
+        simplePayloadS2C(player, NEXT_DIALOGUE, delta == null ? "" : delta);
     }
 
-    public static void clientNextDialogue() {
-        if (chatBoxScreen.shouldGotoNext()) skipDialogues(dialoguesIdentifier, group, index + 1);
+    public static void clientNextDialogue(String num) {
+        boolean isNum = StrUtil.isInteger(num);
+        int delta = isNum ? Integer.parseInt(num) : 1;
+        if (isNum || chatBoxScreen.shouldGotoNext()) skipDialogues(dialoguesIdentifier, group, index + delta);
     }
 
     public static void serverAutoPlay(ServerPlayer player, boolean autoPlay) {
-        simplePayloadS2C(player, AUTO_PLAY, String.valueOf(autoPlay));
+        simplePayloadS2C(player, AUTO_PLAY, autoPlay);
     }
 
     public static void clientAutoPlay(boolean autoPlay) {
@@ -94,27 +96,33 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverSetIsScreen(ServerPlayer player, boolean isScreen) {
-        simplePayloadS2C(player, SET_IS_SCREEN, String.valueOf(isScreen));
+        simplePayloadS2C(player, SET_IS_SCREEN, isScreen);
     }
 
     public static void clientSetIsScreen(boolean isScreen) {
         ChatBoxUtil.isScreen = isScreen;
     }
 
+    public static void setBlockInput(ServerPlayer player, boolean blockInput) {
+        if (player == null) chatBoxScreen.blockInput = blockInput;
+        else simplePayloadS2C(player, SET_BLOCK_INPUT, blockInput);
+    }
+    public static void setBlockInput(String blockInput) {setBlockInput(null, Boolean.parseBoolean(blockInput));}
+
     public static int serverGetMaxTriggerCount(ServerPlayer player, Identifier dialogIdentifier) {
-        return ChatBox.getTriggerCounts().getPlayerMaxTriggerCount(player, dialogIdentifier);
+        return ChatBox.getSavedData().getPlayerMaxTriggerCount(player, dialogIdentifier);
     }
 
     public static void serverSetMaxTriggerCount(ServerPlayer player, Identifier dialogIdentifier, int count) {
-        ChatBox.getTriggerCounts().setPlayerMaxTriggerCount(player, dialogIdentifier, count);
+        ChatBox.getSavedData().setPlayerMaxTriggerCount(player, dialogIdentifier, count);
     }
 
     public static void serverResetMaxTriggerCount(ServerPlayer player) {
-        ChatBox.getTriggerCounts().resetPlayerMaxTriggerCount(player);
+        ChatBox.getSavedData().resetPlayerMaxTriggerCount(player);
     }
 
     public static void serverSetDialogBox(ServerPlayer player, String name, String text) {
-        simplePayloadS2C(player, SET_DIALOG_BOX, StrUtil.merge(name, text));
+        simplePayloadS2C(player, SET_DIALOG_BOX, name, text);
     }
 
     public static void clientSetDialogBox(String name, String text) {
@@ -125,7 +133,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverAddChatOption(ServerPlayer player, String text, String next, String tip, String clickType, String clickValue) {
-        simplePayloadS2C(player, ADD_CHAT_OPTION, StrUtil.merge(text, next, tip, clickType, clickValue));
+        simplePayloadS2C(player, ADD_CHAT_OPTION, text, next, tip, clickType, clickValue);
     }
 
     public static void clientAddChatOption(String text, String next, String tip, String clickType, String clickValue) {
@@ -135,7 +143,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverSetChatOption(ServerPlayer player, int index, String text, String tip, Boolean lock, Boolean hide) {
-        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(index, text, tip, lock, hide));
+        simplePayloadS2C(player, SET_CHAT_OPTION, index, text, tip, lock, hide);
     }
 
     public static void clientSetChatOption(int index, String text, String tip, Boolean lock, Boolean hide) {
@@ -146,7 +154,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void serverClearChatOption(ServerPlayer player) {
-        simplePayloadS2C(player, CLEAR_CHAT_OPTION, "");
+        simplePayloadS2C(player, CLEAR_CHAT_OPTION);
     }
 
     public static void clientClearChatOption() {
@@ -172,6 +180,9 @@ public class ChatBoxCommandUtil {
     public static void simplePayloadS2C(ServerPlayer player, String name, String value) {
         ChatBox.PLATFORM.sendToClient(player, new SimplePayload(name, value));
     }
+    public static void simplePayloadS2C(ServerPlayer player, String name, Object... args) {
+        simplePayloadS2C(player, name, argsAsString(args));
+    }
 
     public static void addSimpleHandlerS2C(String name, Consumer<String> handler) {
         SimplePayload.addHandlerS2C(name, handler);
@@ -180,9 +191,17 @@ public class ChatBoxCommandUtil {
     public static void simplePayloadC2S(String name, String value) {
         ChatBox.PLATFORM.sendToServer(new SimplePayload(name, value));
     }
+    public static void simplePayloadC2S(String name, Object... args) {
+        simplePayloadC2S(name, argsAsString(args));
+    }
 
     public static void addSimpleHandlerC2S(String name, BiConsumer<ServerPlayer, String> handler) {
         SimplePayload.addHandlerC2S(name, handler);
     }
 
+    private static String argsAsString(Object... args) {
+        if (args.length == 0) return "";
+        if (args.length == 1) return String.valueOf(args[0]);
+        return StrUtil.merge(args);
+    }
 }

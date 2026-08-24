@@ -17,7 +17,7 @@ public class KeyboardHandlerMixin {
     @Shadow @Final private Minecraft minecraft;
 
     @Inject(method = "keyPress", at = @At("TAIL"))
-    public void keyPress(long windowPointer, int action, KeyEvent keyEvent, CallbackInfo ci) {
-        if (windowPointer == minecraft.getWindow().handle()) InputEvent.KEY.invoker().onKey(keyEvent.key(), keyEvent.scancode(), action, keyEvent.modifiers());
+    public void keyPress(long handle, int action, KeyEvent event, CallbackInfo ci) {
+        if (handle == minecraft.getWindow().handle()) InputEvent.KEY.invoker().onKey(event.key(), event.scancode(), action, event.modifiers());
     }
 }

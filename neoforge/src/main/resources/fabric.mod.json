@@ -37,6 +37,7 @@
   "suggests": {
     "modmenu": "*"
   },
+  "accessWidener": "chatbox.accesswidener",
   "jars": [
     {
       "file": "META-INF/jarjar/mvel2-2.5.0.Final.jar"

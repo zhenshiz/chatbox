@@ -30,7 +30,7 @@ dependencies {
     implementation("org.mvel:mvel2:2.5.0.Final")
 
     implementation files("libs/${graal_name}")
-    implementation files("libs/${nekojs_name}")
+    compileOnly files("libs/${nekojs_name}")
 }
 
 neoForge {
