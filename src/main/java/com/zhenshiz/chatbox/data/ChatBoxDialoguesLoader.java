@@ -45,8 +45,6 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
     /*private static final Map<ResourceLocation, Map<String, Map<String, Criterion>>> dialoguesCriteriaMap = new HashMap<>();
     private static final LootDataManager lootDataManager = new LootDataManager();
     *///?}
-    //记录对话最大触发次数的初始值，用于重设。
-    public static final Map<ResourceLocation, Integer> defaultMaxTriggerCount = new HashMap<>();
 
     public ChatBoxDialoguesLoader() {
         super("chatbox/dialogues");
@@ -58,13 +56,11 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
         parsedDialogues.clear();
         dialoguesGroupMap.clear();
         dialoguesCriteriaMap.clear();
-        defaultMaxTriggerCount.clear();
         dialoguesMap.putAll(map);
         map.forEach((resourceLocation, str) -> {
             ChatBoxDialogues chatBoxDialogues = GSON.fromJson(str, ChatBoxDialogues.class);
             parsedDialogues.put(resourceLocation, chatBoxDialogues);
             dialoguesGroupMap.put(resourceLocation, chatBoxDialogues.dialogues.keySet());
-            defaultMaxTriggerCount.put(resourceLocation, chatBoxDialogues.maxTriggerCount);
             //? < 1.21 {
             /*JsonElement criteriaElement = chatBoxDialogues.criteria;
             if (criteriaElement != null) {

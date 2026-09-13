@@ -119,19 +119,28 @@ public class ChatBoxDialogues {
             public Boolean canControl = true;
             public Boolean canSkip = true;
             public Boolean loop = false;
+            public Boolean removeOnEnd = true;
+            public Boolean removeOnNext = true;
 
-            public com.zhenshiz.chatbox.component.Video setVideo() {
-                if (!ChatBox.isWaterMediaLoaded()) return null;
+            public com.zhenshiz.chatbox.component.video.Video setVideo() {
+                if (ChatBox.useWaterMediaV3 == null) return null;
                 URI uri;
                 File file = new File(ChatBox.PLATFORM.getGameDirectory(), path);
                 if (!file.exists()) file = new File(path);
                 try {
                     if (file.exists()) uri = file.toURI();
-                    else uri = new URI(path);
+                    else uri = new URI(completeBV(path));
                 } catch (URISyntaxException e) {
                     return null;
                 }
-                return new com.zhenshiz.chatbox.component.Video(uri, canControl, canSkip, loop).of(this);
+                return ChatBox.useWaterMediaV3 ?
+                        new com.zhenshiz.chatbox.component.video.V3(uri).ofVideo(this) :
+                        new com.zhenshiz.chatbox.component.video.V2(uri).ofVideo(this);
+            }
+
+            private static String completeBV(String path) {
+                return path.length() == 12 && path.substring(0, 2).equalsIgnoreCase("BV") ?
+                    "https://bilibili.com/video/BV" + path.substring(2) : path;
             }
         }
 

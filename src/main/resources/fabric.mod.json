@@ -33,5 +33,6 @@
   },
   "suggests": {
     "modmenu": "*"
-  }
+  },
+  "accessWidener": "chatbox.accesswidener"
 }

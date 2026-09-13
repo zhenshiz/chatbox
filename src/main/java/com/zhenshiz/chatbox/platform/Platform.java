@@ -41,6 +41,11 @@ public interface Platform {
     //? fabric {
     default boolean isModLoaded(String modId) {return FabricLoader.getInstance().isModLoaded(modId);}
 
+    default String getModVersion(String modId) {
+        return FabricLoader.getInstance().getModContainer(modId).map(container ->
+                container.getMetadata().getVersion().getFriendlyString()).orElse("");
+    }
+
     default boolean isDevelopmentEnvironment() {return FabricLoader.getInstance().isDevelopmentEnvironment();}
 
     default File getGameDirectory() {return FabricLoader.getInstance().getGameDir().toFile();}
@@ -109,16 +114,21 @@ public interface Platform {
     //? forge {
     /*default boolean isModLoaded(String modId) {return ModList.get().isLoaded(modId);}
 
+    default String getModVersion(String modId) {
+        var modInfo = ModList.get().getModFileById(modId);
+        return modInfo == null ? "" : modInfo.versionString();
+    }
+
     default boolean isDevelopmentEnvironment() {return !FMLLoader.isProduction();}
 
     default File getGameDirectory() {return FMLLoader.getGamePath().toFile();}
 
     default void sendToServer(CustomPacket packet) {
-        Packets.getChannel(packet).sendToServer(packet);
+        Packets.getChannel().sendToServer(packet);
     }
 
     default void sendToClient(ServerPlayer player, CustomPacket packet) {
-        Packets.getChannel(packet).send(PacketDistributor.PLAYER.with(() -> player), packet);
+        Packets.getChannel().send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
 
     default boolean postRenderEventPre(GuiGraphics guiGraphics) {

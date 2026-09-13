@@ -44,7 +44,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("服务端切换对话框主题样式")*/
     public static void serverToggleTheme(ServerPlayer player, ResourceLocation theme) {
-        simplePayloadS2C(player, SET_THEME, theme.toString());
+        simplePayloadS2C(player, SET_THEME, theme);
     }
 
     //? forge
@@ -58,7 +58,7 @@ public class ChatBoxCommandUtil {
     public static void serverSkipDialogues(ServerPlayer player, ResourceLocation dialogues, String group, Integer index, List<Entity> targets) {
         ChatBoxCommand.TARGETS_MAP.put(player.getUUID(), targets);
         serverSyncEntityData(player);
-        simplePayloadS2C(player, SKIP_CHAT_S2C, StrUtil.merge(dialogues, group, index));
+        simplePayloadS2C(player, SKIP_CHAT_S2C, dialogues, group, index);
     }
 
     //? forge
@@ -100,7 +100,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("服务端打开最近打开的对话框，无视最大访问次数")*/
     public static void serverOpenChatBox(ServerPlayer player) {
-        simplePayloadS2C(player, OPEN_DIALOG, "");
+        simplePayloadS2C(player, OPEN_DIALOG);
     }
 
     //? forge
@@ -113,20 +113,22 @@ public class ChatBoxCommandUtil {
 
     //? forge
     /*@Info("服务端跳转下一条对话")*/
-    public static void serverNextDialogue(ServerPlayer player) {
-        simplePayloadS2C(player, NEXT_DIALOGUE, "");
+    public static void serverNextDialogue(ServerPlayer player, Integer delta) {
+        simplePayloadS2C(player, NEXT_DIALOGUE, delta == null ? "" : delta);
     }
 
     //? forge
     /*@Info("客户端跳转下一条对话")*/
-    public static void clientNextDialogue() {
-        if (chatBoxScreen.shouldGotoNext()) skipDialogues(dialoguesResourceLocation, group, index + 1);
+    public static void clientNextDialogue(String num) {
+        boolean isNum = StrUtil.isInteger(num);
+        int delta = isNum ? Integer.parseInt(num) : 1;
+        if (isNum || chatBoxScreen.shouldGotoNext()) skipDialogues(dialoguesResourceLocation, group, index + delta);
     }
 
     //? forge
     /*@Info("服务端开关自动对话")*/
     public static void serverAutoPlay(ServerPlayer player, boolean autoPlay) {
-        simplePayloadS2C(player, AUTO_PLAY, String.valueOf(autoPlay));
+        simplePayloadS2C(player, AUTO_PLAY, autoPlay);
     }
 
     //? forge
@@ -138,7 +140,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("服务端设置对话框是否为屏幕")*/
     public static void serverSetIsScreen(ServerPlayer player, boolean isScreen) {
-        simplePayloadS2C(player, SET_IS_SCREEN, String.valueOf(isScreen));
+        simplePayloadS2C(player, SET_IS_SCREEN, isScreen);
     }
 
     //? forge
@@ -147,28 +149,34 @@ public class ChatBoxCommandUtil {
         ChatBoxUtil.isScreen = isScreen;
     }
 
+    public static void setBlockInput(ServerPlayer player, boolean blockInput) {
+        if (player == null) chatBoxScreen.blockInput = blockInput;
+        else simplePayloadS2C(player, SET_BLOCK_INPUT, blockInput);
+    }
+    public static void setBlockInput(String blockInput) {setBlockInput(null, Boolean.parseBoolean(blockInput));}
+
     //? forge
     /*@Info("获取最大访问次数")*/
     public static int serverGetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation) {
-        return ChatBox.getTriggerCounts().getPlayerMaxTriggerCount(player, dialogResourceLocation);
+        return ChatBox.getSavedData().getPlayerMaxTriggerCount(player, dialogResourceLocation);
     }
 
     //? forge
     /*@Info("设置最大访问次数")*/
     public static void serverSetMaxTriggerCount(ServerPlayer player, ResourceLocation dialogResourceLocation, int count) {
-        ChatBox.getTriggerCounts().setPlayerMaxTriggerCount(player, dialogResourceLocation, count);
+        ChatBox.getSavedData().setPlayerMaxTriggerCount(player, dialogResourceLocation, count);
     }
 
     //? forge
     /*@Info("重置最大访问次数")*/
     public static void serverResetMaxTriggerCount(ServerPlayer player) {
-        ChatBox.getTriggerCounts().resetPlayerMaxTriggerCount(player);
+        ChatBox.getSavedData().resetPlayerMaxTriggerCount(player);
     }
 
     //? forge
     /*@Info("服务端设置对话框")*/
     public static void serverSetDialogBox(ServerPlayer player, String name, String text) {
-        simplePayloadS2C(player, SET_DIALOG_BOX, StrUtil.merge(name, text));
+        simplePayloadS2C(player, SET_DIALOG_BOX, name, text);
     }
 
     //? forge
@@ -188,7 +196,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("服务端添加选项")*/
     public static void serverAddChatOption(ServerPlayer player, String text, String next, String tip, String clickType, String clickValue) {
-        simplePayloadS2C(player, ADD_CHAT_OPTION, StrUtil.merge(text, next, tip, clickType, clickValue));
+        simplePayloadS2C(player, ADD_CHAT_OPTION, text, next, tip, clickType, clickValue);
     }
 
     //? forge
@@ -202,7 +210,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("服务端设置选项")*/
     public static void serverSetChatOption(ServerPlayer player, int index, String text, String tip, Boolean lock, Boolean hide) {
-        simplePayloadS2C(player, SET_CHAT_OPTION, StrUtil.merge(index, text, tip, lock, hide));
+        simplePayloadS2C(player, SET_CHAT_OPTION, index, text, tip, lock, hide);
     }
 
     //? forge
@@ -217,7 +225,7 @@ public class ChatBoxCommandUtil {
     //? forge
     /*@Info("服务端清除选项")*/
     public static void serverClearChatOption(ServerPlayer player) {
-        simplePayloadS2C(player, CLEAR_CHAT_OPTION, "");
+        simplePayloadS2C(player, CLEAR_CHAT_OPTION);
     }
 
     //? forge
@@ -269,6 +277,11 @@ public class ChatBoxCommandUtil {
     public static void simplePayloadS2C(ServerPlayer player, String name, String value) {
         ChatBox.PLATFORM.sendToClient(player, new SimplePayload(name, value));
     }
+    //? forge
+    /*@HideFromJS*/
+    public static void simplePayloadS2C(ServerPlayer player, String name, Object... args) {
+        simplePayloadS2C(player, name, argsAsString(args));
+    }
 
     //? forge
     /*@HideFromJS*/
@@ -281,10 +294,21 @@ public class ChatBoxCommandUtil {
     public static void simplePayloadC2S(String name, String value) {
         ChatBox.PLATFORM.sendToServer(new SimplePayload(name, value));
     }
+    //? forge
+    /*@HideFromJS*/
+    public static void simplePayloadC2S(String name, Object... args) {
+        simplePayloadC2S(name, argsAsString(args));
+    }
 
     //? forge
     /*@HideFromJS*/
     public static void addSimpleHandlerC2S(String name, BiConsumer<ServerPlayer, String> handler) {
         SimplePayload.addHandlerC2S(name, handler);
+    }
+
+    private static String argsAsString(Object... args) {
+        if (args.length == 0) return "";
+        if (args.length == 1) return String.valueOf(args[0]);
+        return StrUtil.merge(args);
     }
 }

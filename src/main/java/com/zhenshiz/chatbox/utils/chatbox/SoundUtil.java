@@ -1,8 +1,6 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.mixin.client.SoundEngineAccessor;
-import com.zhenshiz.chatbox.mixin.client.SoundInstanceAccessor;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -40,15 +38,15 @@ public class SoundUtil {
     public static SoundManager getSoundManager() {return minecraft.getSoundManager();}
 
     public static SoundEngine getSoundEngine() {
-        return ((SoundEngineAccessor) minecraft.getSoundManager()).getSoundEngine();
+        return minecraft.getSoundManager().soundEngine;
     }
 
     public static Map<SoundInstance, ChannelAccess.ChannelHandle> getInstanceToChannel() {
-        return ((SoundInstanceAccessor) getSoundEngine()).getInstanceToChannel();
+        return getSoundEngine().instanceToChannel;
     }
 
     public static void tickWhenPaused() {
-        if (minecraft.isPaused()) ((SoundInstanceAccessor) getSoundEngine()).invokeTickNonPaused();
+        if (minecraft.isPaused()) getSoundEngine().tickNonPaused();
     }
 
     public static boolean isSoundActive(String sound) {

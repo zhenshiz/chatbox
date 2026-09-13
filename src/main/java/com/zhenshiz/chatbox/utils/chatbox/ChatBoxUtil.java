@@ -16,7 +16,6 @@ import com.zhenshiz.chatbox.component.KeyPromptRender;
 import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
-import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -153,7 +152,7 @@ public class ChatBoxUtil {
             //调试用
             //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);
             ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets);
-            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, index));
+            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
 
             ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {
@@ -179,11 +178,14 @@ public class ChatBoxUtil {
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false;
         chatBoxScreen.hideDialogBox = false;
-        chatBoxScreen.setVideo(null);
+        var video = chatBoxScreen.video;
+        if (video != null) video.removeOnNext = true; // 不这样做的话，搞不好视频就会一直播放
+        chatBoxScreen.setVideo(null).playBgm(""); // 移除视频，停止bgm
+        SoundUtil.stopSound(chatBoxScreen.voice);
         historicalDialogue.historicalDialogue.clearHistory();
         if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
         ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets);
-        ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, "-1"));
+        ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, -1);
     }
 
     //切换对话框主题

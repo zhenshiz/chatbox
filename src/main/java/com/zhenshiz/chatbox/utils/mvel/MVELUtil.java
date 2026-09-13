@@ -3,7 +3,6 @@ package com.zhenshiz.chatbox.utils.mvel;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.component.AbstractComponent;
-import com.zhenshiz.chatbox.mixin.client.ClientAdvancementsAccessor;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -47,6 +46,7 @@ public class MVELUtil {
     private static final Map<String, Serializable> compiledCache = new HashMap<>();
     static final Pattern holderPattern = Pattern.compile("<(?:target|player)[^<>]*>");
     static final Pattern mvelPattern = Pattern.compile("<<((?!<<|>>).)*>>", Pattern.DOTALL);
+    static final Pattern targetPattern = Pattern.compile("\\btarget(\\d+)?\\b");
 
     @FunctionalInterface
     public interface DynamicMethod {
@@ -190,8 +190,7 @@ public class MVELUtil {
 
     private static String replaceTarget(String expression) {
         if (!expression.contains("target")) return expression;
-        Pattern p = Pattern.compile("\\btarget(\\d+)?\\b");
-        Matcher m = p.matcher(expression);
+        Matcher m = targetPattern.matcher(expression);
         StringBuilder sb = new StringBuilder();
         while (m.find()) {
             if (m.group(1) != null) {
@@ -373,7 +372,7 @@ public class MVELUtil {
                 /*var holder = advancements.getAdvancements().get(parsedId);*/
                 //? >= 1.21
                 var holder = advancements.get(parsedId);
-                return holder != null && ((ClientAdvancementsAccessor) advancements).getProgress().get(holder).isDone();
+                return holder != null && advancements.progress.get(holder).isDone();
             }
         }
         return false;

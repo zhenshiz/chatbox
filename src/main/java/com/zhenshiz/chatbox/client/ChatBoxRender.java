@@ -37,7 +37,7 @@ public class ChatBoxRender {
     public static void onEndTick(Minecraft minecraft) {
         // 客户端每5 tick请求同步对话目标实体
         if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
-            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_SYNC, "");
+            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_SYNC);
         }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
@@ -47,7 +47,7 @@ public class ChatBoxRender {
 
     public static void onKey(int key, int scancode, int action, int modifiers) {
         // System.out.println("key: " + key + " scancode: " + scancode + " action: " + action + " mod: " + modifiers);
-        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
+        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible && !chatBoxScreen.blockInput) {
             if (action == 1 && key == GLFW.GLFW_KEY_F6) {
                 //自动播放
                 chatBoxScreen.autoPlay = !chatBoxScreen.autoPlay;
@@ -56,7 +56,7 @@ public class ChatBoxRender {
     }
 
     public static void mousePost(int button, int action, int modifiers) {
-        if (isRenderChatBox()) {
+        if (isRenderChatBox() && !chatBoxScreen.blockInput) {
             if (action == 1 && button == 1) {
                 if (chatBoxScreen.getRenderOptionCount() > 0 && chatBoxScreen.dialogBox.isAllOver) {
                     for (ChatOption option : chatBoxScreen.chatOptions) {
@@ -72,6 +72,7 @@ public class ChatBoxRender {
     }
 
     public static boolean onMouseScroll(double scrollDeltaX, double scrollDeltaY, boolean leftDown, boolean middleDown, boolean rightDown, double mouseX, double mouseY) {
+        if (chatBoxScreen.blockInput) return false;
         int optionCount = chatBoxScreen.getRenderOptionCount();
         if (isRenderChatBox() && optionCount > 0) {
             if (scrollDeltaY > 0) { //向上

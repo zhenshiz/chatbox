@@ -19,6 +19,9 @@ public class Config implements ConfigData {
     @ConfigEntry.BoundedDiscrete(min = 1, max = 200)
     public int portraitWidthPercent = 100;
 
+    @ConfigEntry.Gui.Tooltip()
+    public boolean disableMouseScroll = false;
+
     //? forge
     /*public boolean isStopTerraDialog = false;*/
 

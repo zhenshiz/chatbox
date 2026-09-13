@@ -9,13 +9,10 @@
     "SimpleCriterionTriggerMixin"
   ],
   "client": [
-    "client.ClientAdvancementsAccessor",
     "client.KeyboardHandlerMixin",
     "client.MinecraftMixin",
     "client.MouseHandlerMixin",
-    "client.ScreenMixin",
-    "client.SoundEngineAccessor",
-    "client.SoundInstanceAccessor"
+    "client.ScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

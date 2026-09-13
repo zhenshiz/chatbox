@@ -1,6 +1,6 @@
 package com.zhenshiz.chatbox.mixin;
 
-import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
+import com.zhenshiz.chatbox.event.ChatBoxServerEvents;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
 //? >= 1.21
@@ -20,7 +20,7 @@ public class PlayerListMixin {
     public void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
     //? < 1.21
     /*public void placeNewPlayer(Connection netManager, ServerPlayer player, CallbackInfo ci) {*/
-        ChatBoxSettingLoader.initializeChatBoxScreen(player);
+        ChatBoxServerEvents.initializeChatBoxScreen(player);
     }
     //?}
 }

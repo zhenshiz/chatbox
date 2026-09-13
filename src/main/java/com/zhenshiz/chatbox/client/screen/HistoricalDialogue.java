@@ -87,7 +87,7 @@ public class HistoricalDialogue extends AbstractWidget {
         public String group;
         public int index;
 
-        private Vector4i vector4i;
+        private Vector4i vector4i = new Vector4i(-1);
         private float progress;
 
         public HistoricalInfo(ResourceLocation resourceLocation, String group, int index, String name, String text) {

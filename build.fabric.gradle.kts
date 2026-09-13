@@ -23,10 +23,6 @@ tasks.named<ProcessResources>("processResources") {
 version = "${property("mod.version")}+${property("deps.minecraft")}-fabric"
 base.archivesName = property("mod.id") as String
 
-//loom {
-//    accessWidenerPath = rootProject.file("src/main/resources/${property("mod.id")}.accesswidener")
-//}
-
 jsonlang {
     languageDirectories = listOf("assets/${property("mod.id")}/lang")
     prettyPrint = true
@@ -38,6 +34,7 @@ repositories {
     maven("https://maven.shedaniel.me/")
     maven("https://maven.terraformersmc.com/releases/") { name = "TerraformersMC" }
     maven("https://api.modrinth.com/maven") {name = "Modrinth"}
+    maven("https://cursemaven.com") {name = "CurseForge"}
 }
 
 dependencies {
@@ -59,6 +56,7 @@ dependencies {
     }
 
     modImplementation("maven.modrinth:watermedia:${property("deps.watermedia")}")
+    modCompileOnly("curse.maven:watermedia-869524:8519098")
 
     include("org.mvel:mvel2:2.5.0.Final")
     implementation("org.mvel:mvel2:2.5.0.Final")
@@ -72,6 +70,10 @@ fabricApi {
         outputDirectory = file("$rootDir/src/main/generated")
         client = true
     }
+}
+
+loom {
+    accessWidenerPath = file("$rootDir/src/main/resources/chatbox.accesswidener")
 }
 
 tasks {

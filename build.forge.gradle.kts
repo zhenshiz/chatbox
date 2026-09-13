@@ -17,12 +17,14 @@ repositories {
     maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
     maven("https://maven.shedaniel.me/") { name = "Cloth Config API" }
     maven("https://api.modrinth.com/maven") {name = "Modrinth"}
+    maven("https://cursemaven.com") {name = "CurseForge"}
 }
 
 dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
     modImplementation("me.shedaniel.cloth:cloth-config-forge:${property("deps.cloth-config")}")
     modImplementation("maven.modrinth:watermedia:${property("deps.watermedia")}")
+    modCompileOnly("curse.maven:watermedia-869524:8519098")
 
     jarJar("org.mvel:mvel2:2.5.0.Final")
     implementation("org.mvel:mvel2:2.5.0.Final")
@@ -35,7 +37,6 @@ dependencies {
 
 legacyForge {
     version = property("deps.minecraft") as String + "-" + property("deps.forge") as String
-    validateAccessTransformers = true
 
     if (hasProperty("deps.parchment")) parchment {
         val (mc, ver) = (property("deps.parchment") as String).split(':')

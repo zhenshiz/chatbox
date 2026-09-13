@@ -104,6 +104,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     public static final String NEXT_DIALOGUE        = "next_dialogue";
     public static final String AUTO_PLAY            = "auto_play";
     public static final String SET_IS_SCREEN        = "set_is_screen";
+    public static final String SET_BLOCK_INPUT      = "set_block_input";
     public static final String SET_DIALOG_BOX       = "set_dialog_box";
     public static final String ADD_CHAT_OPTION      = "add_chat_option";
     public static final String SET_CHAT_OPTION      = "set_chat_option";
@@ -124,7 +125,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             String condition = parsed[0];
             if (condition.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, condition) == 1 ||
                     condition.startsWith("server:") && MVELUtil.eval(player, condition, null) instanceof Boolean b && b)
-                simplePayloadS2C(player, TEST_CONDITION, StrUtil.merge(parsed[1], parsed[2]));
+                simplePayloadS2C(player, TEST_CONDITION, parsed[1], parsed[2]);
         });
 
         addSimpleHandlerS2C(SKIP_CHAT_S2C, s -> {
@@ -134,9 +135,10 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         });
         addSimpleHandlerS2C(OPEN_DIALOG, s -> clientOpenChatBox());
         addSimpleHandlerS2C(SET_THEME, ChatBoxCommandUtil::clientToggleTheme);
-        addSimpleHandlerS2C(NEXT_DIALOGUE, s -> clientNextDialogue());
+        addSimpleHandlerS2C(NEXT_DIALOGUE, ChatBoxCommandUtil::clientNextDialogue);
         addSimpleHandlerS2C(AUTO_PLAY, s -> clientAutoPlay(Boolean.parseBoolean(s)));
         addSimpleHandlerS2C(SET_IS_SCREEN, s -> clientSetIsScreen(Boolean.parseBoolean(s)));
+        addSimpleHandlerS2C(SET_BLOCK_INPUT, ChatBoxCommandUtil::setBlockInput);
         addSimpleHandlerS2C(SET_DIALOG_BOX, s -> {
             String[] parts = StrUtil.parse(s);
             if (parts.length != 2) return;

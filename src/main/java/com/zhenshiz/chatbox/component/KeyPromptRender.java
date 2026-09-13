@@ -79,10 +79,12 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
                 x += 10 + font.width("Esc") + font.width(keyEsc);
 
                 //ctrl
-                drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, ctrl, false);
-                drawText(guiGraphics, x + font.width(ctrl) + 6, y + (float) font.lineHeight / 2, keyCtrl);
+                if (ChatBoxUtil.chatBoxScreen.fastForwardButton() != null) {
+                    drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, ctrl, false);
+                    drawText(guiGraphics, x + font.width(ctrl) + 6, y + (float) font.lineHeight / 2, keyCtrl);
 
-                x += 10 + font.width(ctrl) + font.width(keyCtrl);
+                    x += 10 + font.width(ctrl) + font.width(keyCtrl);
+                }
 
                 //f6
                 drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "F6", ChatBoxUtil.chatBoxScreen.autoPlay);
