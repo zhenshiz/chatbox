@@ -39,10 +39,14 @@ repositories {
             includeGroup("software.bernie.geckolib")
         }
     }
+    maven {
+        name = "CurseForge"
+        url = "https://cursemaven.com"
+    }
 }
 
 base {
-    archivesName = mod_id
+    archivesName = mod_id + '-neoforge-1.21.1'
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -127,6 +131,7 @@ dependencies {
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     compileOnly "maven.modrinth:terra-entity:${terra_entity_version}"
     compileOnly "maven.modrinth:watermedia:${watermedia_version}"
+    compileOnly "curse.maven:watermedia-869524:8519098"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -142,9 +147,15 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
                              mod_authors            : mod_authors,
                              mod_description        : mod_description]
     inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
+    }
+    from "src/main/resources"
     into "build/generated/sources/modMetadata"
+}
+
+tasks.withType(ProcessResources).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 sourceSets.main.resources.srcDir generateModMetadata

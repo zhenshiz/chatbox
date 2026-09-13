@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.data;
 
-import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
-import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
+import com.zhenshiz.chatbox.event.ChatBoxServerEvents;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -25,7 +25,7 @@ public class ChatBoxThemeLoader extends ChatBoxDataLoader {
 
         //给所有玩家发包
         if (ServerLifecycleHooks.getCurrentServer() != null) {
-            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ClientChatBoxPayload.ChatBoxDataToClient("theme", ChatBoxSettingLoader.cutString(themeMap))));
+            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ChatBoxPayload.ChatBoxDataToClient("theme", ChatBoxServerEvents.cutString(themeMap))));
         }
     }
 }

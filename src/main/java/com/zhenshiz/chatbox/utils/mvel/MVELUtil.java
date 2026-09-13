@@ -3,7 +3,6 @@ package com.zhenshiz.chatbox.utils.mvel;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.api.EventExecutor;
 import com.zhenshiz.chatbox.component.AbstractComponent;
-import com.zhenshiz.chatbox.mixin.client.ClientAdvancementsAccessor;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
@@ -357,7 +356,7 @@ public class MVELUtil {
             } else if (p instanceof LocalPlayer player) {
                 var advancements = player.connection.getAdvancements();
                 var holder = advancements.get(parsedId);
-                return holder != null && ((ClientAdvancementsAccessor) advancements).getProgress().get(holder).isDone();
+                return holder != null && advancements.progress.get(holder).isDone();
             }
         }
         return false;

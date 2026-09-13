@@ -5,11 +5,13 @@ import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.component.*;
 import com.zhenshiz.chatbox.component.data.CompEvtWrapper;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
+import com.zhenshiz.chatbox.component.video.Video;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.event.neoforge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
+import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -58,7 +60,8 @@ public class ChatBoxScreen extends Screen {
     private boolean renderStarted = false;
     @Nullable public CompEvtWrapper events;
 
-    @Setter private boolean debug = false;
+    public boolean blockInput = false;
+    @Getter @Setter boolean debug = false;
     @Setter private AbstractComponent<?> underCursor = null;
     private static final Minecraft minecraft = Minecraft.getInstance();
     private static int debugIndex = 0;
@@ -111,7 +114,10 @@ public class ChatBoxScreen extends Screen {
 
     public ChatBoxScreen setVideo(Video video) {
         if (!ChatBox.isWaterMediaLoaded()) return this;
-        if (this.video != null) this.video.close();
+        if (this.video != null) {
+            if (!this.video.removeOnNext && video == null) return this;
+            this.video.close();
+        }
         this.video = video;
         return this;
     }
@@ -293,7 +299,7 @@ public class ChatBoxScreen extends Screen {
                 RenderUtil.drawBox(guiGraphics, x1, y1, x2 - x1, y2 - y1, -65536);
             }
         });
-        if (video != null && !video.isPlaying()) setVideo(null);
+        if (video != null && video.shouldRemove()) setVideo(null);
 
         NeoForge.EVENT_BUS.post(new ChatBoxRenderEvent.Post(guiGraphics));
 
@@ -346,9 +352,13 @@ public class ChatBoxScreen extends Screen {
         else if (shouldGotoNext()) skipDialogues(dialoguesResourceLocation, group, index + 1);
     }
 
-    private FunctionalButton getButton(FunctionalButton.Type type) {
+    @Nullable
+    public FunctionalButton getButton(FunctionalButton.Type type) {
         return functionalButtons.stream().filter(b -> b.type == type).findFirst().orElse(null);
     }
+
+    @Nullable
+    public FunctionalButton fastForwardButton() {return getButton(FunctionalButton.Type.FASTFORWARD);}
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
@@ -362,6 +372,7 @@ public class ChatBoxScreen extends Screen {
             fastForward = false;
             return true;
         }
+        if (blockInput) return true;
         if (pButton == 0) {
             fastForward = false;
             for (ChatOption chatOption : chatOptions) { // 选项有最高处理优先级
@@ -414,6 +425,7 @@ public class ChatBoxScreen extends Screen {
             hideDialogBox = false;
             return true;
         }
+        if (blockInput || Config.disableMouseScroll.get()) return true;
         //鼠标滚轮向下滚动，操作同左键点击
         if (scrollY < 0) {
             dialogBoxClick();
@@ -429,6 +441,7 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (blockInput) return true;
         if (keyCode == GLFW.GLFW_KEY_F3) setDebug(!debug);
         if (debug && keyCode == GLFW.GLFW_KEY_R && hasControlDown()) {
             Objects.requireNonNull(minecraft.getConnection()).sendCommand("reload");
@@ -465,6 +478,7 @@ public class ChatBoxScreen extends Screen {
     public void tick() {
         tick++;
         if (tick % 20 == 0) playBgm(bgm); // 每秒检测一次背景音乐是否还在播放
+        fireEvent("TICK");
         allComponents().forEach(c -> {
             c.fireEvent("TICK");
             if (tick == 3) c.fireEvent("CHECK");
@@ -492,9 +506,8 @@ public class ChatBoxScreen extends Screen {
 
     private boolean shouldFastForward() {
         if (fastForward) return true;
-        if (hasControlDown()) {
-            if (isScreen) return !debug && getButton(FunctionalButton.Type.FASTFORWARD) != null;
-            else return keyPromptRender.visible;
+        if (hasControlDown() && fastForwardButton() != null) {
+            return isScreen ? !debug : keyPromptRender.visible;
         }
         return false;
     }

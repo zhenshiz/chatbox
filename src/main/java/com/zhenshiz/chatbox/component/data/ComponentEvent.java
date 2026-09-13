@@ -54,7 +54,7 @@ public class ComponentEvent {
         if (!predicate.test(this)) return false;
         if (condition.isEmpty()) return execute();
         if (condition.startsWith("execute") || condition.startsWith("server:")) {
-            SimplePayload.simplePayloadC2S(SimplePayload.TEST_CONDITION, StrUtil.merge(condition, id, index));
+            SimplePayload.simplePayloadC2S(SimplePayload.TEST_CONDITION, condition, id, index);
             return true;
         }
         return MVELUtil.evalClient(condition, component) instanceof Boolean b && b && execute();
@@ -98,7 +98,7 @@ public class ComponentEvent {
             }
         });
 
-        registerClientEvent("GOTO_NEXT", (c, s) -> clientNextDialogue());
+        registerClientEvent("GOTO_NEXT", (c, s) -> clientNextDialogue(s));
 
         registerClientEvent("PLAY_VOICE", (c, voice) -> chatBoxScreen.playVoice(voice));
         registerClientEvent("PLAY_SOUND", (c, s) -> SoundUtil.playSound(s));

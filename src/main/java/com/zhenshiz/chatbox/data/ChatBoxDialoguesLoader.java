@@ -8,8 +8,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.event.ChatBoxSettingLoader;
-import com.zhenshiz.chatbox.network.s2c.ClientChatBoxPayload;
+import com.zhenshiz.chatbox.event.ChatBoxServerEvents;
+import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTriggerInstance;
@@ -60,7 +60,7 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
 
         //给所有玩家发包
         if (ServerLifecycleHooks.getCurrentServer() != null) {
-            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ClientChatBoxPayload.ChatBoxDataToClient("dialogues", ChatBoxSettingLoader.cutString(dialoguesMap))));
+            ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayer -> serverPlayer.connection.send(new ChatBoxPayload.ChatBoxDataToClient("dialogues", ChatBoxServerEvents.cutString(dialoguesMap))));
             loadCriteria(ServerLifecycleHooks.getCurrentServer());
         }
     }
@@ -77,7 +77,14 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
                     CriterionTriggerInstance instance = criterion.triggerInstance();
                     try {
                         // noinspection unchecked
-                        if (testTrigger.test((T) instance)) ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
+                        if (testTrigger.test((T) instance)) {
+                            //判断玩家的触发次数是否为0，为0则不触发对话
+                            int count = ChatBoxCommandUtil.serverGetMaxTriggerCount(player, rl);
+                            if (count != 0) {
+                                ChatBoxCommandUtil.serverSetMaxTriggerCount(player, rl, count - 1);
+                                ChatBoxCommandUtil.serverSkipDialogues(player, rl, group);
+                            }
+                        }
                     } catch (ClassCastException ignored) {}
                 }
             }

@@ -17,6 +17,9 @@ public class Config {
     //图片类型立绘的宽度缩放比例，200表示是原本的两倍宽，50表示原本的一半宽
     public static final ModConfigSpec.IntValue portraitWidthPercent;
 
+    //是否禁用鼠标滚动动作
+    public static final ModConfigSpec.BooleanValue disableMouseScroll;
+
     //是否阻拦TerraNpc的对话系统
     public static ModConfigSpec.BooleanValue isStopTerraDialog = null;
 
@@ -27,6 +30,7 @@ public class Config {
         soundInterruptionEnabled = CONFIG_BUILDER.define("sound_interruption_enabled", true);
         charPerSecond = CONFIG_BUILDER.defineInRange("char_per_second", 20, 1, Integer.MAX_VALUE);
         portraitWidthPercent = CONFIG_BUILDER.defineInRange("portrait_width_percent", 100, 1, 200);
+        disableMouseScroll = CONFIG_BUILDER.comment("Disable mouse scroll action in the chatbox screen (scroll up for log, down as mouse click)", "禁用对话框屏幕的：向上滚动到历史记录，向下滚动同鼠标点击").define("disable_mouse_scroll", false);
         if (ChatBox.isTerraEntityLoaded()) {
             isStopTerraDialog = CONFIG_BUILDER.define("is_stop_terra_dialog", false);
         }

@@ -47,6 +47,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     public static final String NEXT_DIALOGUE        = "next_dialogue";
     public static final String AUTO_PLAY            = "auto_play";
     public static final String SET_IS_SCREEN        = "set_is_screen";
+    public static final String SET_BLOCK_INPUT      = "set_block_input";
     public static final String SET_DIALOG_BOX       = "set_dialog_box";
     public static final String ADD_CHAT_OPTION      = "add_chat_option";
     public static final String SET_CHAT_OPTION      = "set_chat_option";
@@ -89,9 +90,21 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     public static void simplePayloadS2C(ServerPlayer player, String name, String value) {
         player.connection.send(new SimplePayload(name, value));
     }
+    public static void simplePayloadS2C(ServerPlayer player, String name, Object... args) {
+        simplePayloadS2C(player, name, argsAsString(args));
+    }
 
     public static void simplePayloadC2S(String name, String value) {
         PacketDistributor.sendToServer(new SimplePayload(name, value));
+    }
+    public static void simplePayloadC2S(String name, Object... args) {
+        simplePayloadC2S(name, argsAsString(args));
+    }
+
+    private static String argsAsString(Object... args) {
+        if (args.length == 0) return "";
+        if (args.length == 1) return String.valueOf(args[0]);
+        return StrUtil.merge(args);
     }
 
     static {
@@ -108,7 +121,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             String condition = parsed[0];
             if (condition.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, condition) == 1 ||
                     condition.startsWith("server:") && MVELUtil.eval(player, condition, null) instanceof Boolean b && b)
-                simplePayloadS2C(player, TEST_CONDITION, StrUtil.merge(parsed[1], parsed[2]));
+                simplePayloadS2C(player, TEST_CONDITION, parsed[1], parsed[2]);
         });
 
         addHandlerS2C(SKIP_CHAT_S2C, s -> {
@@ -118,9 +131,10 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         });
         addHandlerS2C(OPEN_DIALOG, s -> clientOpenChatBox());
         addHandlerS2C(SET_THEME, ChatBoxCommandUtil::clientToggleTheme);
-        addHandlerS2C(NEXT_DIALOGUE, s -> clientNextDialogue());
+        addHandlerS2C(NEXT_DIALOGUE, ChatBoxCommandUtil::clientNextDialogue);
         addHandlerS2C(AUTO_PLAY, s -> clientAutoPlay(Boolean.parseBoolean(s)));
         addHandlerS2C(SET_IS_SCREEN, s -> clientSetIsScreen(Boolean.parseBoolean(s)));
+        addHandlerS2C(SET_BLOCK_INPUT, ChatBoxCommandUtil::setBlockInput);
         addHandlerS2C(SET_DIALOG_BOX, s -> {
             String[] parts = StrUtil.parse(s);
             if (parts.length != 2) return;

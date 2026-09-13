@@ -42,7 +42,7 @@ public class ChatBoxRender {
     public static void ChatBoxRenderTick(ClientTickEvent.Post event) {
         // 客户端每5 tick请求同步对话目标实体
         if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
-            SimplePayload.simplePayloadC2S(SimplePayload.REQUEST_SYNC, "");
+            SimplePayload.simplePayloadC2S(SimplePayload.REQUEST_SYNC);
         }
         if (isRenderChatBox()) {
             chatBoxScreen.tick();
@@ -52,7 +52,7 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderKeyInput(InputEvent.Key event) {
-        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible) {
+        if (isRenderChatBox() && chatBoxScreen.keyPromptRender.visible && !chatBoxScreen.blockInput) {
             int key = event.getKey();
             if (event.getAction() == 1 && key == GLFW.GLFW_KEY_F6) {
                 //自动播放
@@ -63,7 +63,7 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderMouseInput(InputEvent.MouseButton.Post event) {
-        if (isRenderChatBox()) {
+        if (isRenderChatBox() && !chatBoxScreen.blockInput) {
             if (event.getAction() == 1 && event.getButton() == 1) {
                 if (chatBoxScreen.getRenderOptionCount() > 0 && chatBoxScreen.dialogBox.isAllOver) {
                     for (ChatOption option : chatBoxScreen.chatOptions) {
@@ -80,6 +80,7 @@ public class ChatBoxRender {
 
     @SubscribeEvent
     public static void ChatBoxRenderKeyInput(InputEvent.MouseScrollingEvent event) {
+        if (chatBoxScreen.blockInput) return;
         int optionCount = chatBoxScreen.getRenderOptionCount();
         if (isRenderChatBox() && optionCount > 0) {
             double scrollDeltaY = event.getScrollDeltaY();

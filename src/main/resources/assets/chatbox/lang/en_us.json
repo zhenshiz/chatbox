@@ -11,6 +11,7 @@
   "chatbox.configuration.sound_interruption_enabled": "Whether to interrupt currently playing sound when no new sound is available",
   "chatbox.configuration.char_per_second": "Characters displayed per second",
   "chatbox.configuration.portrait_width_percent": "Picture portrait width scale percentage",
+  "chatbox.configuration.disable_mouse_scroll": "Disable mouse scroll",
   "chatbox.configuration.is_stop_terra_dialog": "Whether to block TerraNpc's dialogue system",
 
   "chatbox.key.right_click": "Confirm",
@@ -49,5 +50,14 @@
   "chatbox.debug.tip4": "  ②Left-click and drag to move components",
   "chatbox.debug.tip5": "  ③Mouse wheel scroll to adjust %s (hold alt to change property)",
   "chatbox.debug.tip6": "%s + C to copy current hovered component information",
-  "chatbox.debug.tip7": "%s + R to reload data (requires permission)"
+  "chatbox.debug.tip7": "%s + R to reload data (requires permission)",
+
+  "chatbox.group.add.fail": "%s has joined other group, failed to create new group",
+  "chatbox.group.join.fail": "Member %s has joined other group",
+  "chatbox.group.join.success": "%s successfully joined %s's group",
+  "chatbox.group.notin": "%s isn't in any group",
+  "chatbox.group.remove": "%s's group is removed",
+  "chatbox.group.quit": "%s quit the group",
+  "chatbox.group.setLeader": "%s is now the group leader",
+  "chatbox.group.clear": "All group information cleared"
 }

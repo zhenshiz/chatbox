@@ -11,6 +11,7 @@
   "chatbox.configuration.sound_interruption_enabled": "下句话如果没有新音效，是否中断前面正在播放的音效",
   "chatbox.configuration.char_per_second": "每秒显示的字符数",
   "chatbox.configuration.portrait_width_percent": "图片立绘宽度缩放百分比",
+  "chatbox.configuration.disable_mouse_scroll": "禁用鼠标滚轮动作",
   "chatbox.configuration.is_stop_terra_dialog": "是否阻拦TerraNpc的对话系统",
 
   "chatbox.key.right_click": "确定",
@@ -49,5 +50,14 @@
   "chatbox.debug.tip4": "  ②鼠标左键拖动组件可以移动组件",
   "chatbox.debug.tip5": "  ③滚动鼠标滚轮调整组件的%s（按住alt键改变调整的属性）",
   "chatbox.debug.tip6": "%s + C 复制当前鼠标悬停的组件信息",
-  "chatbox.debug.tip7": "%s + R 重载数据包（需要管理员权限）"
+  "chatbox.debug.tip7": "%s + R 重载数据包（需要管理员权限）",
+
+  "chatbox.group.add.fail": "%s 已加入其他小组，无法创建小组",
+  "chatbox.group.join.fail": "成员 %s 已加入其他小组",
+  "chatbox.group.join.success": "%s 成功加入 %s 的小组",
+  "chatbox.group.notin": "%s 未加入任何小组",
+  "chatbox.group.remove": "已解散 %s 的小组",
+  "chatbox.group.quit": "%s 退出了所在的小组",
+  "chatbox.group.setLeader": "%s 已成为小组组长",
+  "chatbox.group.clear": "已清空所有小组信息"
 }

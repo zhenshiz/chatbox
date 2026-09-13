@@ -17,7 +17,6 @@ import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
-import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -120,6 +119,12 @@ public class ChatBoxUtil {
         if (minecraft.player == null) return;
 
         ChatBoxDialogues chatBoxDialogues = dialoguesMap.get(dialoguesResourceLocation);
+        if (chatBoxDialogues == null) return;
+
+        if (chatBoxDialogues.isScreen != null) isScreen = chatBoxDialogues.isScreen;
+        String theme = chatBoxDialogues.theme;
+        //如果是同一个主题就不切换了
+        if (theme != null && !theme.equals(themeResourceLocation)) toggleTheme(theme);
         List<ChatBoxDialogues.Dialogues> dialogues = chatBoxDialogues.dialogues.get(group);
         if (CollUtil.isEmpty(dialogues)) {
             ChatBox.LOGGER.warn("group \"{}\" not found or is empty!", group);
@@ -146,7 +151,7 @@ public class ChatBoxUtil {
             historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
 
             NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
-            SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, index));
+            SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
 
             ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {
@@ -172,11 +177,13 @@ public class ChatBoxUtil {
         chatBoxScreen.autoPlay = false;
         chatBoxScreen.fastForward = false;
         chatBoxScreen.hideDialogBox = false;
+        var video = chatBoxScreen.video;
+        if (video != null) video.removeOnNext = true; // 不这样做的话，搞不好视频就会一直播放
         chatBoxScreen.setVideo(null).playBgm(""); // 移除视频，停止bgm
         historicalDialogue.historicalDialogue.clearHistory();
         if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
         NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets));
-        SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, StrUtil.merge(dialoguesResourceLocation, group, "-1"));
+        SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, "-1");
     }
 
     //切换对话框主题

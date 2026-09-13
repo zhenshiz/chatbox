@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ClientChatBoxPayload {
+public class ChatBoxPayload {
 
     public record ChatBoxDataToClient(String name, Map<ResourceLocation, List<String>> dataMap) implements CustomPacketPayload {
         public static final Type<ChatBoxDataToClient> TYPE = new Type<>(ChatBox.id("chat_box_data_to_client"));
@@ -41,48 +41,6 @@ public class ClientChatBoxPayload {
                 }
                 case "dialogues" -> ChatBoxUtil.setDialogues(mergeString(payload.dataMap()));
             }
-        }
-    }
-
-    public record SetMaxTriggerCount(ResourceLocation resourceLocation,
-                                     int maxTriggerCount) implements CustomPacketPayload {
-        public static final Type<SetMaxTriggerCount> TYPE = new Type<>(ChatBox.id("client_set_max_trigger_count"));
-        public static final StreamCodec<FriendlyByteBuf, SetMaxTriggerCount> CODEC = StreamCodec.composite(
-                ResourceLocation.STREAM_CODEC,
-                SetMaxTriggerCount::resourceLocation,
-                ByteBufCodecs.INT,
-                SetMaxTriggerCount::maxTriggerCount,
-                SetMaxTriggerCount::new
-        );
-
-        public static void execute(SetMaxTriggerCount payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientSetMaxTriggerCount(payload.resourceLocation(), payload.maxTriggerCount());
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public record ResetMaxTriggerCount() implements CustomPacketPayload {
-        public static final Type<ResetMaxTriggerCount> TYPE = new Type<>(ChatBox.id("client_reset_max_trigger_count"));
-        public static final StreamCodec<FriendlyByteBuf, ResetMaxTriggerCount> CODEC = StreamCodec.ofMember(ResetMaxTriggerCount::write, ResetMaxTriggerCount::new);
-
-        public ResetMaxTriggerCount(FriendlyByteBuf friendlyByteBuf) {
-            this();
-        }
-
-        private void write(FriendlyByteBuf buf) {
-        }
-
-        public static void execute(ResetMaxTriggerCount payload, IPayloadContext context) {
-            ChatBoxCommandUtil.clientResetMaxTriggerCount();
-        }
-
-        @Override
-        public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-            return TYPE;
         }
     }
 
