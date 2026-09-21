@@ -1,33 +1,26 @@
 plugins {
-    id 'multiloader-common'
+    id 'java-library'
     id 'net.neoforged.moddev'
-    id 'io.freefair.lombok'
-}
-
-lombok {
-    version = "1.18.40" // 手动指定支持 Java 25 的版本
 }
 
 neoForge {
     neoFormVersion = neo_form_version
     // Automatically enable AccessTransformers if the file exists
     def at = file('src/main/resources/META-INF/accesstransformer.cfg')
-    if (at.exists()) {
-        accessTransformers.from(at.absolutePath)
-    }
+    if (at.exists()) accessTransformers.from(at.absolutePath)
 }
 
 dependencies {
-    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    compileOnly "org.spongepowered:mixin:0.8.5"
     // fabric and neoforge both bundle mixinextras, so it is safe to use it in common
-    compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
-    annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
+    compileOnly "io.github.llamalad7:mixinextras-common:0.3.5"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:0.3.5"
 
-    implementation("maven.modrinth:watermedia:${watermedia_version}")
+    implementation "maven.modrinth:watermedia:${watermedia_version}"
     compileOnly("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-    implementation("org.mvel:mvel2:2.5.0.Final")
+    implementation "org.mvel:mvel2:2.5.0.Final"
 }
 
 configurations {

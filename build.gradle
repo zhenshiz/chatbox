@@ -2,7 +2,98 @@ plugins {
     // see https://fabricmc.net/develop/ for new versions
     id 'net.fabricmc.fabric-loom' version '1.14-SNAPSHOT' apply false
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
-    id 'net.neoforged.moddev' version '2.0.131' apply false
+    id 'net.neoforged.moddev' version '2.0.147' apply false
 
     id 'io.freefair.lombok' version '8.12' apply false
+}
+
+subprojects {
+    apply plugin: 'io.freefair.lombok'
+
+    var dir = file(rootProject.projectDir as String + "/build/${project.name}")
+    if (!dir.exists()) dir.mkdirs()
+    buildDir dir
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+
+        maven {
+            name = 'Fabric'
+            url = uri('https://maven.fabricmc.net')
+        }
+        maven {
+            name = 'BlameJared'
+            url = 'https://maven.blamejared.com'
+        }
+        maven {
+            name = "Modrinth"
+            url = "https://api.modrinth.com/maven"
+        }
+        maven { url "https://maven.shedaniel.me/" }
+        maven { url "https://maven.terraformersmc.com/releases/" }
+    }
+
+    plugins.withId('io.freefair.lombok') {
+        lombok {
+            version = "1.18.40" // 手动指定支持 Java 25 的版本
+        }
+    }
+
+    plugins.withId('java') {
+        base {
+            archivesName = "${mod_id}-${minecraft_version}"
+        }
+
+        java.toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+        java.withSourcesJar()
+
+        sourcesJar {
+            from(rootProject.file('LICENSE')) {
+                rename { "${it}_${mod_name}" }
+            }
+        }
+
+        jar {
+            from(rootProject.file('LICENSE')) {
+                rename { "${it}_${mod_name}" }
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+    }
+
+    tasks.withType(ProcessResources).configureEach {
+        var replaceProperties = [
+                'version'                      : version,
+                'minecraft_version'            : minecraft_version,
+                'minecraft_version_range'      : minecraft_version_range,
+                'fabric_version'               : fabric_version,
+                'fabric_loader_version'        : fabric_loader_version,
+                'mod_name'                     : mod_name,
+                'mod_author'                   : mod_author,
+                'mod_id'                       : mod_id,
+                'license'                      : license,
+                'credits'                      : credits,
+                'description'                  : project.description,
+                'neoforge_version'             : neoforge_version,
+                'neoforge_loader_version_range': neoforge_loader_version_range,
+                'java_version'                 : java_version
+        ]
+        inputs.properties replaceProperties
+        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/neoforge.mods.toml', '*.mixins.json']) {
+            expand replaceProperties
+        }
+    }
+
+    plugins.withId('idea') {
+        idea {
+            module {
+                downloadSources = true
+                downloadJavadoc = true
+            }
+        }
+    }
 }

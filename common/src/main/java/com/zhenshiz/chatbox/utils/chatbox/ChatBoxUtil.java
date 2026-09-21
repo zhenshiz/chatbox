@@ -182,6 +182,7 @@ public class ChatBoxUtil {
         var video = chatBoxScreen.video;
         if (video != null) video.removeOnNext = true; // 不这样做的话，搞不好视频就会一直播放
         chatBoxScreen.setVideo(null).playBgm(""); // 移除视频，停止bgm
+        SoundUtil.stopSound(chatBoxScreen.voice);
         historicalDialogue.historicalDialogue.clearHistory();
         if (dialoguesIdentifier == null || group == null || minecraft.player == null) return;
         ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesIdentifier, group, -1, chatTargets);

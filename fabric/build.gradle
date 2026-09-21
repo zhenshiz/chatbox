@@ -1,12 +1,8 @@
 plugins {
-    id 'multiloader-loader'
     id 'net.fabricmc.fabric-loom'
-    id 'io.freefair.lombok'
 }
 
-lombok {
-    version = "1.18.40" // 手动指定支持 Java 25 的版本
-}
+apply from: rootProject.file('loader.gradle')
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -25,9 +21,8 @@ dependencies {
 
 loom {
     def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
-    if (aw.exists()) {
-        accessWidenerPath.set(aw)
-    }
+    if (aw.exists()) accessWidenerPath.set(aw)
+
     mixin {
         defaultRefmapName.set("${mod_id}.refmap.json")
     }
@@ -36,13 +31,13 @@ loom {
             client()
             setConfigName('Fabric Client')
             ideConfigGenerated(true)
-            runDir('runs/client')
+            runDir('../runs/client')
         }
         server {
             server()
             setConfigName('Fabric Server')
             ideConfigGenerated(true)
-            runDir('runs/server')
+            runDir('../runs/server')
         }
     }
 }
