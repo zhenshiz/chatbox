@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
 import com.zhenshiz.chatbox.ChatBox;
@@ -11,6 +12,7 @@ import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
 import com.zhenshiz.chatbox.component.DialogBox;
 import com.zhenshiz.chatbox.component.KeyPromptRender;
 import com.zhenshiz.chatbox.component.Portrait;
+import com.zhenshiz.chatbox.component.Video;
 import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
@@ -20,6 +22,7 @@ import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
@@ -113,6 +116,24 @@ public class ChatBoxUtil {
         return portraits;
     }
 
+    private static JsonObject videoJson;
+    public static void playVideo(String json) {
+        if (minecraft.player == null) return;
+        if (!ChatBox.isWaterMediaLoaded()) {
+            minecraft.player.sendSystemMessage(Component.literal("Failed to play video because Watermedia mod is not loaded!"));
+            return;
+        }
+        try {
+            videoJson = GSON.fromJson(json, JsonObject.class);
+            String title = "";
+            if (videoJson.has("title")) title = videoJson.get("title").getAsString();
+            skipDialogues(ChatBox.parseId("test:play_video"), "start");
+            if (!title.isEmpty()) chatBoxScreen.dialogBox.name = title;
+        } catch (Exception e) {
+            ChatBox.LOGGER.error("Failed to play video: {}", e.getMessage());
+        }
+    }
+
     //跳转对话
     public static void skipDialogues(Identifier dialoguesIdentifier, String group, int index) {
         if (minecraft.player == null) return;
@@ -133,8 +154,22 @@ public class ChatBoxUtil {
         if (index >= 0 && index < dialogues.size()) {
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
+            Video video = null;
+            var rawVideo = dialog.video;
+            if (rawVideo != null) {
+                if (videoJson != null) {
+                    try {
+                        var rawVideoJson = GSON.toJsonTree(rawVideo).getAsJsonObject();
+                        for (var entry : videoJson.entrySet()) rawVideoJson.add(entry.getKey(), entry.getValue());
+                        rawVideo = GSON.fromJson(rawVideoJson, ChatBoxDialogues.Dialogues.Video.class);
+                    } finally {
+                        videoJson = null;
+                    }
+                }
+                video = rawVideo.setVideo();
+            }
             chatBoxScreen.setDialogBox(dialogBox.setDialogBoxDialogues(chatBoxScreen.dialogBox))
-                    .setVideo(dialog.video != null ? dialog.video.setVideo() : null)
+                    .setVideo(video)
                     .setPortrait(bakePortrait(dialoguesIdentifier, group, index))
                     .setChatOptions(dialog.setChatOptionDialogues())
                     .setBackgroundImage(dialog.backgroundImage)

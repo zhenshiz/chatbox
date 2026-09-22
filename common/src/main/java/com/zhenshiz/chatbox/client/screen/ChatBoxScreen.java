@@ -19,8 +19,8 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -116,7 +116,7 @@ public class ChatBoxScreen extends Screen {
         if (!ChatBox.isWaterMediaLoaded()) return this;
         if (this.video != null) {
             if (!this.video.removeOnNext && video == null) return this;
-            this.video.close();
+            this.video.close(true);
         }
         this.video = video;
         return this;

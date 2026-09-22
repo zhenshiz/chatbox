@@ -79,6 +79,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     public static final String SET_CHAT_OPTION      = "set_chat_option";
     public static final String CLEAR_CHAT_OPTION    = "clear_chat_option";
     public static final String MVEL_TEST            = "mvel_test";
+    public static final String PLAY_VIDEO           = "play_video";
 
     static {
         addSimpleHandlerC2S(REQUEST_SYNC, (player, s) -> serverSyncEntityData(player));
@@ -128,6 +129,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         addSimpleHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
         addSimpleHandlerS2C(MVEL_TEST, s -> MVELUtil.commandTest(ChatBoxUtil.getPlayer(), s));
         addSimpleHandlerS2C(TEST_CONDITION, s -> ChatBoxUtil.chatBoxScreen.executeEvent(s));
+        addSimpleHandlerS2C(PLAY_VIDEO, ChatBoxUtil::playVideo);
     }
 
     private static void onPlayerSkipChat(ServerPlayer player, Identifier rl, String group, int index) {

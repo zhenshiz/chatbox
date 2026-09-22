@@ -1,0 +1,16 @@
+{
+  "$introduce": "这是仅用于播放视频的对话框",
+  "theme": "test:video",
+  "isPause": false,
+  "dialogues": {
+    "start": [
+      {
+        "video": {
+          "path": "BV1Qb411b7FR",
+          "canControl": false, "canSkip": false, "loop": false,
+          "renderEvents": [{"trigger": "end", "type": "jump", "value": "-1"}]
+        }
+      }
+    ]
+  }
+}

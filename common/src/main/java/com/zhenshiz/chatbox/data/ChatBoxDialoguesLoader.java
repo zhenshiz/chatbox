@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     //记录所有的对话文件
     public static final Map<Identifier, String> dialoguesMap = new HashMap<>();
     //记录对应对话文件里的组名
