@@ -116,7 +116,7 @@ public class ChatBoxScreen extends Screen {
         if (!ChatBox.isWaterMediaLoaded()) return this;
         if (this.video != null) {
             if (!this.video.removeOnNext && video == null) return this;
-            this.video.close();
+            this.video.close(true);
         }
         this.video = video;
         return this;

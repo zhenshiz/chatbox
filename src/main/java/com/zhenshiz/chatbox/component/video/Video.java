@@ -172,7 +172,7 @@ public abstract class Video extends AbstractComponent<Video> {
 
     abstract void stop();
 
-    public abstract void close();
+    public abstract void close(boolean force);
 
     static final Int2ObjectOpenHashMap<ResourceLocation> TEXTURES = new Int2ObjectOpenHashMap<>();
 

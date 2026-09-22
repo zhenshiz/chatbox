@@ -1,0 +1,14 @@
+{
+  "option": {
+    "x": 0, "y": 17, "width": 45, "height": 8,
+    "alignX": "center", "alignY": "top",
+    "optionChatX": 0, "optionChatY": 2.7, "textAlign": "center"
+  },
+  "dialogBox": {
+    "texture": "chatbox:textures/empty.png",
+    "alignX": "left", "alignY": "top", "textAlign": "center",
+    "lineWidth": 100, "scale": 1.6,
+    "width": 100, "height": 10,
+    "nameX": 0, "nameY": 5
+  }
+}
