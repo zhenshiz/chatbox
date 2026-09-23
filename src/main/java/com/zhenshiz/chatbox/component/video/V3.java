@@ -111,14 +111,14 @@ public class V3 extends Video {
             player.start();
             return;
         }
-        close();
+        close(false);
     }
 
     @Override
-    public void close() {
+    public void close(boolean force) {
         if (started) {
             // 视频正常播放结束，触发ON_END事件
-            fireEvent("ON_END");
+            if (!force) fireEvent("ON_END");
             started = false;
             player.stop();
             //minecraft.getSoundManager().resume();

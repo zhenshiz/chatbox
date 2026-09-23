@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.command;
 
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -107,6 +108,15 @@ public class ChatBoxCommand {
                                 .then(argument("NewLeader", EntityArgument.player()).executes(ChatBoxCommand::setLeader))
                         )
                         .then(literal("clear").executes(ChatBoxCommand::clearGroup))
+                )
+                .then(literal("playVideo").executes(ChatBoxCommand::playVideo)
+                        .then(argument("URI", StringArgumentType.string()).executes(ChatBoxCommand::playVideo)
+                                .then(argument("CanControl", BoolArgumentType.bool()).executes(ChatBoxCommand::playVideo)
+                                        .then(argument("Loop", BoolArgumentType.bool()).executes(ChatBoxCommand::playVideo)
+                                                .then(argument("json", StringArgumentType.greedyString()).executes(ChatBoxCommand::playVideo))
+                                        )
+                                )
+                        )
                 )
         );
     }
@@ -261,6 +271,33 @@ public class ChatBoxCommand {
 
     private static int clearGroup(CommandContext<CommandSourceStack> context) {
         context.getSource().sendSuccess(() -> ChatBox.getSavedData().clearGroup(), true);
+        return 1;
+    }
+
+    private static int playVideo(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return alertNoPlayer(context);
+        String uri = "BV1Qb411b7FR";
+        try {
+            uri = StringArgumentType.getString(context, "URI");
+        } catch (Exception ignored) {}
+        if (uri.startsWith("\"")) uri = uri.substring(1);
+        if (uri.endsWith("\"")) uri = uri.substring(0, uri.length() - 1);
+        boolean canControl = false; boolean loop = false;
+        try {
+            canControl = BoolArgumentType.getBool(context, "CanControl");
+        } catch (Exception ignored) {}
+        try {
+            loop = BoolArgumentType.getBool(context, "Loop");
+        } catch (Exception ignored) {}
+        JsonObject json = new JsonObject();
+        try {
+            json = ChatBoxDialoguesLoader.GSON.fromJson(StringArgumentType.getString(context, "json"), JsonObject.class);
+        } catch (Exception ignored) {}
+        json.addProperty("path", uri);
+        json.addProperty("canControl", canControl);
+        json.addProperty("loop", loop);
+        ChatBoxCommandUtil.simplePayloadS2C(player, "play_video", ChatBoxDialoguesLoader.GSON.toJson(json));
         return 1;
     }
 
