@@ -45,6 +45,33 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
         return this;
     }
 
+    /**
+     * Measures the prompt row in unscaled GUI pixels using the current game language.
+     *
+     * @return the width including the fast-forward hint when its button is available
+     */
+    public float contentWidth() {
+        Font font = minecraft.font;
+        float width = 2 * this.mouseTextureWidth + 8
+                + font.width(Component.translatable("chatbox.key.right_click"))
+                + font.width(Component.translatable("chatbox.key.scroll"))
+                + 10 + font.width("Esc") + font.width(Component.translatable("chatbox.key.esc"))
+                + 6 + font.width("F6") + font.width(Component.translatable("chatbox.key.f6"));
+        if (ChatBoxUtil.chatBoxScreen.fastForwardButton() != null) {
+            width += 10 + font.width(ctrl) + font.width(Component.translatable("chatbox.key.ctrl"));
+        }
+        return width;
+    }
+
+    /**
+     * Measures the tallest mouse icon or keyboard key in unscaled GUI pixels.
+     *
+     * @return the height of the prompt row
+     */
+    public float contentHeight() {
+        return Math.max(this.mouseTextureHeight + 2, minecraft.font.lineHeight / 2 + 12);
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         if (this.visible) {

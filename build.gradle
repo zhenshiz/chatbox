@@ -10,6 +10,7 @@ version = mod_version
 group = mod_group_id
 
 repositories {
+    mavenCentral()
     mavenLocal()
 
     //KubeJS
@@ -121,17 +122,33 @@ neoForge {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
+    implementation('org.java-websocket:Java-WebSocket:1.6.0') { transitive = false }
+    jarJar('org.java-websocket:Java-WebSocket:1.6.0') { transitive = false }
+    additionalRuntimeClasspath('org.java-websocket:Java-WebSocket:1.6.0') { transitive = false }
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testRuntimeOnly 'org.slf4j:slf4j-api:2.0.9'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // KubeJS
     implementation "dev.latvian.mods:rhino:${rhino_version}"
     implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
 
     implementation "org.mvel:mvel2:2.5.0.Final"
     jarJar "org.mvel:mvel2:2.5.0.Final"
+    additionalRuntimeClasspath "org.mvel:mvel2:2.5.0.Final"
 
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     compileOnly "maven.modrinth:terra-entity:${terra_entity_version}"
     compileOnly "maven.modrinth:watermedia:${watermedia_version}"
     compileOnly "curse.maven:watermedia-869524:8519098"
+}
+
+tasks.named('test', Test) { useJUnitPlatform() }
+
+tasks.register('bridgeFixture', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.zhenshiz.chatbox.editor.EditorBridgeFixture'
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

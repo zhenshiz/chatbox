@@ -48,6 +48,7 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
 
     /**@return 是否成功点击*/
     public boolean click() {
+        if (type == Type.LOG && com.zhenshiz.chatbox.editor.EditorPreview.isActive()) return true;
         if (minecraft.player != null) {
             switch (type) {
                 case LOG -> minecraft.setScreen(ChatBoxUtil.historicalDialogue);

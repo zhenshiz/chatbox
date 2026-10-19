@@ -87,6 +87,7 @@ public class ChatBoxServerEvents {
 
     private static void onSkipChat(Player p, ResourceLocation rl, String group, int index, List<Entity> targets) {
         if (!(p instanceof ServerPlayer player)) return;
+        if (com.zhenshiz.chatbox.editor.EditorDebugServer.isDebugging(player)) return;
         var data = ChatBox.getSavedData();
         if (!data.isPlayerLeader(player)) return;
         for (var member : data.getMembers(player)) {

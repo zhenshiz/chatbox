@@ -269,11 +269,19 @@ public class ChatBoxScreen extends Screen {
         if (video != null) list.add(video);
         if (isScreen) {
             if (!hideDialogBox) list.addAll(functionalButtons);
-        } else list.add(keyPromptRender);
+        }
+        if (!isScreen || showKeyPromptInScreen()) list.add(keyPromptRender);
 
         list.sort(Comparator.comparingInt(p -> p.renderOrder));
         return list;
     }
+
+    /**
+     * Reports whether this screen includes the render-mode key prompts.
+     *
+     * @return {@code true} when key prompts are also available in screen mode
+     */
+    protected boolean showKeyPromptInScreen() { return false; }
 
     public void renderInner(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
         if (!renderStarted) { renderStarted = true; fireEvent("ON_START"); }

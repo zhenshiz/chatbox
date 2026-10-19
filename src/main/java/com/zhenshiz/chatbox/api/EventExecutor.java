@@ -50,6 +50,8 @@ public interface EventExecutor {
      * @return 是否包含该事件类型，若没有已注册的事件类型，则返回false
      */
     static boolean executeEvent(AbstractComponent<?> component, String type, String value) {
+        if (com.zhenshiz.chatbox.editor.EditorPreviewState.isActive()
+                && !com.zhenshiz.chatbox.editor.EditorPreviewSanitizer.isVisualEvent(type)) return false;
         EventExecutor executor = EXECUTORS.getOrDefault(type.toUpperCase(), null);
         if (executor != null) {
             executor.execute(component, value == null ? "" : value);
@@ -77,8 +79,9 @@ public interface EventExecutor {
 
      /**默认操作，若无必要请勿重写*/
     default void execute(AbstractComponent<?> component, String value) {
+        boolean preview = com.zhenshiz.chatbox.editor.EditorPreviewState.isActive();
         executeOnClient(component, value);
-        if (shouldExecuteOnServer()) {
+        if (!preview && shouldExecuteOnServer()) {
             PacketDistributor.sendToServer(new SendClickEvent(getType().toUpperCase(), value));
         }
     }
