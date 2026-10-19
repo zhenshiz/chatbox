@@ -3,18 +3,18 @@ package com.zhenshiz.chatbox.editor;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-/** Supplies the fixed dialogue-test layout without inheriting a loaded conversation UI. */
+/** 提供固定的对话测试布局，避免继承已加载对话的界面状态。 */
 final class EditorPreviewTheme {
     private EditorPreviewTheme() { }
 
     /**
-     * Creates a dialogue-test theme with optional portrait and animation definitions.
+     * 创建对话测试主题，可从源主题继承立绘和动画定义。
      *
-     * <p>The source's dialog box, options, buttons and key prompts do not affect this layout.
-     * Changes to the result do not change the source theme.
+     * <p>源主题的对话框、选项、按钮和按键提示不影响此布局。
+     * 修改返回的主题不会影响源主题。
      *
-     * @param source the JSON theme providing portrait resources, or {@code null}
-     * @return a new theme with visible key prompts and separated option rows
+     * @param source 提供立绘资源的 JSON 主题，可以为 {@code null}
+     * @return 带有可见按键提示和独立选项行的新主题
      */
     static JsonObject dialogue(JsonObject source) {
         JsonObject theme = JsonParser.parseString("""

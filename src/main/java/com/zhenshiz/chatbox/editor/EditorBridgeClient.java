@@ -33,10 +33,10 @@ import java.util.function.Function;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * Exposes the active client's resources and temporary dialogue previews to the paired website.
+ * 向已配对的网站开放当前客户端资源与临时对话预览。
  *
- * <p>Game access is scheduled on the client thread. The bridge is started explicitly
- * with {@code /chatbox editor start} and accepts one authenticated editor at a time.
+ * <p>游戏访问在客户端线程上执行，桥接服务通过
+ * {@code /chatbox editor start} 显式启动，同一时间只允许一个编辑器认证连接。
  */
 @EventBusSubscriber(modid = ChatBox.MOD_ID, value = Dist.CLIENT)
 public final class EditorBridgeClient {
@@ -55,16 +55,16 @@ public final class EditorBridgeClient {
     private EditorBridgeClient() { }
 
     /**
-     * Registers the session resource pack during client mod initialization.
+     * 在客户端模组初始化时注册会话资源包。
      *
-     * @param bus the mod event bus receiving resource-pack discovery events
+     * @param bus 接收资源包发现事件的模组事件总线
      */
     public static void install(IEventBus bus) { bus.addListener(EditorPreviewPack::register); }
 
     /**
-     * Registers local bridge lifecycle commands.
+     * 注册本机桥接服务的启动与关闭命令。
      *
-     * @param event the client command registration event
+     * @param event 客户端命令注册事件
      */
     @SubscribeEvent
     public static void commands(RegisterClientCommandsEvent event) {
@@ -112,9 +112,9 @@ public final class EditorBridgeClient {
     }
 
     /**
-     * Invalidates website caches when the client language, resources, or world changes.
+     * 客户端语言、资源或世界变化后，使网页缓存失效。
      *
-     * @param event the completed client tick
+     * @param event 已完成的客户端刻事件
      */
     @SubscribeEvent
     public static void tick(ClientTickEvent.Post event) {
@@ -150,8 +150,8 @@ public final class EditorBridgeClient {
         disconnected();
     }
 
-    /** Ends the editor session and pending server operations when the game connection closes.
-     * @param event the client logout event
+    /** 游戏连接关闭时结束编辑器会话，并取消待完成的服务端操作。
+     * @param event 客户端退出登录事件
      */
     @SubscribeEvent
     public static void logout(ClientPlayerNetworkEvent.LoggingOut event) {
@@ -183,7 +183,7 @@ public final class EditorBridgeClient {
             if (type.startsWith("files.")) {
                 JsonObject operation = request.deepCopy();
                 operation.addProperty("op", type);
-                // The website's session belongs to the world from which the file was read.
+                // 网页会话必须属于读取该文件时所在的世界。
                 if (!operation.has("serverSession")) operation.addProperty("serverSession", serverSession);
                 EditorFileClient.request(operation).whenComplete((data, error) -> {
                     if (error != null) result.completeExceptionally(error); else result.complete(data);
@@ -191,8 +191,8 @@ public final class EditorBridgeClient {
                 return;
             }
             if (type.equals("debug.start") || type.equals("debug.update") || type.equals("debug.stop")) {
-                // Draft requests already pass the server file gateway's permission check. Register a pending
-                // start immediately so a stop received while its server response is in flight can cancel it.
+                // 草稿请求仍需通过服务端文件网关鉴权。提前登记启动请求，
+                // 确保等待服务端响应时收到的停止请求也能取消启动。
                 try {
                     request.addProperty("serverSession", serverSession);
                     if (type.equals("debug.stop")) {
@@ -256,9 +256,9 @@ public final class EditorBridgeClient {
     }
 
     /**
-     * Captures only completed frames belonging to the temporary editor screen.
+     * 只采集属于临时编辑器界面的完整渲染帧。
      *
-     * @param event the end of the current client render frame
+     * @param event 当前客户端渲染帧结束事件
      */
     @SubscribeEvent
     public static void renderFrame(RenderFrameEvent.Post event) { EditorPreview.captureFrame(); }

@@ -6,16 +6,16 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.*;
 import java.util.concurrent.*;
 
-/** Correlates server-authorized file operations with the current Minecraft client connection. */
+/** 将服务端鉴权后的文件操作关联到当前 Minecraft 客户端连接。 */
 public final class EditorFileClient {
     private record Pending(Object connection, CompletableFuture<JsonObject> result, EditorFileChunks chunks) { }
     private static final Map<String, Pending> pending = new HashMap<>();
     private EditorFileClient() { }
 
     /**
-     * Sends an operation to the current server; all access is checked by that server.
-     * @param request the JSON operation and optional resource ID, revision, and content
-     * @return a future completed on the client thread with the server response
+     * 向当前服务端发送操作，所有访问均由该服务端校验。
+     * @param request 包含操作及可选资源 ID、版本和内容的 JSON 请求
+     * @return 在客户端线程上接收服务端响应后完成的异步结果
      */
     public static CompletableFuture<JsonObject> request(JsonObject request) {
         Minecraft mc = Minecraft.getInstance();
@@ -39,8 +39,8 @@ public final class EditorFileClient {
     }
 
     /**
-     * Assembles a response only while the originating game connection is still current.
-     * @param packet the response fragment
+     * 仅当原游戏连接仍然有效时组装响应。
+     * @param packet 响应分片
      */
     public static void receive(EditorFilePayload packet) {
         Pending item = pending.get(packet.requestId());
@@ -60,7 +60,7 @@ public final class EditorFileClient {
         } catch (Exception error) { pending.remove(packet.requestId()); item.result.completeExceptionally(error); }
     }
 
-    /** Cancels in-flight operations when the game connection closes. */
+    /** 游戏连接关闭时取消尚未完成的操作。 */
     public static void disconnected() {
         var requests = new ArrayList<>(pending.values()); pending.clear();
         requests.forEach(item -> item.result.completeExceptionally(new IllegalStateException("游戏连接已断开")));

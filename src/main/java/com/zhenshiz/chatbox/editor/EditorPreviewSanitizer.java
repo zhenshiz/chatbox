@@ -4,16 +4,16 @@ import com.google.gson.*;
 import java.util.Locale;
 import java.util.Set;
 
-/** Removes executable actions while retaining the dialogue's visual and navigation events. */
+/** 清除可执行指令与脚本，保留对话的视觉效果和跳转事件。 */
 public final class EditorPreviewSanitizer {
     private static final Set<String> VISUAL_EVENTS = Set.of("JUMP", "GOTO_NEXT", "PLAY_VOICE", "PLAY_SOUND", "STOP_SOUND", "SHOW", "HIDE", "REPLACE", "LOCK", "UNLOCK", "SET_NORMAL", "SET_AUTOPLAY", "SCALE", "RESTART_ANIMATION", "PLAY_ANIMATION");
     private EditorPreviewSanitizer() { }
 
     /**
-     * Checks whether an event can run without executing project scripts or commands.
+     * 判断事件是否能在不执行项目脚本或指令的情况下运行。
      *
-     * @param type the case-insensitive event type
-     * @return {@code true} for a supported visual or navigation event
+     * @param type 不区分大小写的事件类型
+     * @return 是否为支持的视觉效果或跳转事件
      */
     public static boolean isVisualEvent(String type) {
         return type != null && VISUAL_EVENTS.contains(type.toUpperCase(Locale.ROOT));

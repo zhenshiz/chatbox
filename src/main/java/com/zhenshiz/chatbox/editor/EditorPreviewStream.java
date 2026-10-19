@@ -16,7 +16,7 @@ import net.minecraft.Util;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Streams completed Minecraft frames without queuing work behind a slow browser. */
+/** 推送完整的 Minecraft 渲染帧，避免浏览器接收缓慢时积压任务。 */
 final class EditorPreviewStream {
     private static final AtomicBoolean encoding = new AtomicBoolean();
     private static long nextFrame;

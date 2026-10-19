@@ -46,9 +46,9 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     }
 
     /**
-     * Measures the prompt row in unscaled GUI pixels using the current game language.
+     * 根据当前游戏语言计算提示行的宽度，单位为未缩放的 GUI 像素。
      *
-     * @return the width including the fast-forward hint when its button is available
+     * @return 提示行宽度；快进按钮可用时包含其提示
      */
     public float contentWidth() {
         Font font = minecraft.font;
@@ -64,9 +64,9 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     }
 
     /**
-     * Measures the tallest mouse icon or keyboard key in unscaled GUI pixels.
+     * 计算提示行中最高的鼠标图标或键帽高度，单位为未缩放的 GUI 像素。
      *
-     * @return the height of the prompt row
+     * @return 提示行高度
      */
     public float contentHeight() {
         return Math.max(this.mouseTextureHeight + 2, minecraft.font.lineHeight / 2 + 12);
@@ -87,13 +87,11 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
                 float x = realX();
                 float y = realY();
 
-                //right scroll
                 RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, mouse_right), x, y + 2, this.mouseTextureWidth, this.mouseTextureHeight, 1,0);
                 drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
 
                 x += this.mouseTextureWidth + font.width(keyRightClick) + 4;
 
-                //mouse scroll
                 RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, mouse_scroll), x, y + 2, this.mouseTextureWidth, this.mouseTextureHeight, 1,0);
                 drawText(guiGraphics, x + this.mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
 
@@ -105,7 +103,6 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
 
                 x += 10 + font.width("Esc") + font.width(keyEsc);
 
-                //ctrl
                 if (ChatBoxUtil.chatBoxScreen.fastForwardButton() != null) {
                     drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, ctrl, false);
                     drawText(guiGraphics, x + font.width(ctrl) + 6, y + (float) font.lineHeight / 2, keyCtrl);

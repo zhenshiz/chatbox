@@ -10,11 +10,11 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Carries one bounded chunk of an editor file request or response over the player's game connection.
- * @param requestId the client-generated request UUID
- * @param index the zero-based chunk index
- * @param total the total chunk count
- * @param json the JSON fragment, at most 8,000 UTF-16 code units
+ * 通过玩家游戏连接传输编辑器文件请求或响应的一个受限分片。
+ * @param requestId 客户端生成的请求 UUID
+ * @param index 从 0 开始的分片索引
+ * @param total 分片总数
+ * @param json JSON 分片，最多 8000 个 UTF-16 代码单元
  */
 public record EditorFilePayload(String requestId, int index, int total, String json) implements CustomPacketPayload {
     public static final Type<EditorFilePayload> TYPE = new Type<>(ChatBox.id("editor_files"));
@@ -26,9 +26,9 @@ public record EditorFilePayload(String requestId, int index, int total, String j
             EditorFilePayload::new);
 
     /**
-     * Routes messages by the authenticated network direction on the corresponding main thread.
-     * @param payload the received chunk
-     * @param context the player's actual network context
+     * 根据已认证的网络方向，将消息分派到对应的主线程。
+     * @param payload 收到的分片
+     * @param context 玩家实际的网络上下文
      */
     public static void handle(EditorFilePayload payload, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player) EditorFileServer.receive(player, payload);

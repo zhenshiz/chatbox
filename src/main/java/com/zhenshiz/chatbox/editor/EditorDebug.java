@@ -1,10 +1,12 @@
 package com.zhenshiz.chatbox.editor;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.ChatBoxRender;
 import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
+import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
@@ -12,11 +14,13 @@ import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-/** Runs interactive draft dialogues through the normal client and server event paths. */
+/** 通过正常的客户端与服务端事件链路调试未保存的对话。 */
 public final class EditorDebug {
     private static Runnable restore;
     private static String session = "";
@@ -27,8 +31,8 @@ public final class EditorDebug {
     private EditorDebug() { }
 
     /**
-     * Reports whether interactive debugging owns the current client dialogue state.
-     * @return whether an interactive debug session is active
+     * 判断当前对话状态是否由交互调试会话接管。
+     * @return 是否存在活动的交互调试会话
      */
     public static boolean isActive() { return restore != null; }
 
@@ -65,7 +69,7 @@ public final class EditorDebug {
             requireSession(request);
             ChatBoxDialogues previous = ChatBoxUtil.dialoguesMap.put(resourceId, draft);
             version = request.get("version").getAsInt();
-            // Only text is patched in place: entering a frame again would replay commands, sounds and start events.
+            // 原地更新画面，避免重新进入对话时重放指令、声音和开始事件。
             if (resourceId.equals(ChatBoxUtil.dialoguesResourceLocation)) {
                 var before = frame(previous, ChatBoxUtil.group, ChatBoxUtil.index);
                 var after = frame(draft, ChatBoxUtil.group, ChatBoxUtil.index);
@@ -74,20 +78,96 @@ public final class EditorDebug {
                     ChatBoxUtil.chatBoxScreen.dialogBox.setText(after.dialogBox.text);
                 if (before == null || !Objects.equals(before.dialogBox.name, after.dialogBox.name))
                     ChatBoxUtil.chatBoxScreen.dialogBox.setName(after.dialogBox.name);
-                if (after.options != null && before != null && before.options != null
-                        && after.options.size() == before.options.size() && after.options.size() == ChatBoxUtil.chatBoxScreen.chatOptions.size()) {
-                    for (int i = 0; i < after.options.size(); i++) {
-                        var option = after.options.get(i);
-                        var old = before.options.get(i);
-                        var rendered = ChatBoxUtil.chatBoxScreen.chatOptions.get(i);
-                        if (!Objects.equals(old.text, option.text)) rendered.setOptionChat(option.text);
-                        if (!Objects.equals(old.tooltip, option.tooltip)) rendered.setOptionTooltip(option.tooltip);
-                    }
-                }
+                refreshOptions(before, after);
+                refreshPortraits(previous, draft);
             }
             position();
             return result;
         });
+    }
+
+    private static void refreshOptions(ChatBoxDialogues.Dialogues before, ChatBoxDialogues.Dialogues after) {
+        var old = before == null || before.options == null ? List.<ChatBoxDialogues.Dialogues.Option>of() : before.options;
+        var next = after.options == null ? List.<ChatBoxDialogues.Dialogues.Option>of() : after.options;
+        if (ChatBoxUtil.GSON.toJsonTree(old).equals(ChatBoxUtil.GSON.toJsonTree(next))) return;
+        var rendered = ChatBoxUtil.chatBoxScreen.chatOptions;
+        var replacements = after.setChatOptionDialogues();
+        var used = new boolean[old.size()];
+        for (int i = 0; i < next.size(); i++) {
+            var option = next.get(i);
+            int match = -1;
+            for (int j = 0; j < Math.min(old.size(), rendered.size()); j++) {
+                if (!used[j] && ChatBoxUtil.GSON.toJsonTree(old.get(j)).equals(ChatBoxUtil.GSON.toJsonTree(option))) { match = j; break; }
+            }
+            if (match < 0 && i < old.size() && i < rendered.size() && !used[i]
+                    && optionBehavior(old.get(i)).equals(optionBehavior(option))) match = i;
+            if (match >= 0) {
+                used[match] = true;
+                replacements.set(i, rendered.get(match).setOptionChat(option.text == null ? "" : option.text)
+                        .setOptionTooltip(option.tooltip == null ? "" : option.tooltip));
+            } else replacements.get(i).resumeRendering();
+        }
+        ChatBoxUtil.chatBoxScreen.setChatOptions(replacements);
+    }
+
+    private static JsonObject optionBehavior(ChatBoxDialogues.Dialogues.Option option) {
+        JsonObject value = ChatBoxUtil.GSON.toJsonTree(option).getAsJsonObject();
+        value.remove("text");
+        value.remove("tooltip");
+        return value;
+    }
+
+    private static void refreshPortraits(ChatBoxDialogues previous, ChatBoxDialogues draft) {
+        var old = portraitDefinitions(previous);
+        var next = portraitDefinitions(draft);
+        if (old.equals(next)) return;
+        var rendered = ChatBoxUtil.chatBoxScreen.portraits;
+        List<Portrait<?>> replacements = new ArrayList<>();
+        boolean[] used = new boolean[old.size()];
+        for (var definition : next) {
+            int match = -1;
+            if (old.size() == rendered.size()) for (int i = 0; i < old.size(); i++) {
+                if (!used[i] && old.get(i).equals(definition)) { match = i; break; }
+            }
+            if (match >= 0) {
+                used[match] = true;
+                replacements.add(rendered.get(match));
+            } else {
+                var input = new ChatBoxDialogues.Dialogues();
+                input.clearOldPortrait = false;
+                input.portrait = List.of(definition);
+                int start = replacements.size();
+                input.setPortraitDialogues(replacements);
+                for (int i = start; i < replacements.size(); i++) replacements.get(i).resumeRendering();
+            }
+        }
+        ChatBoxUtil.chatBoxScreen.setPortrait(replacements);
+    }
+
+    private static List<JsonElement> portraitDefinitions(ChatBoxDialogues model) {
+        var frames = model == null ? null : model.dialogues.get(ChatBoxUtil.group);
+        List<JsonElement> definitions = new ArrayList<>();
+        if (frames == null) return definitions;
+        for (int i = 0; i <= ChatBoxUtil.index && i < frames.size(); i++) {
+            var source = frames.get(i);
+            if (Boolean.TRUE.equals(source.clearOldPortrait)) definitions.clear();
+            else if (source.removePortrait != null) definitions.removeIf(p -> source.removePortrait.contains(portraitId(p)));
+            if (source.portrait != null) for (var definition : source.portrait) {
+                if (definition.isJsonObject()) {
+                    var object = definition.getAsJsonObject();
+                    if (object.has("replace") && object.get("replace").getAsBoolean())
+                        definitions.removeIf(p -> Objects.equals(portraitId(p), portraitId(definition)));
+                }
+                definitions.add(definition);
+            }
+        }
+        return definitions;
+    }
+
+    private static String portraitId(JsonElement definition) {
+        if (definition.isJsonPrimitive()) return definition.getAsString();
+        var id = definition.isJsonObject() ? definition.getAsJsonObject().get("id") : null;
+        return id == null || id.isJsonNull() ? "" : id.getAsString();
     }
 
     private static ChatBoxDialogues.Dialogues frame(ChatBoxDialogues model, String group, Integer index) {
@@ -181,7 +261,7 @@ public final class EditorDebug {
         } catch (RuntimeException error) { fail(error); throw error; }
     }
 
-    /** Publishes the current runtime position after a successful dialogue transition. */
+    /** 对话跳转成功后向网页推送当前组与句子的位置。 */
     public static void position() {
         if (!isActive()) return;
         JsonObject state = new JsonObject();
@@ -195,7 +275,7 @@ public final class EditorDebug {
         EditorBridgeClient.sendEvent(state);
     }
 
-    /** Restores the previous client state and releases the matching server draft. */
+    /** 恢复调试前的客户端状态，并释放对应的服务端草稿。 */
     public static void stop() {
         generation++;
         pendingSession = "";

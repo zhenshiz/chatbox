@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-/** Keeps unsaved dialogue drafts scoped to one authorized debugging player. */
+/** 将未保存的对话草稿限定在一个已授权的调试玩家会话内。 */
 public final class EditorDebugServer {
     private record Draft(String session, ResourceLocation id, int version, ChatBoxDialogues model, long expires) { }
     private static final Map<ServerPlayer, Draft> drafts = new WeakHashMap<>();
@@ -48,16 +48,16 @@ public final class EditorDebugServer {
     }
 
     /**
-     * Reports whether a player owns a temporary draft, including an expired draft awaiting cleanup.
-     * @param player the server-side player
-     * @return whether ordinary party dialogue propagation must be suppressed
+     * 判断玩家是否持有临时草稿，包括等待清理的过期草稿。
+     * @param player 服务端玩家
+     * @return 是否应禁止向队伍传播普通对话
      */
     public static boolean isDebugging(ServerPlayer player) { return drafts.containsKey(player); }
 
     /**
-     * Rechecks permission and the connection lease before processing dialogue actions.
-     * @param player the sender of a dialogue action
-     * @return whether the action can execute in the current session
+     * 处理对话操作前重新校验权限与连接有效期。
+     * @param player 发起对话操作的玩家
+     * @return 是否允许在当前会话执行操作
      */
     public static boolean permitsAction(ServerPlayer player) {
         Draft draft = drafts.get(player);
@@ -67,10 +67,10 @@ public final class EditorDebugServer {
     }
 
     /**
-     * Resolves a player's draft without changing the dialogue data used by other players.
-     * @param player the player entering a dialogue
-     * @param id the dialogue file resource ID
-     * @return the permitted draft or loaded dialogue, or {@code null} if access has expired
+     * 获取玩家的草稿，不改变其他玩家使用的对话数据。
+     * @param player 正在进入对话的玩家
+     * @param id 对话文件资源 ID
+     * @return 可访问的草稿或已加载对话；访问已过期时返回 {@code null}
      */
     public static ChatBoxDialogues dialogue(ServerPlayer player, ResourceLocation id) {
         if (!permitsAction(player)) return null;

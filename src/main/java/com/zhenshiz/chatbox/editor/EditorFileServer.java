@@ -14,7 +14,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-/** Authorizes level-four operators and exposes only loaded ChatBox dialogue and theme resources. */
+/** 校验四级权限，仅开放游戏已加载的 ChatBox 对话和主题资源。 */
 public final class EditorFileServer {
     private static final String OVERRIDE = "chatbox_editor";
     private static final Map<MinecraftServer, String> sessions = new WeakHashMap<>();
@@ -23,9 +23,9 @@ public final class EditorFileServer {
     private EditorFileServer() { }
 
     /**
-     * Rechecks the real server player's permission before accepting every request fragment.
-     * @param player the sender supplied by the game network
-     * @param packet the bounded request fragment
+     * 接收每个请求分片前，重新校验实际服务端玩家的权限。
+     * @param player 由游戏网络提供的实际发送者
+     * @param packet 受大小限制的请求分片
      */
     public static void receive(ServerPlayer player, EditorFilePayload packet) {
         try {
@@ -42,7 +42,7 @@ public final class EditorFileServer {
             messages.remove(packet.requestId());
             JsonObject request = JsonParser.parseString(text).getAsJsonObject();
             execute(player, request).whenComplete((data, error) -> player.server.execute(() -> {
-                // Permission may have been revoked during a data reload.
+                // 数据重载期间玩家权限可能已被撤销。
                 Throwable failure = error;
                 if (failure == null && !player.createCommandSourceStack().hasPermission(4)) failure = new SecurityException("需要服务端 4 级权限");
                 reply(player, packet.requestId(), data, failure);
@@ -149,7 +149,7 @@ public final class EditorFileServer {
                 throw new IllegalArgumentException("主题核心组件不能为 null");
         }
         Target target = target(server, kind, id, source);
-        // A loose pack must still contain exactly the effective resource, even before /reload.
+        // 即使尚未执行 /reload，目录数据包中的内容也必须与当前生效的资源一致。
         if (target.mode.equals("original") && !Files.readString(target.file).equals(current)) throw new IllegalStateException("文件已被修改，请重新读取后再保存");
         boolean existed = Files.exists(target.file);
         byte[] previous = existed ? Files.readAllBytes(target.file) : null;

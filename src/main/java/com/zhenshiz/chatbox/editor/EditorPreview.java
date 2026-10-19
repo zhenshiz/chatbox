@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
-/** Isolates temporary editor dialogue state from the player's loaded dialogue state. */
+/** 隔离编辑器临时预览与玩家已加载的对话状态。 */
 public final class EditorPreview {
     private static final ResourceLocation ID = ResourceLocation.parse("chatbox:editor_preview");
     private static Runnable restore;
@@ -25,21 +25,21 @@ public final class EditorPreview {
     private EditorPreview() { }
 
     /**
-     * Reports whether a temporary editor preview currently owns the dialogue state.
+     * 判断临时编辑器预览是否正在接管对话状态。
      *
-     * @return {@code true} while an editor preview is active
+     * @return 编辑器预览活动期间返回 {@code true}
      */
     public static boolean isActive() { return EditorPreviewState.isActive(); }
 
     /**
-     * Resolves a draft translation for the active preview.
+     * 获取活动预览中的翻译草稿。
      *
-     * @param key the translation key being displayed
-     * @return the draft text, or {@code null} when the game language should be used
+     * @param key 当前显示内容的翻译键
+     * @return 草稿译文；需要使用游戏语言时返回 {@code null}
      */
     public static String translation(String key) { return isActive() ? EditorPreviewPack.translation(key) : null; }
 
-    /** Restores the dialogue state captured before the current preview. */
+    /** 恢复本次预览开始前保存的对话状态。 */
     public static void stop() {
         if (restore == null) return;
         EditorPreviewStream.stop();
@@ -55,7 +55,7 @@ public final class EditorPreview {
         if (isActive() && mc.screen instanceof PreviewScreen screen) EditorPreviewStream.capture(screen);
     }
 
-    // Position edits reuse the current screen; rebuilding it for every mouse move restarts animations.
+    // 拖动时复用当前画面，避免每次鼠标移动都重建界面并重置动画。
     static JsonObject move(JsonObject request) {
         if (!isActive() || !revision.equals(request.get("revision").getAsString())
                 || !(Minecraft.getInstance().screen instanceof PreviewScreen screen)) {
@@ -85,7 +85,7 @@ public final class EditorPreview {
         if (draft == null || components.isEmpty()) throw new IllegalArgumentException("Preview component is unavailable");
         float dx = x - (draft.x == null ? 0 : draft.x), dy = y - (draft.y == null ? 0 : draft.y);
         for (var component : components) {
-            // Hold the dragged component at its visible animation pose until the final full preview.
+            // 拖动期间保持组件当前的动画姿态，松开后再执行完整预览。
             if (component instanceof Portrait<?> portrait) portrait.setIsAnimation(false);
             float baseY = component instanceof ChatOption option ? option.originY : component.y;
             component.setPosition(component.x + dx, baseY + dy);
@@ -143,7 +143,7 @@ public final class EditorPreview {
         JsonObject safeTheme = themeJson;
         EditorPreviewSanitizer.sanitize(safeTheme);
         ChatBoxTheme theme = ChatBoxUtil.GSON.fromJson(safeTheme, ChatBoxTheme.class).setDefaultValue();
-        // The resolved theme is an isolated copy; frame navigation must not reload the game copy.
+        // 已解析的主题是独立副本，切换句子时不能重新加载游戏中的原主题。
         dialogue.theme = null;
         dialogue.isScreen = true;
         stop();

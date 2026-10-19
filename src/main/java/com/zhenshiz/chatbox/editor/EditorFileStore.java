@@ -8,19 +8,19 @@ import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 
-/** Validates ChatBox data paths and atomically replaces JSON files inside a server-owned data pack. */
+/** 校验 ChatBox 数据路径，并在服务端管理的数据包内原子替换 JSON 文件。 */
 public final class EditorFileStore {
     public static final int MAX_BYTES = 1024 * 1024;
     private EditorFileStore() { }
 
     /**
-     * Resolves a ChatBox JSON path within a data pack.
-     * @param root the server-selected data pack directory
-     * @param kind either {@code dialogue} or {@code theme}
-     * @param id the fully qualified resource ID without a file extension
-     * @return the contained path with no symbolic links in its existing descendants
-     * @throws IOException if a symbolic link is present
-     * @throws IllegalArgumentException if the ID or kind is invalid
+     * 解析数据包内的 ChatBox JSON 路径。
+     * @param root 服务端选定的数据包目录
+     * @param kind 资源类型，仅支持 {@code dialogue} 或 {@code theme}
+     * @param id 含命名空间且不含扩展名的资源 ID
+     * @return 限定在数据包内且现有子路径不含符号链接的路径
+     * @throws IOException 路径中存在符号链接时抛出
+     * @throws IllegalArgumentException 资源 ID 或类型无效时抛出
      */
     public static Path resolve(Path root, String kind, String id) throws IOException {
         String folder = switch (kind) { case "dialogue" -> "dialogues"; case "theme" -> "theme"; default -> throw new IllegalArgumentException("Invalid ChatBox file kind"); };
@@ -33,11 +33,11 @@ public final class EditorFileStore {
     }
 
     /**
-     * Rejects paths outside the selected root and symbolic links below that root.
-     * @param root the trusted, existing server directory
-     * @param relative the relative path to inspect
-     * @return the normalized path
-     * @throws IOException if the target escapes the root or traverses a symbolic link
+     * 拒绝越过根目录或经过根目录下符号链接的路径。
+     * @param root 已存在且可信的服务端目录
+     * @param relative 待校验的相对路径
+     * @return 规范化后的路径
+     * @throws IOException 目标越过根目录或经过符号链接时抛出
      */
     public static Path contained(Path root, String relative) throws IOException {
         Path base = root.toAbsolutePath().normalize();
@@ -53,10 +53,10 @@ public final class EditorFileStore {
     }
 
     /**
-     * Parses a bounded JSON object, retaining fields unknown to this editor.
-     * @param content the UTF-8 JSON file contents
-     * @return the parsed object
-     * @throws IllegalArgumentException if the content is too large or is not a JSON object
+     * 解析受大小限制的 JSON 对象，保留编辑器尚不识别的字段。
+     * @param content UTF-8 编码的 JSON 文件内容
+     * @return 解析后的对象
+     * @throws IllegalArgumentException 内容超出大小限制或不是 JSON 对象时抛出
      */
     public static JsonObject parse(String content) {
         if (content.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) throw new IllegalArgumentException("ChatBox file exceeds 1 MiB");
@@ -66,10 +66,10 @@ public final class EditorFileStore {
     }
 
     /**
-     * Hashes the source and exact file contents for optimistic concurrency checks.
-     * @param source the selected source pack identifier
-     * @param content the exact JSON text
-     * @return the hexadecimal SHA-256 revision
+     * 根据资源来源与文件原文生成摘要，用于乐观并发校验。
+     * @param source 选定来源资源包的标识符
+     * @param content 未经改写的 JSON 原文
+     * @return 十六进制 SHA-256 版本摘要
      */
     public static String revision(String source, String content) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest((source + "\n" + content).getBytes(StandardCharsets.UTF_8))); }
@@ -77,11 +77,11 @@ public final class EditorFileStore {
     }
 
     /**
-     * Atomically replaces a file; retains its previous contents beside it with a {@code .bak} suffix.
-     * @param root the trusted data pack root
-     * @param target the previously resolved file inside that root
-     * @param content the validated JSON text
-     * @throws IOException if path checks, backup, or atomic replacement fail
+     * 原子替换文件，并将原内容以 {@code .bak} 后缀备份在同目录。
+     * @param root 可信的数据包根目录
+     * @param target 已解析且位于根目录内的目标文件
+     * @param content 已通过校验的 JSON 文本
+     * @throws IOException 路径校验、备份或原子替换失败时抛出
      */
     public static void write(Path root, Path target, String content) throws IOException {
         target = contained(root, root.toAbsolutePath().normalize().relativize(target.toAbsolutePath().normalize()).toString());

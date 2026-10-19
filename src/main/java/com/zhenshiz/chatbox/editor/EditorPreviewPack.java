@@ -17,7 +17,7 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-/** Supplies session-local image resources and preview-only draft translations. */
+/** 提供当前会话的图片资源与仅用于预览的翻译草稿。 */
 final class EditorPreviewPack {
     private static Path root;
     private static final Map<String, String> hashes = new HashMap<>();

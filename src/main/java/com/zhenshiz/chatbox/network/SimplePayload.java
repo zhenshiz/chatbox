@@ -79,7 +79,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         String name = payload.name();
         String value = payload.value();
         if (handlersS2C.containsKey(name)) {
-            // A real server dialogue takes precedence over the temporary editor session.
+            // 正常的服务端对话优先于临时编辑器会话。
             com.zhenshiz.chatbox.editor.EditorPreview.stop();
             handlersS2C.get(name).accept(value);
         }

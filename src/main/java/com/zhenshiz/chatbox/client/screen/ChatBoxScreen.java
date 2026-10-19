@@ -277,9 +277,9 @@ public class ChatBoxScreen extends Screen {
     }
 
     /**
-     * Reports whether this screen includes the render-mode key prompts.
+     * 判断此界面是否显示渲染模式的按键提示。
      *
-     * @return {@code true} when key prompts are also available in screen mode
+     * @return 界面模式也显示按键提示时返回 {@code true}
      */
     protected boolean showKeyPromptInScreen() { return false; }
 

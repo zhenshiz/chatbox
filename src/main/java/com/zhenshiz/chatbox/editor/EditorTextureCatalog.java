@@ -10,18 +10,18 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Lists textures from enabled local resource packs without enumerating built-in mod assets. */
+/** 列出已启用的本地资源包贴图，不枚举模组内置资源。 */
 final class EditorTextureCatalog {
     private EditorTextureCatalog() { }
 
     /**
-     * Lists effective PNG and JPEG textures supplied by enabled file or directory resource packs.
+     * 列出已启用的压缩包或目录资源包中实际生效的 PNG 和 JPEG 贴图。
      *
-     * <p>Only pack indexes are read; image contents remain available through on-demand requests.
-     * Resources hidden by higher-priority packs or resource filters are omitted.
+     * <p>只读取资源索引，图片内容按需获取。
+     * 忽略被更高优先级资源包覆盖或被资源过滤器屏蔽的贴图。
      *
-     * @param manager the resource manager containing the client's currently loaded packs
-     * @return the sorted texture options, including each effective source pack ID
+     * @param manager 包含客户端当前已加载资源包的资源管理器
+     * @return 排序后的贴图选项，包含各贴图实际来源的资源包 ID
      */
     static JsonArray collect(ResourceManager manager) {
         Map<ResourceLocation, String> textures = new TreeMap<>();

@@ -3,7 +3,7 @@ package com.zhenshiz.chatbox.editor;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Bounds and assembles an ordered editor message without exceeding Minecraft's C2S packet limit. */
+/** 限制并组装有序的编辑器消息，避免超过 Minecraft 客户端到服务端的数据包上限。 */
 public final class EditorFileChunks {
     public static final int CHUNK_SIZE = 8_000;
     public static final int MAX_CHUNKS = 256;
@@ -13,9 +13,9 @@ public final class EditorFileChunks {
     private final long created = System.nanoTime();
 
     /**
-     * Creates an empty message assembler.
-     * @param total the number of chunks, from 1 through 256
-     * @throws IllegalArgumentException if the count is outside the supported range
+     * 创建空的消息组装器。
+     * @param total 分片总数，范围为 1 到 256
+     * @throws IllegalArgumentException 分片总数超出范围时抛出
      */
     public EditorFileChunks(int total) {
         if (total < 1 || total > MAX_CHUNKS) throw new IllegalArgumentException("Invalid editor message size");
@@ -23,12 +23,12 @@ public final class EditorFileChunks {
     }
 
     /**
-     * Appends the next chunk of this message.
-     * @param index the zero-based, sequential chunk index
-     * @param count the original chunk count
-     * @param value the chunk containing at most 8,000 UTF-16 code units
-     * @return the complete message, or {@code null} when more chunks are required
-     * @throws IllegalArgumentException if ordering, size, count, or the 30-second deadline is invalid
+     * 按顺序追加消息的下一个分片。
+     * @param index 从 0 开始且连续递增的分片索引
+     * @param count 原始分片总数
+     * @param value 最多包含 8000 个 UTF-16 代码单元的分片
+     * @return 完整消息；仍需等待分片时返回 {@code null}
+     * @throws IllegalArgumentException 分片顺序、大小、数量无效或超过 30 秒组装期限时抛出
      */
     public String append(int index, int count, String value) {
         if (index != next || count != total || next >= total || value.length() > CHUNK_SIZE || expired())
@@ -38,16 +38,16 @@ public final class EditorFileChunks {
     }
 
     /**
-     * Returns whether this message has exceeded its 30-second assembly deadline.
-     * @return whether the assembly deadline has elapsed
+     * 判断消息是否超过 30 秒的组装期限。
+     * @return 是否超过组装期限
      */
     public boolean expired() { return System.nanoTime() - created > 30_000_000_000L; }
 
     /**
-     * Splits a message without separating UTF-16 surrogate pairs.
-     * @param text the serialized JSON message
-     * @return the ordered chunks
-     * @throws IllegalArgumentException if the message exceeds the supported size
+     * 拆分消息，避免将 UTF-16 代理项对分开。
+     * @param text 已序列化的 JSON 消息
+     * @return 有序的分片列表
+     * @throws IllegalArgumentException 消息超出支持的大小时抛出
      */
     public static List<String> split(String text) {
         List<String> chunks = new ArrayList<>();

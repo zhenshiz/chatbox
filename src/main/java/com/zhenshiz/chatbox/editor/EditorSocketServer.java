@@ -18,14 +18,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * Serves one authenticated editor on the IPv4 loopback interface.
+ * 在 IPv4 回环地址上为一个已认证的编辑器提供服务。
  *
- * <p>JSON responses contain the request's string {@code id}, an {@code ok} boolean,
- * and either {@code data} or {@code error}. Authentication requires protocol version
- * {@value #PROTOCOL} and the session token; frame payloads are bounded to 16 MiB.
+ * <p>JSON 响应包含请求字符串 {@code id}、布尔值 {@code ok}，
+ * 以及 {@code data} 或 {@code error}。认证要求协议版本为
+ * {@value #PROTOCOL} 并提供会话令牌；帧载荷最大为 16 MiB。
  */
 public final class EditorSocketServer implements AutoCloseable {
-    /** The protocol version required in the initial editor handshake. */
+    /** 编辑器首次握手要求的协议版本。 */
     public static final int PROTOCOL = 1;
     private static final Gson GSON = new Gson();
     private final String token = UUID.randomUUID().toString().replace("-", "");
@@ -37,10 +37,10 @@ public final class EditorSocketServer implements AutoCloseable {
     private WebSocketServer listener;
 
     /**
-     * Creates an inactive bridge.
+     * 创建尚未启动监听的桥接服务。
      *
-     * @param dispatcher the asynchronous handler for authenticated requests
-     * @param disconnected the callback invoked when the paired editor disconnects
+     * @param dispatcher 处理已认证请求的异步回调
+     * @param disconnected 配对编辑器断开连接时的回调
      */
     public EditorSocketServer(Function<JsonObject, CompletableFuture<JsonObject>> dispatcher, Runnable disconnected) {
         this.dispatcher = dispatcher;
@@ -48,11 +48,11 @@ public final class EditorSocketServer implements AutoCloseable {
     }
 
     /**
-     * Binds the local listener.
+     * 启动本机监听。
      *
-     * @param port the port in the range 0 through 65535; zero selects a free port
-     * @return the actual listening port
-     * @throws Exception if binding fails or exceeds five seconds
+     * @param port 0 到 65535 之间的端口；0 表示自动选择空闲端口
+     * @return 实际监听的端口
+     * @throws Exception 绑定失败或超过五秒时抛出
      */
     public int start(int port) throws Exception {
         listener = new WebSocketServer(new InetSocketAddress("127.0.0.1", port), 1,
@@ -90,16 +90,16 @@ public final class EditorSocketServer implements AutoCloseable {
     }
 
     /**
-     * Returns the secret valid for this listener's lifetime.
+     * 获取本次监听有效的认证令牌。
      *
-     * @return the session authentication token
+     * @return 会话认证令牌
      */
     public String token() { return token; }
 
     /**
-     * Sends a server event to the paired editor.
+     * 向配对编辑器推送服务端事件。
      *
-     * @param event the JSON event without a request identifier
+     * @param event 不带请求标识符的 JSON 事件
      */
     public void broadcast(JsonObject event) {
         WebSocket socket = editor;
@@ -107,9 +107,9 @@ public final class EditorSocketServer implements AutoCloseable {
     }
 
     /**
-     * Checks whether the paired editor can accept another preview frame.
+     * 判断配对编辑器是否可以接收下一帧预览。
      *
-     * @return {@code true} if the socket is open and has no buffered writes
+     * @return 套接字已连接且没有待发送数据时返回 {@code true}
      */
     public boolean canSendFrame() {
         WebSocket socket = editor;
@@ -167,7 +167,7 @@ public final class EditorSocketServer implements AutoCloseable {
 
     private static void write(WebSocket socket, String text) {
         try { if (socket.isOpen()) socket.send(text); }
-        catch (WebsocketNotConnectedException ignored) { /* The peer closed between the check and send. */ }
+        catch (WebsocketNotConnectedException ignored) { /* 检查后、发送前对端已关闭连接。 */ }
     }
 
     private static void send(WebSocket socket, String id, JsonObject data, String error) {
