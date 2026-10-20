@@ -55,7 +55,14 @@ public final class EditorPreview {
         if (isActive() && mc.screen instanceof PreviewScreen screen) EditorPreviewStream.capture(screen);
     }
 
-    // 拖动时复用当前画面，避免每次鼠标移动都重建界面并重置动画。
+    /**
+     * 在当前预览版本中更新组件的位置及可选的宽高、缩放和角度。
+     *
+     * @param request 变换请求；宽高与缩放必须是有限的非负数，省略的属性保持不变
+     * @return 空的成功响应
+     * @throws IllegalArgumentException 组件不可用或变换参数无效时
+     * @throws IllegalStateException 请求的预览版本已失效时
+     */
     static JsonObject move(JsonObject request) {
         if (!isActive() || !revision.equals(request.get("revision").getAsString())
                 || !(Minecraft.getInstance().screen instanceof PreviewScreen screen)) {
@@ -65,6 +72,8 @@ public final class EditorPreview {
         String key = request.has("key") ? request.get("key").getAsString() : "";
         float x = request.get("x").getAsFloat(), y = request.get("y").getAsFloat();
         if (!Float.isFinite(x) || !Float.isFinite(y)) throw new IllegalArgumentException("Invalid preview position");
+        Float width = transformValue(request, "width", true), height = transformValue(request, "height", true);
+        Float scale = transformValue(request, "scale", true), angle = transformValue(request, "angle", false);
         ChatBoxTheme theme = ChatBoxUtil.chatBoxTheme;
         ChatBoxTheme.Component draft = switch (kind) {
             case "dialogBox" -> theme.dialogBox;
@@ -84,15 +93,30 @@ public final class EditorPreview {
         };
         if (draft == null || components.isEmpty()) throw new IllegalArgumentException("Preview component is unavailable");
         float dx = x - (draft.x == null ? 0 : draft.x), dy = y - (draft.y == null ? 0 : draft.y);
+        Float scaleDelta = scale == null ? null : scale - (draft.scale == null ? 1 : draft.scale);
+        Float angleDelta = angle == null ? null : angle - (draft.angle == null ? 0 : draft.angle);
         for (var component : components) {
             // 拖动期间保持组件当前的动画姿态，松开后再执行完整预览。
             if (component instanceof Portrait<?> portrait) portrait.setIsAnimation(false);
             float baseY = component instanceof ChatOption option ? option.originY : component.y;
-            component.setPosition(component.x + dx, baseY + dy);
+            component.setPosition(component.x + dx, baseY + dy).setSize(width, height)
+                    .setScale(scaleDelta == null ? null : Math.max(0, component.scale + scaleDelta))
+                    .setAngle(angleDelta == null ? null : component.angle + angleDelta);
         }
         draft.x = x;
         draft.y = y;
+        if (width != null) draft.width = width;
+        if (height != null) draft.height = height;
+        if (scale != null) draft.scale = scale;
+        if (angle != null) draft.angle = angle;
         return new JsonObject();
+    }
+
+    private static Float transformValue(JsonObject request, String key, boolean nonNegative) {
+        if (!request.has(key)) return null;
+        float value = request.get(key).getAsFloat();
+        if (!Float.isFinite(value) || nonNegative && value < 0) throw new IllegalArgumentException("Invalid preview " + key);
+        return value;
     }
 
     static JsonObject show(JsonObject request) {

@@ -7,6 +7,9 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.KeyPromptRender;
+import com.zhenshiz.chatbox.component.Portrait;
+import com.zhenshiz.chatbox.component.ChatOption;
+import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import net.minecraft.client.Minecraft;
@@ -90,15 +93,38 @@ final class EditorPreviewStream {
         JsonObject rect = new JsonObject();
         rect.addProperty("kind", kind);
         rect.addProperty("key", key);
-        rect.addProperty("x", component.x1());
-        rect.addProperty("y", component.y1());
-        rect.addProperty("width", component.x2() - component.x1());
-        rect.addProperty("height", component.y2() - component.y1());
-        rect.addProperty("angle", component.angle);
+        float width = component.realWidth(), height = component.realHeight();
+        float scale = component instanceof KeyPromptRender ? 1 : component.scale;
+        rect.addProperty("x", component.realX() + width * (1 - scale) / 2);
+        rect.addProperty("y", component.realY() + height * (1 - scale) / 2);
+        rect.addProperty("width", width * scale);
+        rect.addProperty("height", height * scale);
+        rect.addProperty("angle", component instanceof KeyPromptRender || component instanceof Portrait.Entity ? 0 : component.angle);
         rect.addProperty("order", component.renderOrder);
         if (draft != null) {
             rect.addProperty("positionX", draft.x == null ? 0 : draft.x);
             rect.addProperty("positionY", draft.y == null ? 0 : draft.y);
+            rect.addProperty("modelWidth", draft.width == null ? component.width : draft.width);
+            rect.addProperty("modelHeight", draft.height == null ? component.height : draft.height);
+            rect.addProperty("modelScale", draft.scale == null ? 1 : draft.scale);
+            rect.addProperty("modelAngle", draft.angle == null ? 0 : draft.angle);
+            rect.addProperty("realWidth", width);
+            rect.addProperty("realHeight", height);
+            rect.addProperty("renderScale", scale);
+            rect.addProperty("alignX", component.alignX == AbstractComponent.AlignX.LEFT ? 0 : component.alignX == AbstractComponent.AlignX.CENTER ? 0.5 : 1);
+            rect.addProperty("alignY", component.alignY == AbstractComponent.AlignY.TOP ? 0 : component.alignY == AbstractComponent.AlignY.CENTER ? 0.5 : 1);
+            float widthUnit = component.widthReference.getLength(1);
+            if (component.getClass().equals(Portrait.class)) widthUnit *= Config.portraitWidthPercent.get() / 100f;
+            rect.addProperty("widthUnit", component instanceof Portrait.Entity ? 1 : widthUnit);
+            // 选项共用主题尺寸，改变高度还会改变组内各行的排列位置。
+            float heightOffsetUnit = component instanceof ChatOption option
+                    ? (option.renderIndex - (ChatBoxUtil.chatBoxScreen.getRenderOptionCount() - 1)
+                    * (component.alignY == AbstractComponent.AlignY.TOP ? 0 : component.alignY == AbstractComponent.AlignY.CENTER ? 0.5f : 1))
+                    * Minecraft.getInstance().getWindow().getGuiScaledHeight() / 100f : 0;
+            rect.addProperty("heightOffsetUnit", heightOffsetUnit);
+            rect.addProperty("heightUnit", component instanceof Portrait.Entity ? 1 : component.heightReference.getLength(1));
+            rect.addProperty("sizeMode", component instanceof KeyPromptRender ? "none" : (component instanceof Portrait.Item || component instanceof Portrait.Entity) ? "scale" : component instanceof Portrait.PlayerHead ? "square" : "box");
+            rect.addProperty("rotatable", !(component instanceof KeyPromptRender || component instanceof Portrait.Entity));
         }
         bounds.add(rect);
     }

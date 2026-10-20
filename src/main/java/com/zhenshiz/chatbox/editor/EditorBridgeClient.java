@@ -269,6 +269,7 @@ public final class EditorBridgeClient {
         result.addProperty("protocol", EditorSocketServer.PROTOCOL);
         result.addProperty("previewStream", true);
         result.addProperty("previewMove", true);
+        result.addProperty("previewTransform", true);
         result.addProperty("dialogueDebug", true);
         result.addProperty("minecraft", net.minecraft.SharedConstants.getCurrentVersion().getName());
         result.addProperty("chatbox", net.neoforged.fml.ModList.get().getModContainerById(ChatBox.MOD_ID).orElseThrow().getModInfo().getVersion().toString());
