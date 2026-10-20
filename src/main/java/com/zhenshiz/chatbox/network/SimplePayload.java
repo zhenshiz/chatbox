@@ -10,6 +10,7 @@ import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 //? >= 1.21 {
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -21,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -121,9 +123,13 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         });
         addSimpleHandlerC2S(TEST_CONDITION, (player, s) -> {
             String[] parsed = StrUtil.parse(s);
-            if (parsed.length == 1) MVELUtil.eval(player, parsed[0], null);
-            else if (parsed.length != 3) return;
+            if (parsed.length == 1) {
+                if (shouldExecute(player, parsed[0])) MVELUtil.eval(player, parsed[0], null);
+                return;
+            }
+            if (parsed.length != 3) return;
             String condition = parsed[0];
+            if (!shouldExecute(player, condition)) return;
             if (condition.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, condition) == 1 ||
                     condition.startsWith("server:") && MVELUtil.eval(player, condition, null) instanceof Boolean b && b)
                 simplePayloadS2C(player, TEST_CONDITION, parsed[1], parsed[2]);
@@ -160,11 +166,13 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         addSimpleHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
         addSimpleHandlerS2C(MVEL_TEST, s -> MVELUtil.commandTest(ChatBoxUtil.getPlayer(), s));
         addSimpleHandlerS2C(TEST_CONDITION, s -> ChatBoxUtil.chatBoxScreen.executeEvent(s));
-        addSimpleHandlerS2C(PLAY_VIDEO, ChatBoxUtil::playVideo);
+        // 写成方法引用会导致ChatBoxUtil类在服务端被加载，导致服务端报错，因此这里必须使用lambda表达式
+        addHandlerS2C(PLAY_VIDEO, s -> ChatBoxUtil.playVideo(s));
     }
 
     private static void onPlayerSkipChat(ServerPlayer player, ResourceLocation rl, String group, int index) {
         if (index != -1) {
+            playerDialogue.put(player.getUUID(), new DialogData(rl, group, index));
             var dialog = ChatBoxDialoguesLoader.parsedDialogues.get(rl).dialogues.get(group).get(index);
             if (dialog.command != null) ComponentEvent.executeCommands(player, dialog.command);
 
@@ -197,7 +205,17 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
                 if (parsedText.equals(text)) parsedText = null;
             }
             if (parsedName != null || parsedText != null) serverSetDialogBox(player, parsedName, parsedText);
-        }
+        } else playerDialogue.remove(player.getUUID());
         ChatBox.PLATFORM.postSkipChatEvent(player, rl, group, index, serverGetChatTargets(player));
+    }
+
+    public record DialogData(ResourceLocation id, String group, int index) {}
+    public static final Map<UUID, DialogData> playerDialogue = new HashMap<>();
+
+    public static boolean shouldExecute(Player player, String value) {
+        if (!playerDialogue.containsKey(player.getUUID())) return false;
+        var id = playerDialogue.get(player.getUUID()).id;
+        return ChatBoxDialoguesLoader.dialoguesMap.getOrDefault(id, "")
+                .contains(value.replace("\"", "\\\"")); // json 文本是包含转义符本身的
     }
 }

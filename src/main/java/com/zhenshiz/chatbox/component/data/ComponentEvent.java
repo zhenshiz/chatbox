@@ -5,6 +5,7 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
@@ -131,6 +132,7 @@ public class ComponentEvent {
     }
 
     public static void executeCommands(ServerPlayer player, String value) {
+        if (!SimplePayload.shouldExecute(player, value)) return;
         var commands = value.split(";");
         for (var command : commands) {
             command = command.trim();

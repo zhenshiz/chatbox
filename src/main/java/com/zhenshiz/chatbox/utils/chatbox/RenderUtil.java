@@ -3,6 +3,8 @@ package com.zhenshiz.chatbox.utils.chatbox;
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.sighs.apricityui.render.ImageDrawer;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.data.Attachment;
 import net.minecraft.client.Minecraft;
@@ -109,6 +111,15 @@ public class RenderUtil {
         *///?}
     }
 
+    @SuppressWarnings("all")
+    public static boolean tryRenderGif(GuiGraphics graphics, String path, float x, float y, float width, float height) {
+        if (ChatBox.isApricityUILoaded() && path.endsWith(".gif")) {
+            ImageDrawer.draw(graphics.pose(), path, (int) x, (int) y, (int) width, (int) height, false);
+            return true;
+        }
+        return false;
+    }
+
     public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float width, float height, float scale, float angle, Attachment... attachments) {
         guiGraphics.pose().pushPose();
         float centerX = x + width / 2;
@@ -116,7 +127,10 @@ public class RenderUtil {
         // 应用旋转
         guiGraphics.pose().rotateAround(new Quaternionf().fromAxisAngleDeg(0, 0, 1, angle), centerX, centerY, 0);
         guiGraphics.pose().last().pose().scaleAround(scale, centerX, centerY, 0);
-        if (resourceLocation != null) renderImageInner(guiGraphics, resourceLocation, x, y, 1, 1, width, height);
+        if (resourceLocation != null) {
+            if (!tryRenderGif(guiGraphics, resourceLocation.getPath(), x, y, width, height))
+                renderImageInner(guiGraphics, resourceLocation, x, y, 1, 1, width, height);
+        }
         for (var attachment : attachments) attachment.render(guiGraphics, x, y);
         guiGraphics.pose().popPose();
     }

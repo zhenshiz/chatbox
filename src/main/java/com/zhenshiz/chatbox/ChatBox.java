@@ -81,4 +81,6 @@ public class ChatBox/*? fabric {*/ implements ModInitializer/*?}*/ {
     }
 
     public static boolean isWaterMediaLoaded() {return isModLoaded("watermedia");}
+
+    public static boolean isApricityUILoaded() {return isModLoaded("apricityui");}
 }

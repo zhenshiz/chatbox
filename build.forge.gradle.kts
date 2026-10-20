@@ -29,6 +29,8 @@ dependencies {
     jarJar("org.mvel:mvel2:2.5.0.Final")
     implementation("org.mvel:mvel2:2.5.0.Final")
 
+    modCompileOnly("curse.maven:apricityui-1470115:${property("deps.apricityui")}")
+
     compileOnly("maven.modrinth:rhino:${property("deps.rhino")}")
     compileOnly("maven.modrinth:kubejs:${property("deps.kubejs")}")
     compileOnly("maven.modrinth:terra-entity:${property("deps.terra-entity")}")

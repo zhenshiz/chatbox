@@ -153,6 +153,9 @@ public class ChatBoxUtil {
         }
 
         if (index >= 0 && index < dialogues.size()) {
+            ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets);
+            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
+
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
             Video video = null;
@@ -184,11 +187,6 @@ public class ChatBoxUtil {
 
             //添加历史聊天记录
             historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
-
-            //调试用
-            //System.out.println("ChatBoxUtil.skipDialogues: " + dialoguesResourceLocation + " " + group + " " + index);
-            ChatBox.PLATFORM.postSkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets);
-            ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
 
             ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {

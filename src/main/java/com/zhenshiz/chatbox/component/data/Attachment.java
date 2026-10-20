@@ -49,7 +49,9 @@ public class Attachment {
         var a = mapParameter();
         String type = this.type.toLowerCase();
         switch (type) {
-            case "texture" -> RenderUtil.renderImageInner(guiGraphics, ChatBox.parseId(value), ox + a.x, oy + a.y, 1, 1, a.width, a.height);
+            case "texture" -> {
+                if (!RenderUtil.tryRenderGif(guiGraphics, value, ox + a.x, oy + a.y, a.width, a.height)) RenderUtil.renderImageInner(guiGraphics, ChatBox.parseId(value), ox + a.x, oy + a.y, 1, 1, a.width, a.height);
+            }
             case "text" -> {
                 String text = parseText ? ChatBoxUtil.parseText(RenderUtil.translated(value), lineBreak) : value;
                 RenderUtil.drawStringAlign(guiGraphics, text, (int) (ox + a.x), (int) (oy + a.y), (int) (float) a.width, AbstractComponent.AlignX.of(textAlign), textColor, lineBreak);
