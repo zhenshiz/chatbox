@@ -1,0 +1,117 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+
+// 参考 ViScriptLib，直接调用官方 Upload API，保持 Java 21 兼容。
+// gameVersions 只接受整数 ID；名称必须写入 gameVersionNames，不能沿用插件的 Java 字段名。
+// https://support.curseforge.com/support/solutions/articles/9000197321-curseforge-upload-api
+abstract class CurseForgeUpload extends DefaultTask {
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getUploadFile()
+
+    @Input
+    abstract Property<String> getProjectId()
+
+    @Internal
+    abstract Property<String> getApiToken()
+
+    @Input
+    abstract Property<Boolean> getDryRunMode()
+
+    @Input
+    abstract MapProperty<String, Object> getUploadMetadata()
+
+    @Internal
+    URI apiEndpoint = URI.create('https://legacy.curseforge.com')
+
+    @TaskAction
+    void publish() {
+        def id = projectId.get()
+        if (!(id ==~ /[0-9]+/)) throw new GradleException('CurseForge 项目 ID 必须是数字。')
+        def file = uploadFile.get().asFile
+        def fields = uploadMetadata.get()
+        if (fields.containsKey('gameVersions') &&
+                (!(fields.gameVersions instanceof Collection) || !fields.gameVersions.every {
+                    (it instanceof Integer || it instanceof Long) && it > 0
+                })) {
+            throw new GradleException('CurseForge 的 gameVersions 只接受整数 ID，名称请使用 gameVersionNames；尚未上传。')
+        }
+        if (fields.containsKey('gameVersionNames') &&
+                (!(fields.gameVersionNames instanceof Collection) || !fields.gameVersionNames.every {
+                    it instanceof String && !it.trim().isEmpty()
+                })) {
+            throw new GradleException('CurseForge 的 gameVersionNames 只能包含非空字符串；尚未上传。')
+        }
+        if (!fields.gameVersions && !fields.gameVersionNames) {
+            throw new GradleException('CurseForge 必须配置支持的游戏版本；尚未上传。')
+        }
+        def metadata = JsonOutput.toJson(fields)
+        def target = apiEndpoint.resolve("/api/projects/${id}/upload-file")
+        if (dryRunMode.get()) {
+            logger.lifecycle("CurseForge 试运行： ${file.name} -> ${target}")
+            logger.lifecycle(JsonOutput.prettyPrint(metadata))
+            return
+        }
+        def token = apiToken.get().trim()
+        if (!token) throw new GradleException('缺少 CURSEFORGE_TOKEN；尚未上传。')
+
+        def boundary = 'ChatBox-' + UUID.randomUUID()
+        def filename = file.name.replace('\\', '_').replace('"', '_').replaceAll(/[\r\n]/, '_')
+        def header = "--${boundary}\r\n" +
+                'Content-Disposition: form-data; name="metadata"\r\n' +
+                'Content-Type: application/json; charset=UTF-8\r\n\r\n' + metadata + '\r\n' +
+                "--${boundary}\r\n" +
+                "Content-Disposition: form-data; name=\"file\"; filename=\"${filename}\"\r\n" +
+                'Content-Type: application/octet-stream\r\n\r\n'
+        def body = HttpRequest.BodyPublishers.concat(
+                HttpRequest.BodyPublishers.ofString(header),
+                HttpRequest.BodyPublishers.ofFile(file.toPath()),
+                HttpRequest.BodyPublishers.ofString("\r\n--${boundary}--\r\n"))
+        def request = HttpRequest.newBuilder(target)
+                .timeout(Duration.ofMinutes(5))
+                .header('X-Api-Token', token)
+                .header('User-Agent', 'ChatBox-Publisher/1.0')
+                .header('Content-Type', "multipart/form-data; boundary=${boundary}")
+                .POST(body).build()
+        def client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build()
+        def response
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt()
+            throw new GradleException('CurseForge 上传被中断，请先检查平台文件列表再重试，避免重复发布。', ex)
+        } catch (IOException ex) {
+            throw new GradleException('CurseForge 上传连接失败，请先检查平台文件列表再重试，避免重复发布。', ex)
+        } finally {
+            client.close()
+        }
+        def status = response.statusCode()
+        def responseText = response.body().replace(token, '[REDACTED]')
+        if (status != 200) {
+            if (responseText.contains('Just a moment') ||
+                    response.headers().firstValue('cf-mitigated').orElse('') == 'challenge') {
+                throw new GradleException("CurseForge HTTP ${status}: 网站防护拦截了上传接口。" +
+                        '此响应无法判断 Token 是否有效，请切换网络重试或使用作者后台。')
+            }
+            def detail = response.headers().firstValue('content-type').orElse('').contains('json')
+                    ? responseText.take(500) : '上传接口返回了非 JSON 响应。'
+            throw new GradleException("CurseForge HTTP ${status}: ${detail}")
+        }
+        def result
+        try {
+            result = new JsonSlurper().parseText(responseText)
+        } catch (Exception ex) {
+            throw new GradleException('CurseForge 返回了无效响应，请先检查平台文件列表再重试。', ex)
+        }
+        if (!(result instanceof Map) || !(result.id instanceof Number) || result.id.longValue() <= 0) {
+            throw new GradleException('CurseForge 未返回文件 ID，请先检查平台文件列表再重试。')
+        }
+        logger.lifecycle("CurseForge 上传成功：${file.name}，文件 ID：${result.id}")
+    }
+}
+
+project.ext.curseForgeUploadTaskType = CurseForgeUpload

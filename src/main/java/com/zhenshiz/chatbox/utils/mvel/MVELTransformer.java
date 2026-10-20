@@ -108,9 +108,9 @@ public class MVELTransformer {
             }
         }
         int start = i + 1;
-        // If there's a 'new' keyword immediately before (allowing whitespace), include it
+        // 将类型前紧邻的 new 关键字一并纳入替换范围，允许中间存在空白。
         int k = start - 1;
-        // skip whitespace between 'new' and the type
+        // 跳过 new 与类型之间的空白。
         while (k >= 0 && Character.isWhitespace(s.charAt(k))) k--;
         if (k >= 0) {
             int wstart = k;

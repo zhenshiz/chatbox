@@ -26,7 +26,6 @@ public abstract class Video extends AbstractComponent<Video> {
     }
 
     float actualX, actualY, actualWidth, actualHeight;
-    // STATUS
     int tick = 0;
     float fadeStep30 = 0;
     float fadeStep10 = 0;
@@ -36,18 +35,15 @@ public abstract class Video extends AbstractComponent<Video> {
     boolean success = false;
     int retry = 0;
 
-    // CONTROL
     public boolean loop;
     public boolean canControl;
     public boolean canSkip;
     public boolean removeOnEnd = true;
     public boolean removeOnNext = true;
 
-    // TOOLS
     static final Minecraft minecraft = Minecraft.getInstance();
     static ChatBoxScreen chatBoxScreen = ChatBoxUtil.chatBoxScreen;
 
-    // VIDEO INFO
     final URI uri;
     int videoTexture = -1;
 
@@ -61,7 +57,6 @@ public abstract class Video extends AbstractComponent<Video> {
 
     public <T extends Video> T ofVideo(ChatBoxDialogues.Dialogues.Video video) {
         of(video).setId("video");
-        //minecraft.getSoundManager().pause();
         this.canControl = video.canControl;
         this.canSkip = video.canSkip;
         this.loop = video.loop;
@@ -130,7 +125,7 @@ public abstract class Video extends AbstractComponent<Video> {
     }
 
     public void keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        // Up arrow key (Volume)
+        // 上方向键增加音量。
         if (pKeyCode == 265) {
             if (volume <= 95) volume += 5; else volume = 100;
             int newVolume = realVolume();
@@ -138,7 +133,7 @@ public abstract class Video extends AbstractComponent<Video> {
             volume(newVolume);
         }
 
-        // Down arrow key (Volume)
+        // 下方向键减小音量。
         if (pKeyCode == 264) {
             if (volume >= 5) volume -= 5; else volume = 0;
             int newVolume = realVolume();
@@ -146,13 +141,13 @@ public abstract class Video extends AbstractComponent<Video> {
             volume(newVolume);
         }
 
-        // M to mute
+        // M 键切换静音。
         if (pKeyCode == 77) mute(!muted());
 
-        // If control blocked can't modify the video time
+        // 禁止控制时不能调整视频进度。
         if (!canControl) return;
 
-        // Right arrow key (Forwards)
+        // 右方向键快进。
         if (pKeyCode == 262) {
             // 如果设置循环且超出时长就跳到开头
             long time = loop && time() + 30000 > duration() ? 0 : time() + 30000;
@@ -160,13 +155,13 @@ public abstract class Video extends AbstractComponent<Video> {
             fadeStep30 = 1;
         }
 
-        // Left arrow key (Backwards)
+        // 左方向键快退。
         if (pKeyCode == 263) {
             seek(time() - 10000);
             fadeStep10 = 1;
         }
 
-        // Space (Pause / Play)
+        // 空格键切换暂停与播放。
         if (pKeyCode == 32) pause(!paused());
     }
 

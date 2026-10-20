@@ -68,7 +68,7 @@ public class ChatBoxServerEvents {
         onSkipChat(event.getPlayer(), event.getResourceLocation(), event.getGroup(), event.getIndex(), event.getTargets());
     }
 
-    //由于字符串长度的限制为32767，所以需要把字符串分割成多个字符串，然后再发送给客户端Add commentMore actions
+    //由于字符串长度的限制为32767，所以需要把字符串分割成多个字符串，然后再发送给客户端
     private static final int STRING_SIZE_LIMIT = 32000;
 
     public static Map<ResourceLocation, List<String>> cutString(Map<ResourceLocation, String> map) {
@@ -87,6 +87,7 @@ public class ChatBoxServerEvents {
 
     private static void onSkipChat(Player p, ResourceLocation rl, String group, int index, List<Entity> targets) {
         if (!(p instanceof ServerPlayer player)) return;
+        if (com.zhenshiz.chatbox.editor.EditorDebugServer.isDebugging(player)) return;
         var data = ChatBox.getSavedData();
         if (!data.isPlayerLeader(player)) return;
         for (var member : data.getMembers(player)) {

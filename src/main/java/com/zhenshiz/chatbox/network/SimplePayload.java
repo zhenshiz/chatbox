@@ -79,11 +79,14 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         String name = payload.name();
         String value = payload.value();
         if (handlersS2C.containsKey(name)) {
+            // 正常的服务端对话优先于临时编辑器会话。
+            com.zhenshiz.chatbox.editor.EditorPreview.stop();
             handlersS2C.get(name).accept(value);
         }
     }
 
     public static void handleOnServer(ServerPlayer player, SimplePayload packet) {
+        if (!com.zhenshiz.chatbox.editor.EditorDebugServer.permitsAction(player)) return;
         if (handlersC2S.containsKey(packet.name))
             player.server.execute(() -> handlersC2S.get(packet.name).accept(player, packet.value));
     }
@@ -96,6 +99,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     }
 
     public static void simplePayloadC2S(String name, String value) {
+        if (com.zhenshiz.chatbox.editor.EditorPreviewState.isActive()) return;
         PacketDistributor.sendToServer(new SimplePayload(name, value));
     }
     public static void simplePayloadC2S(String name, Object... args) {
@@ -117,8 +121,11 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         });
         addHandlerC2S(TEST_CONDITION, (player, s) -> {
             String[] parsed = StrUtil.parse(s);
-            if (parsed.length == 1) MVELUtil.eval(player, parsed[0], null);
-            else if (parsed.length != 3) return;
+            if (parsed.length == 1) {
+                MVELUtil.eval(player, parsed[0], null);
+                return;
+            }
+            if (parsed.length != 3) return;
             String condition = parsed[0];
             if (condition.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, condition) == 1 ||
                     condition.startsWith("server:") && MVELUtil.eval(player, condition, null) instanceof Boolean b && b)
@@ -161,7 +168,10 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
 
     private static void onPlayerSkipChat(ServerPlayer player, ResourceLocation rl, String group, int index) {
         if (index != -1) {
-            var dialog = ChatBoxDialoguesLoader.parsedDialogues.get(rl).dialogues.get(group).get(index);
+            var model = com.zhenshiz.chatbox.editor.EditorDebugServer.dialogue(player, rl);
+            var frames = model == null ? null : model.dialogues.get(group);
+            if (frames == null || index < 0 || index >= frames.size()) return;
+            var dialog = frames.get(index);
             if (dialog.command != null) ComponentEvent.executeCommands(player, dialog.command);
 
             var options = dialog.options;

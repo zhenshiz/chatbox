@@ -59,5 +59,13 @@
   "chatbox.group.remove": "已解散 %s 的小组",
   "chatbox.group.quit": "%s 退出了所在的小组",
   "chatbox.group.setLeader": "%s 已成为小组组长",
-  "chatbox.group.clear": "已清空所有小组信息"
+  "chatbox.group.clear": "已清空所有小组信息",
+
+  "chatbox.editor.connection": "连接地址（点击复制）：%s",
+  "chatbox.editor.token": "配对码（点击复制）：%s",
+  "chatbox.editor.copy": "点击复制，粘贴到网页 ChatBox 的对应输入框",
+  "chatbox.editor.instructions": "打开网页 ChatBox → 连接游戏，分别粘贴连接地址和配对码，然后点击连接游戏。",
+  "chatbox.editor.error": "无法启动编辑器连接：%s",
+  "chatbox.editor.stopped": "编辑器连接已关闭",
+  "chatbox.editor.sample": "这是来自 ChatBox 网页编辑器的临时预览。"
 }
