@@ -2,17 +2,17 @@ package com.zhenshiz.chatbox.data;
 
 import com.google.gson.*;
 //? >= 1.21 {
-import com.mojang.serialization.Codec;
+/*import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
-//?} else {
-/*import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
+*///?} else {
+import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
 import net.minecraft.advancements.critereon.DeserializationContext;
 import net.minecraft.world.level.storage.loot.LootDataManager;
-*///?}
+//?}
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import net.minecraft.advancements.Criterion;
@@ -39,12 +39,12 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
 
     //套娃，第一个（Map）是文件，第二个是组，第三个是criteria，由于目前的组名下是一个数组，所以只能把判据绑定给同一个json文件里面的第一组对话。解决办法1.花大力气改json格式；2.告诉玩家一个json文件只允许一个组。
     //? >= 1.21 {
-    private static final Map<ResourceLocation, Map<String, Map<String, Criterion<?>>>> dialoguesCriteriaMap = new HashMap<>();
+    /*private static final Map<ResourceLocation, Map<String, Map<String, Criterion<?>>>> dialoguesCriteriaMap = new HashMap<>();
     private static final Codec<Map<String, Criterion<?>>> CRITERIA_CODEC = Codec.unboundedMap(Codec.STRING, Criterion.CODEC).validate(map -> map.isEmpty() ? DataResult.error(() -> "Advancement criteria cannot be empty") : DataResult.success(map)); //这个是Advancement类里面的
-    //?} else {
-    /*private static final Map<ResourceLocation, Map<String, Map<String, Criterion>>> dialoguesCriteriaMap = new HashMap<>();
+    *///?} else {
+    private static final Map<ResourceLocation, Map<String, Map<String, Criterion>>> dialoguesCriteriaMap = new HashMap<>();
     private static final LootDataManager lootDataManager = new LootDataManager();
-    *///?}
+    //?}
 
     public ChatBoxDialoguesLoader() {
         super("chatbox/dialogues");
@@ -62,7 +62,7 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
             parsedDialogues.put(resourceLocation, chatBoxDialogues);
             dialoguesGroupMap.put(resourceLocation, chatBoxDialogues.dialogues.keySet());
             //? < 1.21 {
-            /*JsonElement criteriaElement = chatBoxDialogues.criteria;
+            JsonElement criteriaElement = chatBoxDialogues.criteria;
             if (criteriaElement != null) {
                 JsonObject criteriaObject = criteriaElement.getAsJsonObject();
                 String group = dialoguesGroupMap.get(resourceLocation).stream().toList().get(0);
@@ -74,15 +74,15 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
                 } catch (Exception var6x) {
                     ChatBox.LOGGER.error("Parsing error loading dialog {}: {}", resourceLocation, var6x.getMessage());
                 }
-            }*///?}
+            }//?}
         });
     }
 
 
     //? >= 1.21
-    public static <T extends SimpleCriterionTrigger.SimpleInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {
+    /*public static <T extends SimpleCriterionTrigger.SimpleInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {*/
     //? < 1.21
-    /*public static <T extends AbstractCriterionTriggerInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {*/
+    public static <T extends AbstractCriterionTriggerInstance> void triggerDialog(ServerPlayer player, Predicate<T> testTrigger) {
         for (var entry : dialoguesCriteriaMap.entrySet()) {
             var rl = entry.getKey();
             var groupWithCriteria = entry.getValue();
@@ -92,9 +92,9 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
                 for (var entry2 : criteria.entrySet()) {
                     var criterion = entry2.getValue();
                     //? >= 1.21
-                    CriterionTriggerInstance instance = criterion.triggerInstance();
+                    /*CriterionTriggerInstance instance = criterion.triggerInstance();*/
                     //? < 1.21
-                    /*CriterionTriggerInstance instance = criterion.getTrigger();*/
+                    CriterionTriggerInstance instance = criterion.getTrigger();
                     try {
                         //noinspection unchecked
                         if (testTrigger.test((T) instance)) {
@@ -113,7 +113,7 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
 
     //解析判据必须要用到registryAccess，fabric我目前没想到别的解决办法
     //? >= 1.21 {
-    public static void loadCriteria(MinecraftServer server) {
+    /*public static void loadCriteria(MinecraftServer server) {
         ChatBox.server = server;
         for (var entry : parsedDialogues.entrySet()) {
             ResourceLocation rl = entry.getKey();
@@ -131,5 +131,5 @@ public class ChatBoxDialoguesLoader extends ChatBoxDataLoader {
                 ChatBox.LOGGER.error("Parsing error loading dialog {}: {}", rl, var6x.getMessage());
             }
         }
-    }//?}
+    }*///?}
 }

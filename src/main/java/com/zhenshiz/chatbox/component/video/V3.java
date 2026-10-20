@@ -9,7 +9,6 @@ import java.net.URI;
 import java.util.Date;
 
 public class V3 extends Video {
-    // TOOLS
     private final MRL mrl;
     private MediaPlayer player;
 
@@ -79,25 +78,18 @@ public class V3 extends Video {
 
         videoTexture = (int) player.texture();
 
-        // RENDER VIDEO
         if (player.playing() || paused()) {
             drawTexture(guiGraphics, getTextureId(videoTexture), actualX, actualY, actualWidth, actualHeight);
         }
 
-        // RENDER GIF
         if (!player.playing()) {
             if (paused())
                 renderIconAtCenter(guiGraphics, PAUSED, (int) (actualWidth / 2 - 18), (int) (actualHeight / 2 - 18), 36);
-/*            else {
-                var texture = getTextureId(ImageAPI.loadingGif().texture(tick, pPartialTick, true), 36, 36);
-                renderIconAtCenter(guiGraphics, texture, (int) (actualWidth / 2 - 18), (int) (actualHeight / 2 - 18), 36);
-            }*/
         }
 
         renderStep10(guiGraphics, pPartialTick);
         renderStep30(guiGraphics, pPartialTick);
 
-        // DEBUG RENDERING
         if (chatBoxScreen.isDebug()) {
             draw(guiGraphics, String.format("State: %s", player.status()), -12);
             draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(time())), time(), FORMAT.format(new Date(duration())), duration()), 0);
@@ -121,7 +113,6 @@ public class V3 extends Video {
             if (!force) fireEvent("ON_END");
             started = false;
             player.stop();
-            //minecraft.getSoundManager().resume();
             minecraft.getTextureManager().release(TEXTURES.remove(videoTexture));
             player.release();
         }

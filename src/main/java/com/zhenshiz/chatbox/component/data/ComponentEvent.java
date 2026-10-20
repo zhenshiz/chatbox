@@ -51,6 +51,7 @@ public class ComponentEvent {
     /**根据谓语条件触发事件，仍会验证事件本身的condition*/
     protected boolean fire(Predicate<ComponentEvent> predicate, int id, int index) {
         if (!predicate.test(this)) return false;
+        if (com.zhenshiz.chatbox.editor.EditorPreviewState.isActive() && !condition.isEmpty()) return false;
         if (condition.isEmpty()) return execute();
         if (condition.startsWith("execute") || condition.startsWith("server:")) {
             simplePayloadC2S("test_condition", condition, id, index);

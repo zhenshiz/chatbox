@@ -22,7 +22,7 @@ public class MinecraftMixin {
     }
 
     //? forge {
-    /*@Inject(method = "setScreen", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "setScreen", at = @At(value = "HEAD"), cancellable = true)
     private void setScreen(Screen screen, CallbackInfo ci) {
         if (screen == null) return;
         // 懒得添加依赖，用这种方式阻止吧
@@ -31,5 +31,5 @@ public class MinecraftMixin {
             if (ChatBoxClient.conf.isStopTerraDialog) ci.cancel();
         }
     }
-    *///?}
+    //?}
 }

@@ -48,3 +48,6 @@ bin/
 
 ### Jetbrains ###
 .idea/
+# 本地发布凭据与运行日志
+publish.env
+logs/

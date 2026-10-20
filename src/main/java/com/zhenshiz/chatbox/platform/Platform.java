@@ -1,31 +1,31 @@
 package com.zhenshiz.chatbox.platform;
 
 //? fabric {
-import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
+/*import com.zhenshiz.chatbox.event.fabric.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.fabric.SkipChatEvent;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
     //? < 1.21 {
-/*import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-    *///?}
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+    //?}
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-//?}
+*///?}
 import net.minecraft.client.Minecraft;
 //? neoforge {
 //?}
 //? forge {
-/*import com.zhenshiz.chatbox.network.Packets;
+import com.zhenshiz.chatbox.network.Packets;
 import com.zhenshiz.chatbox.event.forge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.forge.SkipChatEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.PacketDistributor;
-*///?}
+//?}
 //? >= 1.21
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+/*import net.minecraft.network.protocol.common.custom.CustomPacketPayload;*/
 //? < 1.21
-/*import com.zhenshiz.chatbox.network.CustomPacket;*/
+import com.zhenshiz.chatbox.network.CustomPacket;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,7 +39,7 @@ public interface Platform {
 
     Platform INSTANCE = new Platform() {};
     //? fabric {
-    default boolean isModLoaded(String modId) {return FabricLoader.getInstance().isModLoaded(modId);}
+    /*default boolean isModLoaded(String modId) {return FabricLoader.getInstance().isModLoaded(modId);}
 
     default String getModVersion(String modId) {
         return FabricLoader.getInstance().getModContainer(modId).map(container ->
@@ -51,11 +51,11 @@ public interface Platform {
     default File getGameDirectory() {return FabricLoader.getInstance().getGameDir().toFile();}
 
     //? >= 1.21 {
-    default void sendToServer(CustomPacketPayload packet) {ClientPlayNetworking.send(packet);}
+    /^default void sendToServer(CustomPacketPayload packet) {ClientPlayNetworking.send(packet);}
 
     default void sendToClient(ServerPlayer player, CustomPacketPayload packet) {ServerPlayNetworking.send(player, packet);}
-    //?} else {
-    /*default void sendToServer(CustomPacket packet) {
+    ^///?} else {
+    default void sendToServer(CustomPacket packet) {
         var buf = PacketByteBufs.create();
         packet.write(buf);
         ClientPlayNetworking.send(packet.id(), buf);
@@ -65,7 +65,7 @@ public interface Platform {
         var buf = PacketByteBufs.create();
         packet.write(buf);
         ServerPlayNetworking.send(player, packet.id(), buf);
-    }*///?}
+    }//?}
 
     default boolean postRenderEventPre(GuiGraphics guiGraphics) {
         return ChatBoxRenderEvent.PRE.invoker().pre(guiGraphics);
@@ -78,12 +78,12 @@ public interface Platform {
     default void postSkipChatEvent(Player player, ResourceLocation identifier, String group, Integer index, List<Entity> targets) {
         SkipChatEvent.EVENT.invoker().skipChat(player, identifier, group, index, targets);
     }
-    //?}
+    *///?}
 
     //? < 1.21 {
-    /*default void runOnClient(Runnable runnable) {
+    default void runOnClient(Runnable runnable) {
         Minecraft.getInstance().execute(runnable);
-    }*///?}
+    }//?}
 
     //? neoforge {
 /*    default boolean isModLoaded(String modId) {return ModList.get().isLoaded(modId);}
@@ -112,7 +112,7 @@ public interface Platform {
     //?}
 
     //? forge {
-    /*default boolean isModLoaded(String modId) {return ModList.get().isLoaded(modId);}
+    default boolean isModLoaded(String modId) {return ModList.get().isLoaded(modId);}
 
     default String getModVersion(String modId) {
         var modInfo = ModList.get().getModFileById(modId);
@@ -142,5 +142,5 @@ public interface Platform {
     default void postSkipChatEvent(Player player, ResourceLocation resourceLocation, String group, Integer index, List<Entity> targets) {
         MinecraftForge.EVENT_BUS.post(new SkipChatEvent(player, resourceLocation, group, index, targets));
     }
-    *///?}
+    //?}
 }

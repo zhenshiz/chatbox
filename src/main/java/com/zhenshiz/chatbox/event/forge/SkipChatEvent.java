@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.event.forge;
 
 //? forge {
-/*import lombok.AllArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -19,4 +19,3 @@ public class SkipChatEvent extends Event {
     private final int index;
     private final List<Entity> targets;
 }
-*/

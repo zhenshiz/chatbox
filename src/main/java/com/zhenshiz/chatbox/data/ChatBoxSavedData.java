@@ -2,7 +2,7 @@ package com.zhenshiz.chatbox.data;
 
 import net.minecraft.ChatFormatting;
 //? >= 1.21
-import net.minecraft.core.HolderLookup;
+/*import net.minecraft.core.HolderLookup;*/
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -24,9 +24,9 @@ public class ChatBoxSavedData extends SavedData {
     private final ServerLevel world;
 
     //? >= 1.21 {
-    public static Factory<ChatBoxSavedData> factory(ServerLevel world) {
+    /*public static Factory<ChatBoxSavedData> factory(ServerLevel world) {
         return new Factory<>(() -> new ChatBoxSavedData(world), (nbt, r) -> fromNbt(world, nbt), null);
-    }//?}
+    }*///?}
 
     public ChatBoxSavedData(ServerLevel world) {
         this.world = world;
@@ -161,7 +161,7 @@ public class ChatBoxSavedData extends SavedData {
     }
 
     @Override
-    public @NotNull CompoundTag save(CompoundTag nbt/*? >=1.21 {*/, HolderLookup.Provider registries/*?}*/) {
+    public @NotNull CompoundTag save(CompoundTag nbt/*? >=1.21 {*//*, HolderLookup.Provider registries*//*?}*/) {
         var triggerCounts = new CompoundTag();
         for (var entry : maxTriggerCounts.entrySet()) {
             var player = entry.getKey();

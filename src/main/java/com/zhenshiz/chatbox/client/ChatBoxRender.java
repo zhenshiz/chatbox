@@ -5,7 +5,7 @@ import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 //? >= 1.21
-import net.minecraft.client.DeltaTracker;
+/*import net.minecraft.client.DeltaTracker;*/
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.lwjgl.glfw.GLFW;
@@ -24,19 +24,20 @@ public class ChatBoxRender {
     public static int selectIndex = 0;
 
     //? >= 1.21 {
-    public static void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    /*public static void onHudRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
         float partialTick = deltaTracker.getGameTimeDeltaTicks();
-        //?} else {
-    /*public static void onHudRender(GuiGraphics guiGraphics, float partialTick) {
-        *///?}
+        *///?} else {
+    public static void onHudRender(GuiGraphics guiGraphics, float partialTick) {
+        //?}
         if (isRenderChatBox()) {
             chatBoxScreen.renderInner(guiGraphics, 0, 0, partialTick, false);
         }
     }
 
     public static void onEndTick(Minecraft minecraft) {
+        com.zhenshiz.chatbox.editor.EditorBridgeClient.tick();
         // 客户端每5 tick请求同步对话目标实体
-        if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
+        if (!com.zhenshiz.chatbox.editor.EditorPreview.isActive() && minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
             ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_SYNC);
         }
         if (isRenderChatBox()) {

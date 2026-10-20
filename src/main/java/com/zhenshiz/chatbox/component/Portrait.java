@@ -15,9 +15,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.ArrayUtils;
 //? >= 1.21 {
-import net.minecraft.core.component.DataComponents;
+/*import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomModelData;
-//?}
+*///?}
 
 import java.util.List;
 
@@ -200,13 +200,13 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
             var texture = getRenderResource();
             var stack = notNull(texture) ? new ItemStack(BuiltInRegistries.ITEM.get(texture), this.itemCount) : ItemStack.EMPTY;
             //? >= 1.21
-            if (customItemData != null) stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(customItemData));
+            /*if (customItemData != null) stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(customItemData));*/
             //? < 1.21 {
-            /*if (customItemData != null) {
+            if (customItemData != null) {
                 var tag = stack.getOrCreateTag();
                 tag.putInt("CustomModelData", customItemData);
                 stack.setTag(tag);
-            }*///?}
+            }//?}
             RenderUtil.renderOpacity(guiGraphics, this.brightness, this.opacity, () -> RenderUtil.renderItem(guiGraphics, stack, (int) realX(), (int) realY(), this.scale, this.angle, getAttachments()));
         }
     }

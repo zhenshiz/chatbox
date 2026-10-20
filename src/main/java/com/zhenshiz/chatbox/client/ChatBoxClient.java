@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.client;
 
 //? fabric {
-import com.zhenshiz.chatbox.Config;
+/*import com.zhenshiz.chatbox.Config;
 import com.zhenshiz.chatbox.event.fabric.InputEvent;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
@@ -19,20 +19,21 @@ public class ChatBoxClient implements ClientModInitializer {
     public void onInitializeClient() {
         AutoConfig.register(Config.class, Toml4jConfigSerializer::new);
         conf = AutoConfig.getConfigHolder(Config.class).getConfig();
+        com.zhenshiz.chatbox.editor.EditorBridgeClient.install();
         registerReceiver();
         registerRenderEvents();
     }
 
     private static void registerReceiver() {
         //? >= 1.21 {
-        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ChatBoxDataToClient.TYPE, ChatBoxPayload.ChatBoxDataToClient::execute);
+        /^ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ChatBoxDataToClient.TYPE, ChatBoxPayload.ChatBoxDataToClient::execute);
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.TYPE, ChatBoxPayload.SyncEntityData::execute);
         ClientPlayNetworking.registerGlobalReceiver(SimplePayload.TYPE, SimplePayload::execute);
-        //?} else {
-        /*ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ChatBoxDataToClient.ID, (client, h, buf, r) -> ChatBoxPayload.ChatBoxDataToClient.handleOnClient(ChatBoxPayload.ChatBoxDataToClient.decode(buf)));
+        ^///?} else {
+        ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.ChatBoxDataToClient.ID, (client, h, buf, r) -> ChatBoxPayload.ChatBoxDataToClient.handleOnClient(ChatBoxPayload.ChatBoxDataToClient.decode(buf)));
         ClientPlayNetworking.registerGlobalReceiver(ChatBoxPayload.SyncEntityData.ID, (client, h, buf, r) -> ChatBoxPayload.SyncEntityData.handleOnClient(ChatBoxPayload.SyncEntityData.decode(buf)));
         ClientPlayNetworking.registerGlobalReceiver(SimplePayload.ID, (client, h, buf, r) -> SimplePayload.handleOnClient(SimplePayload.decode(buf)));
-        *///?}
+        //?}
     }
 
     private void registerRenderEvents() {
@@ -42,9 +43,9 @@ public class ChatBoxClient implements ClientModInitializer {
         InputEvent.MouseButton.POST.register(ChatBoxRender::mousePost);
         InputEvent.MOUSE_SCROLLING.register(ChatBoxRender::onMouseScroll);
     }
-//?}
+*///?}
 //? forge {
-/*import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.Config;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
@@ -63,6 +64,7 @@ public class ChatBoxClient {
     public static void init() {
         AutoConfig.register(Config.class, Toml4jConfigSerializer::new);
         conf = AutoConfig.getConfigHolder(Config.class).getConfig();
+        com.zhenshiz.chatbox.editor.EditorBridgeClient.install();
     }
 
     @SubscribeEvent
@@ -89,5 +91,5 @@ public class ChatBoxClient {
     public static void mouseScroll(InputEvent.MouseScrollingEvent event) {
         if (ChatBoxRender.onMouseScroll(0, event.getScrollDelta(), event.isLeftDown(), event.isMiddleDown(), event.isRightDown(), event.getMouseX(), event.getMouseY())) event.setCanceled(true);
     }
-*///?}
+//?}
 }

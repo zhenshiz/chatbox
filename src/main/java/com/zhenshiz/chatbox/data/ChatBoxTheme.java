@@ -36,7 +36,7 @@ public class ChatBoxTheme {
         }
         public String type;
         public String value;
-        public String texture; // 与value作用相同，填一个就行，如果你非要两个都写……What can I say
+        public String texture; // 与 value 等价，优先使用 texture。
         public String hoverTexture;
         public String selectTexture; // 与hoverTexture作用相同，填一个就行
         public Boolean isLock;

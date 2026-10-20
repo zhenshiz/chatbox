@@ -26,15 +26,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 //? >= 1.21 {
-import com.mojang.authlib.properties.PropertyMap;
+/*import com.mojang.authlib.properties.PropertyMap;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.world.item.component.ResolvableProfile;
 import java.util.concurrent.ExecutionException;
-//?} else {
-/*import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+*///?} else {
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
-*///?}
+//?}
 
 public class RenderUtil {
     private static final Minecraft minecraft = Minecraft.getInstance();
@@ -58,19 +58,19 @@ public class RenderUtil {
     //一条线
     public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
         //? >= 1.21 {
-        BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        /*BufferBuilder buf = getTesselator().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
         buf.addVertex(mat, (float) x1, (float) y1, 0).setColor(color);
         buf.addVertex(mat, (float) x2, (float) y2, 0).setColor(color);
-        //?} else {
-        /*BufferBuilder buf = getBuffer();
+        *///?} else {
+        BufferBuilder buf = getBuffer();
         buf.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f mat = guiGraphics.pose().last().pose();
 
         buf.vertex(mat, (float) x1, (float) y1, 0).color(color).endVertex();
         buf.vertex(mat, (float) x2, (float) y2, 0).color(color).endVertex();
-        *///?}
+        //?}
 
         beginRendering();
         drawBuffer(buf);
@@ -80,7 +80,7 @@ public class RenderUtil {
     // image
     public static void renderImageInner(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float uw, float uh, float width, float height) {
         //? >= 1.21 {
-        BufferBuilder bufferBuilder = getTesselator().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        /*BufferBuilder bufferBuilder = getTesselator().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
         bufferBuilder.addVertex(matrix4f, x, y, 0).setUv(0, 0);
         bufferBuilder.addVertex(matrix4f, x, y + height, 0).setUv(0, uh);
@@ -92,8 +92,8 @@ public class RenderUtil {
         RenderSystem.setShaderTexture(0, resourceLocation);
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
-        //?} else {
-        /*BufferBuilder buf = getBuffer();
+        *///?} else {
+        BufferBuilder buf = getBuffer();
         buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
         buf.vertex(matrix4f, x, y, 0).uv(0, 0).endVertex();
@@ -106,7 +106,7 @@ public class RenderUtil {
         RenderSystem.enableBlend();
         BufferUploader.drawWithShader(buf.end());
         RenderSystem.disableBlend();
-        *///?}
+        //?}
     }
 
     public static void renderImage(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float width, float height, float scale, float angle, Attachment... attachments) {
@@ -123,7 +123,7 @@ public class RenderUtil {
 
     public static void renderPlayerHead(GuiGraphics guiGraphics, String input, int x, int y, int size, float scale, float angle, Attachment... attachments) {
         PoseStack pose = guiGraphics.pose();
-        ResourceLocation skin = getSkin(input)/*? >= 1.21 {*/.texture()/*?}*/;
+        ResourceLocation skin = getSkin(input)/*? >= 1.21 {*//*.texture()*//*?}*/;
         pose.pushPose();
         float centerX = x + (float) size / 2;
         float centerY = y + (float) size / 2;
@@ -149,7 +149,6 @@ public class RenderUtil {
         guiGraphics.pose().popPose();
     }
 
-    //text
     public static void drawStringAlign(GuiGraphics guiGraphics, String text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, boolean lineBreak) {
         var withRuby = new StringWithRuby(text);
         if (lineBreak) withRuby.drawLineBreak(guiGraphics, startX, startY, lineWidth, alignX, color);
@@ -247,7 +246,10 @@ public class RenderUtil {
         }
     }
 
-    public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
+    public static String translated(String key) {
+        String draft = com.zhenshiz.chatbox.editor.EditorPreview.translation(key);
+        return draft != null ? draft : Language.getInstance().getOrDefault(key);
+    }
 
     //util
 
@@ -259,14 +261,13 @@ public class RenderUtil {
         RenderSystem.disableBlend();
     }
 
-    //private
 
     private static void drawBuffer(BufferBuilder buf) {
         //? >= 1.21 {
-        BufferUploader.drawWithShader(Objects.requireNonNull(buf.buildOrThrow()));
-        //?} else {
-        /*BufferUploader.drawWithShader(buf.end());
-        *///?}
+        /*BufferUploader.drawWithShader(Objects.requireNonNull(buf.buildOrThrow()));
+        *///?} else {
+        BufferUploader.drawWithShader(buf.end());
+        //?}
     }
 
     public static void beginRendering() {
@@ -283,16 +284,16 @@ public class RenderUtil {
     }
 
     //? >= 1.21 {
-    private static Tesselator getTesselator() {
+    /*private static Tesselator getTesselator() {
         return Tesselator.getInstance();
     }
-    //?} else {
-    /*private static BufferBuilder getBuffer() {
+    *///?} else {
+    private static BufferBuilder getBuffer() {
         return Tesselator.getInstance().getBuilder();
-    }*///?}
+    }//?}
 
     //? >= 1.21 {
-    private static final Map<String, PlayerSkin> skins = new HashMap<>();
+    /*private static final Map<String, PlayerSkin> skins = new HashMap<>();
 
     private static void handleGameProfileAsync(String input) {
         ResolvableProfile component = createProfileComponent(input);
@@ -323,8 +324,8 @@ public class RenderUtil {
         if (skins.containsKey(input)) return skins.get(input);
         return DefaultPlayerSkin.get(minecraft.getUser().getProfileId());
     }
-    //?} else {
-    /*private static GameProfile createProfileComponent(String input) {
+    *///?} else {
+    private static GameProfile createProfileComponent(String input) {
         try {
             return new GameProfile(UUID.fromString(input), null);
         } catch (IllegalArgumentException e) {
@@ -346,7 +347,7 @@ public class RenderUtil {
         if (skins.containsKey(input)) return skins.get(input);
         return DefaultPlayerSkin.getDefaultSkin(Objects.requireNonNull(minecraft.getUser().getProfileId()));
     }
-    *///?}
+    //?}
 
     public static void renderEntityFollowsMouse(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int scale, float yOffset, float mouseX, float mouseY, LivingEntity entity) {
         float f = (float)(x1 + x2) / 2.0F;

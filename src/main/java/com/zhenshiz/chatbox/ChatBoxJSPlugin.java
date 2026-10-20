@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox;
 
 //? forge {
-/*import com.zhenshiz.chatbox.event.ChatBoxEventsJS;
+import com.zhenshiz.chatbox.event.ChatBoxEventsJS;
 import com.zhenshiz.chatbox.event.CommonEventsPostJS;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
 import dev.latvian.mods.kubejs.KubeJSPlugin;
@@ -28,4 +28,3 @@ public class ChatBoxJSPlugin extends KubeJSPlugin {
         ChatBoxEventsJS.GROUP.register();
     }
 }
-*/

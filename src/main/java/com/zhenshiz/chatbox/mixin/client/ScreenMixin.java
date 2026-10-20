@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ScreenMixin {
 
     //? >= 1.21
-    @Inject(method = "renderTransparentBackground", at = @At("HEAD"), cancellable = true)
+    /*@Inject(method = "renderTransparentBackground", at = @At("HEAD"), cancellable = true)*/
     //? < 1.21
-    /*@Inject(method = "renderBackground", at = @At("HEAD"), cancellable = true)*/
+    @Inject(method = "renderBackground", at = @At("HEAD"), cancellable = true)
     public void renderBackground(GuiGraphics guiGraphics, CallbackInfo ci) {
         if (ChatBoxRender.isRenderChatBox()) ci.cancel();
     }

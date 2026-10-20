@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.utils.math;
 
 //? < 1.21 {
-/*public class Clamp {
+public class Clamp {
     public static float clamp(float value, float min, float max) {
         // This unusual condition allows keeping only one branch
         // on common path when min < max and neither of them is NaN.
@@ -23,4 +23,3 @@ package com.zhenshiz.chatbox.utils.math;
         return Math.min(max, Math.max(value, min));
     }
 }
-*/

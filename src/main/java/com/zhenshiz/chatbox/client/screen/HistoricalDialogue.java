@@ -6,7 +6,7 @@ import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.CollUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 //? < 1.21
-/*import com.zhenshiz.chatbox.utils.math.Clamp;*/
+import com.zhenshiz.chatbox.utils.math.Clamp;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -37,11 +37,11 @@ public class HistoricalDialogue extends AbstractWidget {
 
     @Override
     protected void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        yOffset = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(yOffset + verticalScrollAmount * delta, height - 30 - (minecraft.font.lineHeight + 27) * historicalInfos.size(), height - 30);
+        yOffset = /*? >= 1.21 {*//*Math*//*?} else {*/Clamp/*?}*/.clamp(yOffset + verticalScrollAmount * delta, height - 30 - (minecraft.font.lineHeight + 27) * historicalInfos.size(), height - 30);
         if (verticalScrollAmount > 0) {
-            verticalScrollAmount = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(verticalScrollAmount - delta * 3, 0, Float.MAX_VALUE);
+            verticalScrollAmount = /*? >= 1.21 {*//*Math*//*?} else {*/Clamp/*?}*/.clamp(verticalScrollAmount - delta * 3, 0, Float.MAX_VALUE);
         } else {
-            verticalScrollAmount = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(verticalScrollAmount + delta * 3, -Float.MAX_VALUE, 0);
+            verticalScrollAmount = /*? >= 1.21 {*//*Math*//*?} else {*/Clamp/*?}*/.clamp(verticalScrollAmount + delta * 3, -Float.MAX_VALUE, 0);
         }
         int y = (int) (yOffset - 9);
         for (var historicalInfo : historicalInfos) {
@@ -52,7 +52,7 @@ public class HistoricalDialogue extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY/*? >= 1.21 {*/, double horizontalAmount/*?}*/, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY/*? >= 1.21 {*//*, double horizontalAmount*//*?}*/, double verticalAmount) {
         float direction = (float) Math.signum(verticalAmount);
         float baseSpeed = ChatBoxClient.conf.historicalScrollSpeed;
         verticalScrollAmount = direction * baseSpeed;
@@ -106,7 +106,7 @@ public class HistoricalDialogue extends AbstractWidget {
             poseStack.pushPose();
             poseStack.last().pose().scaleAround(1 + 0.05F * progress, (float) (x1 + x2) / 2, (float) (y1 + y2) / 2, 0);
             boolean inRect = isMouseInRect(mouseX, mouseY);
-            this.progress = /*? >= 1.21 {*/Math/*?} else {*//*Clamp*//*?}*/.clamp(progress + (inRect ? delta * 0.5F : -delta * 0.5F), 0, 1);
+            this.progress = /*? >= 1.21 {*//*Math*//*?} else {*/Clamp/*?}*/.clamp(progress + (inRect ? delta * 0.5F : -delta * 0.5F), 0, 1);
             guiGraphics.fill(x1, y1, x2, y2, getBackgroundColor());
             int width = RenderUtil.screenWidth() / 7 * 5;
             var font = minecraft.font;

@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.event.kubejs;
 
 //? forge {
-/*import com.zhenshiz.chatbox.event.forge.ChatBoxRenderEvent;
+import com.zhenshiz.chatbox.event.forge.ChatBoxRenderEvent;
 import dev.latvian.mods.kubejs.event.EventJS;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,4 +24,3 @@ public abstract class ChatBoxRenderEventJS extends EventJS {
         }
     }
 }
-*/

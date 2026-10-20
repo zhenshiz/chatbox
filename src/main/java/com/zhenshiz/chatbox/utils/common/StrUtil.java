@@ -134,13 +134,13 @@ public class StrUtil {
                 || c == '\ufeff'
                 || c == '\u202a'
                 || c == '\u0000'
-                // issue#I5UGSQ，Hangul Filler
+                // issue#I5UGSQ，韩文填充字符
                 || c == '\u3164'
-                // Braille Pattern Blank
+                // 盲文空白字符
                 || c == '\u2800'
-                // Zero Width Non-Joiner, ZWNJ
+                // 零宽非连接符
                 || c == '\u200c'
-                // MONGOLIAN VOWEL SEPARATOR
+                // 蒙古文元音分隔符
                 || c == '\u180e';
     }
 

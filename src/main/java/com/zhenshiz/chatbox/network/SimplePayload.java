@@ -11,13 +11,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 //? >= 1.21 {
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
-//?}
+*///?}
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil.*;
 
 //? >= 1.21 {
-public record SimplePayload(String name, String value) implements CustomPacketPayload {
+/*public record SimplePayload(String name, String value) implements CustomPacketPayload {
     public static final Type<SimplePayload> TYPE = new Type<>(ChatBox.id("simple_payload"));
     public static final StreamCodec<FriendlyByteBuf, SimplePayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, SimplePayload::name,
@@ -36,10 +36,14 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     );
 
     public static void execute(SimplePayload payload, ClientPlayNetworking.Context context) {
-        if (handlersS2C.containsKey(payload.name)) handlersS2C.get(payload.name).accept(payload.value);
+        if (handlersS2C.containsKey(payload.name)) {
+            com.zhenshiz.chatbox.editor.EditorPreview.stop();
+            handlersS2C.get(payload.name).accept(payload.value);
+        }
     }
 
     public static void execute(SimplePayload payload, ServerPlayNetworking.Context context) {
+        if (!com.zhenshiz.chatbox.editor.EditorDebugServer.permitsAction(context.player())) return;
         if (handlersC2S.containsKey(payload.name))
             handlersC2S.get(payload.name).accept(context.player(), payload.value);
     }
@@ -47,8 +51,8 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
     @Override
     public @NotNull CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return TYPE;
-    }//?} else {
-/*public record SimplePayload(String name, String value) implements CustomPacket {
+    }*///?} else {
+public record SimplePayload(String name, String value) implements CustomPacket {
     public ResourceLocation id() {return ID;}
     public static final ResourceLocation ID = ChatBox.id("simple_payload");
 
@@ -65,14 +69,18 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
 
     public static void handleOnClient(SimplePayload packet) {
         ChatBox.PLATFORM.runOnClient(() -> {
-            if (handlersS2C.containsKey(packet.name)) handlersS2C.get(packet.name).accept(packet.value);
+            if (handlersS2C.containsKey(packet.name)) {
+                com.zhenshiz.chatbox.editor.EditorPreview.stop();
+                handlersS2C.get(packet.name).accept(packet.value);
+            }
         });
     }
 
     public static void handleOnServer(ServerPlayer player, SimplePayload packet) {
+        if (!com.zhenshiz.chatbox.editor.EditorDebugServer.permitsAction(player)) return;
         if (handlersC2S.containsKey(packet.name))
             player.server.execute(() -> handlersC2S.get(packet.name).accept(player, packet.value));
-    }*///?}
+    }//?}
 
     private static final Map<String, Consumer<String>> handlersS2C = new HashMap<>();
 
@@ -121,8 +129,11 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         });
         addSimpleHandlerC2S(TEST_CONDITION, (player, s) -> {
             String[] parsed = StrUtil.parse(s);
-            if (parsed.length == 1) MVELUtil.eval(player, parsed[0], null);
-            else if (parsed.length != 3) return;
+            if (parsed.length == 1) {
+                MVELUtil.eval(player, parsed[0], null);
+                return;
+            }
+            if (parsed.length != 3) return;
             String condition = parsed[0];
             if (condition.startsWith("execute") && ComponentEvent.executeCommand(player.server, player, condition) == 1 ||
                     condition.startsWith("server:") && MVELUtil.eval(player, condition, null) instanceof Boolean b && b)
@@ -165,7 +176,10 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
 
     private static void onPlayerSkipChat(ServerPlayer player, ResourceLocation rl, String group, int index) {
         if (index != -1) {
-            var dialog = ChatBoxDialoguesLoader.parsedDialogues.get(rl).dialogues.get(group).get(index);
+            var model = com.zhenshiz.chatbox.editor.EditorDebugServer.dialogue(player, rl);
+            var frames = model == null ? null : model.dialogues.get(group);
+            if (frames == null || index < 0 || index >= frames.size()) return;
+            var dialog = frames.get(index);
             if (dialog.command != null) ComponentEvent.executeCommands(player, dialog.command);
 
             var options = dialog.options;

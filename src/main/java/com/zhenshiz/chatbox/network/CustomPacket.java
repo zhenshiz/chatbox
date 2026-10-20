@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.network;
 
 //? < 1.21 {
-/*import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 public interface CustomPacket {
@@ -10,4 +10,3 @@ public interface CustomPacket {
 
     void write(FriendlyByteBuf buf);
 }
-*/

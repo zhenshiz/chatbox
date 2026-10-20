@@ -3,7 +3,6 @@
 plugins {
     id("fabric-loom")
     id("dev.kikugie.postprocess.jsonlang")
-    id("me.modmuss50.mod-publish-plugin")
     id("io.freefair.lombok")
 }
 
@@ -38,6 +37,8 @@ repositories {
 }
 
 dependencies {
+    implementation("org.java-websocket:Java-WebSocket:1.6.0") { isTransitive = false }
+    include("org.java-websocket:Java-WebSocket:1.6.0") { isTransitive = false }
     var mcVersion = "${property("deps.minecraft")}"
     minecraft("com.mojang:minecraft:${mcVersion}")
     mappings(loom.layered {
@@ -55,7 +56,7 @@ dependencies {
         exclude("net.fabricmc.fabric-api")
     }
 
-    modImplementation("maven.modrinth:watermedia:${property("deps.watermedia")}")
+    modCompileOnly("maven.modrinth:watermedia:${property("deps.watermedia")}")
     modCompileOnly("curse.maven:watermedia-869524:8519098")
 
     include("org.mvel:mvel2:2.5.0.Final")
@@ -78,9 +79,12 @@ loom {
 
 tasks {
     processResources {
+        dependsOn("stonecutterGenerate")
         exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml",
             "META-INF/accesstransformer.cfg", "kubejs.plugins.txt")
     }
+
+    named("postProcessMainResources") { dependsOn("stonecutterGenerate") }
 
     register<Copy>("buildAndCollect") {
         group = "build"
@@ -101,36 +105,5 @@ java {
     targetCompatibility = javaCompat
 }
 
-val additionalVersionsStr = findProperty("publish.additionalVersions") as String?
-val additionalVersions: List<String> = additionalVersionsStr
-    ?.split(",")
-    ?.map { it.trim() }
-    ?.filter { it.isNotEmpty() }
-    ?: emptyList()
 
-publishMods {
-    file = tasks.remapJar.map { it.archiveFile.get() }
-    additionalFiles.from(tasks.remapSourcesJar.map { it.archiveFile.get() })
-
-    type = BETA
-    displayName = "${property("mod.name")} ${property("mod.version")} for ${stonecutter.current.version} Fabric"
-    version = "${property("mod.version")}+${property("deps.minecraft")}-fabric"
-    changelog = provider { rootProject.file("CHANGELOG.md").readText() }
-    modLoaders.add("fabric")
-
-    modrinth {
-        projectId = property("publish.modrinth") as String
-        accessToken = env.MODRINTH_API_KEY.orNull()
-        minecraftVersions.add(stonecutter.current.version)
-        minecraftVersions.addAll(additionalVersions)
-        requires("fabric-api")
-    }
-
-    curseforge {
-        projectId = property("publish.curseforge") as String
-        accessToken = env.CURSEFORGE_API_KEY.orNull()
-        minecraftVersions.add(stonecutter.current.version)
-        minecraftVersions.addAll(additionalVersions)
-        requires("fabric-api")
-    }
-}
+apply(from = rootProject.file("gradle/publish-conventions.gradle"))

@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.compat.terraentity;
 
 //? forge {
-/*import com.zhenshiz.chatbox.api.EventExecutor;
+import com.zhenshiz.chatbox.api.EventExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.SimpleMenuProvider;
@@ -24,4 +24,3 @@ public class TerraEntityShop {
         });
     }
 }
-*/

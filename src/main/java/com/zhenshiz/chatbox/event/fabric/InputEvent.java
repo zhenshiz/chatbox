@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.event.fabric;
 
 //? fabric {
-import net.fabricmc.fabric.api.event.Event;
+/*import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 
 public class InputEvent {
@@ -54,3 +54,4 @@ public class InputEvent {
         void onKey(int key, int scancode, int action, int modifiers);
     }
 }
+*/

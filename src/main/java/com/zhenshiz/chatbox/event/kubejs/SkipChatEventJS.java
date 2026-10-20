@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.event.kubejs;
 
 //? forge {
-/*import com.zhenshiz.chatbox.event.forge.SkipChatEvent;
+import com.zhenshiz.chatbox.event.forge.SkipChatEvent;
 import dev.latvian.mods.kubejs.event.EventJS;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
@@ -26,4 +26,3 @@ public class SkipChatEventJS extends EventJS {
         targets = event.getTargets();
     }
 }
-*/

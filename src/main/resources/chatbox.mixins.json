@@ -12,7 +12,9 @@
     "client.KeyboardHandlerMixin",
     "client.MinecraftMixin",
     "client.MouseHandlerMixin",
-    "client.ScreenMixin"
+    "client.ScreenMixin",
+    "client.EditorGameRendererMixin",
+    "client.EditorPackRepositoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

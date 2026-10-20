@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.mixin.client;
 
 //? fabric
-import com.zhenshiz.chatbox.event.fabric.InputEvent;
+/*import com.zhenshiz.chatbox.event.fabric.InputEvent;*/
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;
@@ -23,7 +23,7 @@ public class MouseHandlerMixin {
     }
 
     //? fabric {
-    @Shadow @Final private Minecraft minecraft;
+    /*@Shadow @Final private Minecraft minecraft;
 
     @Shadow private boolean isLeftPressed;
     @Shadow private boolean isMiddlePressed;
@@ -49,5 +49,5 @@ public class MouseHandlerMixin {
             ci.cancel();
         }
     }
-    //?}
+    *///?}
 }

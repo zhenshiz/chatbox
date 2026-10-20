@@ -1,7 +1,6 @@
 plugins {
     id("net.neoforged.moddev.legacyforge")
     id("dev.kikugie.postprocess.jsonlang")
-    id("me.modmuss50.mod-publish-plugin")
     id("io.freefair.lombok")
 }
 
@@ -21,9 +20,11 @@ repositories {
 }
 
 dependencies {
+    implementation("org.java-websocket:Java-WebSocket:1.6.0") { isTransitive = false }
+    jarJar("org.java-websocket:Java-WebSocket:1.6.0") { isTransitive = false }
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
     modImplementation("me.shedaniel.cloth:cloth-config-forge:${property("deps.cloth-config")}")
-    modImplementation("maven.modrinth:watermedia:${property("deps.watermedia")}")
+    modCompileOnly("maven.modrinth:watermedia:${property("deps.watermedia")}")
     modCompileOnly("curse.maven:watermedia-869524:8519098")
 
     jarJar("org.mvel:mvel2:2.5.0.Final")
@@ -63,6 +64,11 @@ legacyForge {
     sourceSets["main"].resources.srcDir("src/main/generated")
 }
 
+dependencies {
+    add("additionalRuntimeClasspath", "org.java-websocket:Java-WebSocket:1.6.0") { isTransitive = false }
+    add("additionalRuntimeClasspath", "org.mvel:mvel2:2.5.0.Final")
+}
+
 mixin {
     add(sourceSets.main.get(), "${property("mod.id")}-refmap.json")
     config("${property("mod.id")}.mixins.json")
@@ -99,16 +105,6 @@ java {
     targetCompatibility = javaCompat
 }
 
-val supportedMinecraftVersions: List<String> = com.google.common.collect.ImmutableList.builder<String>()
-    .addAll(
-        (property("publish.additionalVersions") as String?)
-        ?.split(",")
-        ?.map { it.trim() }
-        ?.filter { it.isNotEmpty() }
-        ?: emptyList())
-    .add(stonecutter.current.version)
-    .build()
-
 tasks.named<ProcessResources>("processResources") {
     val props = HashMap<String, String>().apply {
         this["version"] = project.property("mod.version") as String
@@ -119,29 +115,4 @@ tasks.named<ProcessResources>("processResources") {
     }
 }
 
-publishMods {
-    file = tasks.named<org.gradle.jvm.tasks.Jar>("reobfJar").map { it.archiveFile.get() }
-    additionalFiles.from(tasks.named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile.get() })
-
-    val modVersion = property("mod.version") as String
-    type = if (modVersion.contains("alpha")) ALPHA
-    else if (modVersion.contains("beta")) BETA
-    else STABLE
-
-    displayName = "${property("mod.name")} $modVersion for ${stonecutter.current.version} Forge"
-    version = "${modVersion}-${property("deps.minecraft")}-forge"
-    changelog = provider { rootProject.file("CHANGELOG.md").readText() }
-    modLoaders.add("forge")
-
-    modrinth {
-        projectId = property("publish.modrinth") as String
-        accessToken = env.MODRINTH_API_KEY.orNull()
-        minecraftVersions.addAll(supportedMinecraftVersions)
-    }
-
-    curseforge {
-        projectId = property("publish.curseforge") as String
-        accessToken = env.CURSEFORGE_API_KEY.orNull()
-        minecraftVersions.addAll(supportedMinecraftVersions)
-    }
-}
+apply(from = rootProject.file("gradle/publish-conventions.gradle"))

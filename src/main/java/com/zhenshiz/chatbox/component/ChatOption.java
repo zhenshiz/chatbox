@@ -111,7 +111,7 @@ public class ChatOption extends Portrait<ChatOption> {
         if (this.alignY == AlignY.BOTTOM) this.y -= (num - 1) * this.height;
 
         int color = isLock ? CommonColors.GRAY : isSelect ?
-                /*? >= 1.21 {*/CommonColors.YELLOW/*?} else {*//*-256*//*?}*/ : CommonColors.WHITE;
+                /*? >= 1.21 {*//*CommonColors.YELLOW*//*?} else {*/-256/*?}*/ : CommonColors.WHITE;
         //render image
         renderImage(guiGraphics, getRenderResource(), addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false, true)));
 

@@ -23,6 +23,6 @@ public class Config implements ConfigData {
     public boolean disableMouseScroll = false;
 
     //? forge
-    /*public boolean isStopTerraDialog = false;*/
+    public boolean isStopTerraDialog = false;
 
 }

@@ -1,0 +1,174 @@
+import groovy.json.JsonOutput
+
+apply plugin: 'com.modrinth.minotaur'
+apply from: rootProject.file('gradle/curseforge-upload.gradle')
+
+abstract class ValidateModPublication extends DefaultTask {
+    @Input abstract Property<String> getPlatform()
+    @Input abstract Property<String> getProjectId()
+    @Internal abstract Property<String> getApiToken()
+    @Input abstract Property<Boolean> getDryRunMode()
+    @Input abstract Property<String> getReleaseType()
+
+    @TaskAction
+    void validatePublication() {
+        if (!projectId.get().trim()) {
+            throw new GradleException("未配置 ${platform.get()} 项目 ID。")
+        }
+        if (platform.get() == 'CurseForge' && !(projectId.get() ==~ /[0-9]+/)) {
+            throw new GradleException('CurseForge 项目 ID 必须是数字。')
+        }
+        if (!(releaseType.get() in ['release', 'beta', 'alpha'])) {
+            throw new GradleException('publish_release_type 只支持 release、beta 或 alpha。')
+        }
+        if (!dryRunMode.get() && !apiToken.get().trim()) {
+            def key = platform.get() == 'CurseForge' ? 'CURSEFORGE_TOKEN' : 'MODRINTH_TOKEN'
+            throw new GradleException("缺少 ${key}，请配置环境变量或根目录 publish.env；尚未上传。")
+        }
+    }
+}
+
+def publishEnv = providers.fileContents(rootProject.layout.projectDirectory.file('publish.env')).asText.orElse('').map { content ->
+    def values = [:]
+    content.eachLine { line ->
+        def text = line.trim()
+        def separator = text.indexOf('=')
+        if (!text.startsWith('#') && separator > 0) {
+            def value = text.substring(separator + 1).trim()
+            if (value.length() >= 2 && ((value.startsWith('"') && value.endsWith('"')) ||
+                    (value.startsWith("'") && value.endsWith("'")))) {
+                value = value.substring(1, value.length() - 1)
+            }
+            values[text.substring(0, separator).trim()] = value
+        }
+    }
+    values
+}
+def envOrFile = { String key ->
+    providers.environmentVariable(key).orElse('').zip(publishEnv) { environment, values ->
+        environment.trim() ?: values[key] ?: ''
+    }
+}
+def splitSlugs = { String value ->
+    (value ?: '').split(',').collect { it.trim() }.findAll { it }.unique()
+}
+def cfProjectId = providers.gradleProperty('publish_curseforge_project_id').getOrElse('')
+def mrProjectId = providers.gradleProperty('publish_modrinth_project_id').getOrElse('')
+def cfToken = envOrFile('CURSEFORGE_TOKEN')
+def mrToken = envOrFile('MODRINTH_TOKEN')
+def dryRun = providers.gradleProperty('publish_dry_run').isPresent()
+def modVersion = project.property('mod.version').toString()
+def loader = project.name.substring(project.name.lastIndexOf('-') + 1)
+def loaderName = loader == 'forge' ? 'Forge' : 'Fabric'
+def minecraftVersion = project.property('deps.minecraft').toString()
+def publishVersionNumber = "${modVersion}-${loader}-${minecraftVersion}".toString()
+def publishVersionName = "ChatBox ${modVersion} (${loaderName} ${minecraftVersion})".toString()
+def lowerVersion = modVersion.toLowerCase(Locale.ROOT)
+def releaseType = providers.gradleProperty('publish_release_type').getOrElse(
+        lowerVersion.contains('alpha') ? 'alpha' : lowerVersion.contains('beta') ? 'beta' : 'release')
+def publishChangelog = envOrFile('PUBLISH_CHANGELOG').get().trim() ?:
+        providers.gradleProperty('publish_changelog').getOrElse('').trim() ?:
+        providers.fileContents(rootProject.layout.projectDirectory.file('CHANGELOG.md')).asText.getOrElse('').trim() ?:
+        "ChatBox ${modVersion}".toString()
+def uploadTask = tasks.named(loader == 'forge' ? 'reobfJar' : 'remapJar')
+def uploadJar = uploadTask.flatMap { it.archiveFile }
+def cfRelations = []
+['requires': 'requiredDependency', 'optional': 'optionalDependency'].each { suffix, relation ->
+    splitSlugs(providers.gradleProperty("publish_curseforge_${suffix}").getOrElse('')).each {
+        cfRelations << [slug: it, type: relation]
+    }
+}
+def cfMetadata = [
+        displayName: publishVersionName,
+        changelog: publishChangelog,
+        changelogType: 'markdown',
+        releaseType: releaseType,
+        gameVersionNames: [minecraftVersion, loaderName, 'Client', 'Server', minecraftVersion == '1.20.1' ? 'Java 17' : 'Java 21']
+]
+cfRelations << [slug: 'cloth-config', type: 'requiredDependency']
+if (loader == 'fabric') cfRelations << [slug: 'fabric-api', type: 'requiredDependency']
+if (cfRelations) cfMetadata.relations = [projects: cfRelations]
+
+def validateCf = tasks.register('validateCurseforgePublication', ValidateModPublication) {
+    group = 'publishing'
+    description = '检查 CurseForge 发布配置与凭据'
+    platform.set('CurseForge')
+    projectId.set(cfProjectId)
+    apiToken.set(cfToken)
+    dryRunMode.set(dryRun)
+    it.releaseType.set(releaseType)
+}
+def validateMr = tasks.register('validateModrinthPublication', ValidateModPublication) {
+    group = 'publishing'
+    description = '检查 Modrinth 发布配置与凭据'
+    platform.set('Modrinth')
+    projectId.set(mrProjectId)
+    apiToken.set(mrToken)
+    dryRunMode.set(dryRun)
+    it.releaseType.set(releaseType)
+}
+
+tasks.register('publishCurseforge', project.ext.curseForgeUploadTaskType) {
+    group = 'publishing'
+    description = '构建并上传 ChatBox 至 CurseForge'
+    dependsOn validateCf
+    mustRunAfter validateMr
+    uploadFile.set(uploadJar)
+    projectId.set(cfProjectId)
+    apiToken.set(cfToken)
+    dryRunMode.set(dryRun)
+    uploadMetadata.set(cfMetadata)
+}
+
+def mrDependencies = []
+['requires': 'required', 'optional': 'optional'].each { suffix, relation ->
+    splitSlugs(providers.gradleProperty("publish_modrinth_${suffix}").getOrElse('')).each {
+        mrDependencies << [project: it, type: relation]
+    }
+}
+mrDependencies << [project: 'cloth-config', type: 'required']
+if (loader == 'fabric') mrDependencies << [project: 'fabric-api', type: 'required']
+modrinth {
+    token.set(mrToken)
+    projectId.set(mrProjectId)
+    versionNumber.set(publishVersionNumber)
+    versionName.set(publishVersionName)
+    versionType.set(releaseType)
+    uploadFile.set(uploadTask)
+    gameVersions.set([minecraftVersion])
+    loaders.set([loader])
+    detectLoaders.set(false)
+    changelog.set(publishChangelog)
+    dependencies {
+        mrDependencies.each { dependency ->
+            if (dependency.type == 'required') required.project(dependency.project)
+            else optional.project(dependency.project)
+        }
+    }
+}
+
+def mrPreview = JsonOutput.prettyPrint(JsonOutput.toJson([
+        project_id: mrProjectId, version_number: publishVersionNumber, name: publishVersionName,
+        version_type: releaseType, game_versions: [minecraftVersion], loaders: [loader],
+        changelog: publishChangelog, dependencies: mrDependencies
+]))
+tasks.named('modrinth') {
+    group = 'publishing'
+    description = '构建并上传 ChatBox 至 Modrinth'
+    dependsOn validateMr
+    mustRunAfter validateCf
+    notCompatibleWithConfigurationCache('Minotaur 发布任务会在执行时读取项目扩展。')
+    // Minotaur 的 debugMode 仍会查询平台；本地试运行直接输出配置，避免访问发布接口。
+    onlyIf {
+        if (dryRun) {
+            logger.lifecycle("Modrinth 试运行：${uploadJar.get().asFile.name}\n${mrPreview}")
+        }
+        !dryRun
+    }
+}
+
+tasks.register('publishMods') {
+    group = 'publishing'
+    description = '构建并上传 ChatBox 至 CurseForge 与 Modrinth；支持 -Ppublish_dry_run 试运行'
+    dependsOn 'publishCurseforge', 'modrinth'
+}

@@ -20,13 +20,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.Block;
 //? >= 1.21 {
-import net.fabricmc.api.EnvType;
+/*import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.scores.ScoreHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.item.enchantment.Enchantment;//?}
+import net.minecraft.world.item.enchantment.Enchantment;*///?}
 import org.jetbrains.annotations.Nullable;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
@@ -248,7 +248,7 @@ public class MVELUtil {
     }
 
     //? >= 1.21 {
-    public static boolean isServerSide() {
+    /*public static boolean isServerSide() {
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) return true;
         var server = ChatBox.server;
         return server != null && server.isSameThread();
@@ -265,15 +265,15 @@ public class MVELUtil {
     public static @Nullable Holder<Enchantment> getEnchantment(String id) {
         var registry = getRegistry();
         return registry != null ? registry.registryOrThrow(Registries.ENCHANTMENT).getHolder(ChatBox.parseId(id)).orElse(null) : null;
-    }//?}
+    }*///?}
 
     @ChatBoxMvel
     public static Integer getEnchantLevel(Object o, Object... args) {
         if (o instanceof ItemStack stack && args.length == 1 && args[0] instanceof String id) {
             //? >= 1.21
-            var holder = getEnchantment(id);
+            /*var holder = getEnchantment(id);*/
             //? < 1.21
-            /*var holder = BuiltInRegistries.ENCHANTMENT.get(ChatBox.parseId(id));*/
+            var holder = BuiltInRegistries.ENCHANTMENT.get(ChatBox.parseId(id));
             return holder != null ? EnchantmentHelper.getItemEnchantmentLevel(holder, stack) : null;
         }
         return null;
@@ -283,9 +283,9 @@ public class MVELUtil {
     public static String enchant(Object o, Object... args) {
         if (o instanceof ItemStack stack && args.length == 2 && args[0] instanceof String id && args[1] instanceof Integer level) {
             //? >= 1.21
-            var holder = getEnchantment(id);
+            /*var holder = getEnchantment(id);*/
             //? < 1.21
-            /*var holder = BuiltInRegistries.ENCHANTMENT.get(ChatBox.parseId(id));*/
+            var holder = BuiltInRegistries.ENCHANTMENT.get(ChatBox.parseId(id));
             if (holder == null) return "Enchantment " + id + " not found!";
             stack.enchant(holder, level);
             return "Success";
@@ -330,11 +330,11 @@ public class MVELUtil {
             var obj = scoreboard.getObjective(objective);
             if (obj == null) return null;
             //? < 1.21 {
-            /*return scoreboard.getOrCreatePlayerScore(player.getScoreboardName(), obj).getScore();
-            *///?} else {
-            var score = scoreboard.getPlayerScoreInfo(ScoreHolder.forNameOnly(player.getScoreboardName()), obj);
+            return scoreboard.getOrCreatePlayerScore(player.getScoreboardName(), obj).getScore();
+            //?} else {
+            /*var score = scoreboard.getPlayerScoreInfo(ScoreHolder.forNameOnly(player.getScoreboardName()), obj);
             return score != null ? score.value() : 0;
-            //?}
+            *///?}
         }
         return null;
     }
@@ -362,16 +362,16 @@ public class MVELUtil {
             var parsedId = ChatBox.parseId(id);
             if (p instanceof ServerPlayer player) {
                 //? < 1.21
-                /*var holder = Objects.requireNonNull(player.getServer()).getAdvancements().getAdvancement(parsedId);*/
+                var holder = Objects.requireNonNull(player.getServer()).getAdvancements().getAdvancement(parsedId);
                 //? >= 1.21
-                var holder = Objects.requireNonNull(player.getServer()).getAdvancements().get(parsedId);
+                /*var holder = Objects.requireNonNull(player.getServer()).getAdvancements().get(parsedId);*/
                 return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
             } else if (p instanceof LocalPlayer player) {
                 var advancements = player.connection.getAdvancements();
                 //? < 1.21
-                /*var holder = advancements.getAdvancements().get(parsedId);*/
+                var holder = advancements.getAdvancements().get(parsedId);
                 //? >= 1.21
-                var holder = advancements.get(parsedId);
+                /*var holder = advancements.get(parsedId);*/
                 return holder != null && advancements.progress.get(holder).isDone();
             }
         }

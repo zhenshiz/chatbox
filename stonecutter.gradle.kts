@@ -4,11 +4,11 @@ plugins {
     id("fabric-loom") version "1.14-SNAPSHOT" apply false
     id("net.neoforged.moddev") version "2.0.131" apply false
     id("dev.kikugie.postprocess.jsonlang") version "2.1-beta.4" apply false
-    id("me.modmuss50.mod-publish-plugin") version "0.8.+" apply false
+    id("com.modrinth.minotaur") version "2.10.0" apply false
     id("io.freefair.lombok") version "8.6" apply false
 }
 
-stonecutter active "1.21-fabric"
+stonecutter active "1.20.1-forge"
 
 stonecutter parameters {
     constants.match(node.metadata.project.substringAfterLast('-'), "fabric", "neoforge", "forge")
@@ -16,7 +16,7 @@ stonecutter parameters {
 }
 
 stonecutter tasks {
-    order("publishModrinth")
+    order("modrinth")
     order("publishCurseforge")
 }
 

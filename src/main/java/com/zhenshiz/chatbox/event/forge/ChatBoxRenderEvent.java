@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.event.forge;
 
 //? forge {
-/*import lombok.AllArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -25,4 +25,3 @@ public abstract class ChatBoxRenderEvent extends Event {
         }
     }
 }
-*/

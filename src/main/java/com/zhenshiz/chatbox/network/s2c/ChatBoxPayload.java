@@ -7,22 +7,22 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 //? < 1.21 {
-/*import com.google.common.collect.Maps;
+import com.google.common.collect.Maps;
 import com.zhenshiz.chatbox.network.CustomPacket;
-*///?} else {
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+//?} else {
+/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.NotNull;
-//?}
+*///?}
 
 import java.util.*;
 
 public class ChatBoxPayload {
 
     //? >= 1.21 {
-    public record ChatBoxDataToClient(String name, Map<ResourceLocation, List<String>> dataMap) implements CustomPacketPayload {
+    /*public record ChatBoxDataToClient(String name, Map<ResourceLocation, List<String>> dataMap) implements CustomPacketPayload {
         public static final Type<ChatBoxDataToClient> TYPE = new Type<>(ChatBox.id("chat_box_data_to_client"));
         public static final StreamCodec<FriendlyByteBuf, ChatBoxDataToClient> CODEC = StreamCodec.composite(
                 ByteBufCodecs.STRING_UTF8, ChatBoxDataToClient::name,
@@ -38,6 +38,10 @@ public class ChatBoxPayload {
         public @NotNull Type<? extends CustomPacketPayload> type() {return TYPE;}
 
         public static void execute(ChatBoxDataToClient payload, ClientPlayNetworking.Context context) {
+            if (payload.name().equals("theme") || payload.name().equals("dialogues")) {
+                com.zhenshiz.chatbox.editor.EditorDebug.stop();
+                com.zhenshiz.chatbox.editor.EditorPreview.stop();
+            }
             switch (payload.name()) {
                 case "theme" -> {
                     ChatBoxUtil.setTheme(mergeString(payload.dataMap()));
@@ -71,8 +75,8 @@ public class ChatBoxPayload {
             ChatBoxUtil.setChatTargets(payload.entities());
         }
     }
-    //?} else {
-    /*public record ChatBoxDataToClient(String name, Map<ResourceLocation, List<String>> dataMap) implements CustomPacket {
+    *///?} else {
+    public record ChatBoxDataToClient(String name, Map<ResourceLocation, List<String>> dataMap) implements CustomPacket {
         public ResourceLocation id() {return ID;}
         public static final ResourceLocation ID = ChatBox.id("chatbox_data_to_client");
 
@@ -89,7 +93,11 @@ public class ChatBoxPayload {
 
         public static void handleOnClient(ChatBoxDataToClient packet) {
             ChatBox.PLATFORM.runOnClient(() -> {
-                switch (packet.name()) {
+                if (packet.name().equals("theme") || packet.name().equals("dialogues")) {
+                com.zhenshiz.chatbox.editor.EditorDebug.stop();
+                com.zhenshiz.chatbox.editor.EditorPreview.stop();
+            }
+            switch (packet.name()) {
                     case "theme" -> {
                         ChatBoxUtil.setTheme(mergeString(packet.dataMap()));
                         if (ChatBoxUtil.themeResourceLocation != null) {
@@ -120,7 +128,7 @@ public class ChatBoxPayload {
             ChatBox.PLATFORM.runOnClient(() -> ChatBoxUtil.setChatTargets(packet.entities));
         }
     }
-    *///?}
+    //?}
 
     private static Map<ResourceLocation, String> mergeString(Map<ResourceLocation, List<String>> map) {
         Map<ResourceLocation, String> result = new HashMap<>();

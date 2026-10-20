@@ -5,30 +5,25 @@
   "commands.skip.dialogues": "Successfully jumped to %s group sentence %s",
   "commands.set.max.trigger.count": "Successfully set maximum trigger count of %s to %s",
   "commands.reset.max.trigger.count": "Successfully reset maximum trigger count for all dialogues",
-
   "chatbox.configuration.config": "ChatBox Mod Config Screen",
   "chatbox.configuration.historical_scroll_speed": "The speed of the historical record interface scroll wheel",
-
   "text.autoconfig.chatbox_config.title": "ChatBox Mod Config Screen",
   "text.autoconfig.chatbox_config.option.historicalScrollSpeed": "The speed of the historical record interface scroll wheel",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "sound interruption",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "Whether to interrupt currently playing sound when no new sound is available",
-  "text.autoconfig.chatbox_config.option.charPerSecond":"Characters to display per second",
-  "text.autoconfig.chatbox_config.option.portraitWidthPercent":"Picture portrait width scale percentage",
+  "text.autoconfig.chatbox_config.option.charPerSecond": "Characters to display per second",
+  "text.autoconfig.chatbox_config.option.portraitWidthPercent": "Picture portrait width scale percentage",
   "text.autoconfig.chatbox_config.option.disableMouseScroll": "Disable mouse scroll",
   "text.autoconfig.chatbox_config.option.disableMouseScroll.@Tooltip": "Disable mouse scroll action in the chatbox screen (scroll up for log, down as mouse click)",
-  "text.autoconfig.chatbox_config.option.isStopTerraDialog":"Whether to block TerraNpc's dialogue system",
-
+  "text.autoconfig.chatbox_config.option.isStopTerraDialog": "Whether to block TerraNpc's dialogue system",
   "chatbox.key.right_click": "Confirm",
   "chatbox.key.scroll": "Toggle options",
   "chatbox.key.esc": "Close dialog",
   "chatbox.key.ctrl": "Fast-forward",
   "chatbox.key.f6": "Autoplay",
-
   "chatbox.button.log": "log",
   "chatbox.button.fast_forward": "fast forward",
   "chatbox.button.autoplay": "autoplay",
-
   "chatbox.test.name.1": "Inaba Meguru",
   "chatbox.test.text.1": "Ciallo～(∠・ω< )⌒☆ @s, welcome to the ChatBox mod!\nThis dialog system is designed for map and modpack creators, aiming to provide players with an immersive, <ruby 12 galgame>visual-novel-like conversation experience in Minecraft.",
   "chatbox.test.text.2": "This mod uses datapacks to store dialog content, offering high configuration freedom. Every element you see in this interface can be modified via datapacks.",
@@ -48,7 +43,6 @@
   "chatbox.test.option.6": "Click Me to Show Hidden Options",
   "chatbox.test.tooltip.1": "Unlocked when you have a netherite sword in your first slot",
   "chatbox.test.attachment.1": "Text Attachment",
-
   "chatbox.debug.tip1": "Debug mode enabled. Hold Shift to display component borders and cursor position",
   "chatbox.debug.tip2": "While holding %s:",
   "chatbox.debug.tip3": "  ①Displays information for the hovered component",
@@ -56,7 +50,6 @@
   "chatbox.debug.tip5": "  ③Mouse wheel scroll to adjust %s (hold alt to change property)",
   "chatbox.debug.tip6": "%s + C to copy current hovered component information",
   "chatbox.debug.tip7": "%s + R to reload data (requires permission)",
-
   "chatbox.group.add.fail": "%s has joined other group, failed to create new group",
   "chatbox.group.join.fail": "Member %s has joined other group",
   "chatbox.group.join.success": "%s successfully joined %s's group",
@@ -64,5 +57,12 @@
   "chatbox.group.remove": "%s's group is removed",
   "chatbox.group.quit": "%s quit the group",
   "chatbox.group.setLeader": "%s is now the group leader",
-  "chatbox.group.clear": "All group information cleared"
+  "chatbox.group.clear": "All group information cleared",
+  "chatbox.editor.connection": "Connection address (click to copy): %s",
+  "chatbox.editor.token": "Pairing code (click to copy): %s",
+  "chatbox.editor.copy": "Click to copy, then paste into the matching field in the website ChatBox editor",
+  "chatbox.editor.instructions": "Open ChatBox on the website > Connect game, paste the address and pairing code into their fields, then connect.",
+  "chatbox.editor.error": "Could not start the editor bridge: %s",
+  "chatbox.editor.stopped": "Editor bridge stopped",
+  "chatbox.editor.sample": "This is a temporary preview from the ChatBox web editor."
 }

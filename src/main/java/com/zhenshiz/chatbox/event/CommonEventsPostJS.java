@@ -1,7 +1,7 @@
 package com.zhenshiz.chatbox.event;
 
 //? forge {
-/*import com.zhenshiz.chatbox.event.forge.ChatBoxRenderEvent;
+import com.zhenshiz.chatbox.event.forge.ChatBoxRenderEvent;
 import com.zhenshiz.chatbox.event.forge.SkipChatEvent;
 import com.zhenshiz.chatbox.event.kubejs.ChatBoxRenderEventJS;
 import com.zhenshiz.chatbox.event.kubejs.SkipChatEventJS;
@@ -46,4 +46,3 @@ public class CommonEventsPostJS {
         }
     }
 }
-*/

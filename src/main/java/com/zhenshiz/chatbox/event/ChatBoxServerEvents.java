@@ -14,7 +14,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 //? fabric {
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+/*import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
@@ -22,16 +22,16 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import com.zhenshiz.chatbox.event.fabric.SkipChatEvent;
-//?}
+*///?}
 //? forge {
-/*import com.zhenshiz.chatbox.event.forge.SkipChatEvent;
+import com.zhenshiz.chatbox.event.forge.SkipChatEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.fml.common.Mod;
-*///?}
+//?}
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,11 +39,11 @@ import java.util.List;
 import java.util.Map;
 
 //? forge
-/*@Mod.EventBusSubscriber(modid = ChatBox.MOD_ID)*/
+@Mod.EventBusSubscriber(modid = ChatBox.MOD_ID)
 public class ChatBoxServerEvents {
 
     //? fabric {
-    private static class ThemeFabric extends ChatBoxThemeLoader implements IdentifiableResourceReloadListener {
+    /*private static class ThemeFabric extends ChatBoxThemeLoader implements IdentifiableResourceReloadListener {
         public ResourceLocation getFabricId() {return ChatBox.id("chatbox/theme");}
     }
 
@@ -55,9 +55,9 @@ public class ChatBoxServerEvents {
         //只需要保存在主世界的data目录下即可
         if (world.dimension() == Level.OVERWORLD)
             //? >= 1.21 {
-            ChatBox.setSavedData(world.getDataStorage().computeIfAbsent(ChatBoxSavedData.factory(world), "chatbox_saved_data"));
-            //?} else {
-            /*ChatBox.setSavedData(world.getDataStorage().computeIfAbsent(nbt -> ChatBoxSavedData.fromNbt(world, nbt), () -> new ChatBoxSavedData(world), "chatbox_saved_data"));*///?}
+            /^ChatBox.setSavedData(world.getDataStorage().computeIfAbsent(ChatBoxSavedData.factory(world), "chatbox_saved_data"));
+            ^///?} else {
+            ChatBox.setSavedData(world.getDataStorage().computeIfAbsent(nbt -> ChatBoxSavedData.fromNbt(world, nbt), () -> new ChatBoxSavedData(world), "chatbox_saved_data"));//?}
     }
 
     public static void init() {
@@ -68,15 +68,15 @@ public class ChatBoxServerEvents {
         ServerWorldEvents.LOAD.register(ChatBoxServerEvents::loadSavedData);
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((s, manager, bl) -> {
             //? >= 1.21
-            ChatBoxDialoguesLoader.loadCriteria(s);
+            /^ChatBoxDialoguesLoader.loadCriteria(s);^/
             s.getPlayerList().getPlayers().forEach(ChatBoxServerEvents::initializeChatBoxScreen);
         });
         //? >= 1.21
-        ServerLifecycleEvents.SERVER_STARTED.register(ChatBoxDialoguesLoader::loadCriteria);
+        /^ServerLifecycleEvents.SERVER_STARTED.register(ChatBoxDialoguesLoader::loadCriteria);^/
         SkipChatEvent.EVENT.register(ChatBoxServerEvents::onSkipChat);
-    }//?} else {
+    }*///?} else {
 
-    /*@SubscribeEvent
+    @SubscribeEvent
     public static void chatBoxLoader(AddReloadListenerEvent event) {
         event.addListener(new ChatBoxThemeLoader());
         event.addListener(new ChatBoxDialoguesLoader());
@@ -108,7 +108,7 @@ public class ChatBoxServerEvents {
     public static void onSkipChat(SkipChatEvent event) {
         onSkipChat(event.getPlayer(), event.getResourceLocation(), event.getGroup(), event.getIndex(), event.getTargets());
     }
-    *///?}
+    //?}
 
     public static void initializeChatBoxScreen(ServerPlayer player) {
         //玩家进入以及重载数据包后，发包到客户端
@@ -134,6 +134,7 @@ public class ChatBoxServerEvents {
 
     private static void onSkipChat(Player p, ResourceLocation rl, String group, int index, List<Entity> targets) {
         if (!(p instanceof ServerPlayer player)) return;
+        if (com.zhenshiz.chatbox.editor.EditorDebugServer.isDebugging(player)) return;
         var data = ChatBox.getSavedData();
         if (!data.isPlayerLeader(player)) return;
         for (var member : data.getMembers(player)) {

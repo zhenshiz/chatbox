@@ -1,18 +1,19 @@
 package com.zhenshiz.chatbox.network;
 
 //? fabric {
-import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
+/*import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
     //? >= 1.21 {
-import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
+/^import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-    //?}
+    ^///?}
 
 public class Packets {
 
     public static void register() {
+        com.zhenshiz.chatbox.editor.EditorNetwork.register();
         //? >= 1.21 {
-        PayloadTypeRegistry.playS2C().register(ChatBoxPayload.ChatBoxDataToClient.TYPE, ChatBoxPayload.ChatBoxDataToClient.CODEC);
+        /^PayloadTypeRegistry.playS2C().register(ChatBoxPayload.ChatBoxDataToClient.TYPE, ChatBoxPayload.ChatBoxDataToClient.CODEC);
         PayloadTypeRegistry.playS2C().register(ChatBoxPayload.SyncEntityData.TYPE, ChatBoxPayload.SyncEntityData.CODEC);
         PayloadTypeRegistry.playS2C().register(SimplePayload.TYPE, SimplePayload.CODEC);
 
@@ -21,18 +22,18 @@ public class Packets {
 
         ServerPlayNetworking.registerGlobalReceiver(SimplePayload.TYPE, SimplePayload::execute);
         ServerPlayNetworking.registerGlobalReceiver(SendClickEvent.TYPE, SendClickEvent::execute);
-        //?} else {
-        /*ServerPlayNetworking.registerGlobalReceiver(SendClickEvent.ID, (server, player, h, buf, r) -> SendClickEvent.handleOnServer(player, SendClickEvent.decode(buf)));
+        ^///?} else {
+        ServerPlayNetworking.registerGlobalReceiver(SendClickEvent.ID, (server, player, h, buf, r) -> SendClickEvent.handleOnServer(player, SendClickEvent.decode(buf)));
         ServerPlayNetworking.registerGlobalReceiver(SimplePayload.ID, (server, player, h, buf, r) -> SimplePayload.handleOnServer(player, SimplePayload.decode(buf)));
-        *///?}
+        //?}
     }
-}//?}
+}*///?}
 
 //? neoforge {
 //?}
 
 //? forge {
-/*import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,6 +53,7 @@ public class Packets {
     private static int nextId() {return ++id;}
 
     public static void register() {
+        com.zhenshiz.chatbox.editor.EditorNetwork.register();
         CHANNEL.registerMessage(nextId(), ChatBoxPayload.ChatBoxDataToClient.class, ChatBoxPayload.ChatBoxDataToClient::encode, ChatBoxPayload.ChatBoxDataToClient::decode, (packet, ctx) -> {
             ctx.get().enqueueWork(() -> ChatBoxPayload.ChatBoxDataToClient.handleOnClient(packet));
             ctx.get().setPacketHandled(true);
@@ -79,4 +81,4 @@ public class Packets {
 
     public static SimpleChannel getChannel() {return CHANNEL;}
 }
-*///?}
+//?}

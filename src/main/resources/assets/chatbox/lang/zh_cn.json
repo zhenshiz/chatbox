@@ -5,30 +5,25 @@
   "commands.skip.dialogues": "成功跳转到 %s 组第 %s 句话",
   "commands.set.max.trigger.count": "成功设置 %s 的最多访问次数为 %s",
   "commands.reset.max.trigger.count": "成功重置所有对话的最多访问次数",
-
   "chatbox.configuration.config": "ChatBox模组配置",
   "chatbox.configuration.historical_scroll_speed": "历史记录界面滚轮速度",
-
   "text.autoconfig.chatbox_config.title": "ChatBox模组配置",
   "text.autoconfig.chatbox_config.option.historicalScrollSpeed": "历史记录界面滚轮速度",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled": "音效中断",
   "text.autoconfig.chatbox_config.option.soundInterruptionEnabled.@Tooltip": "下句话如果没有新音效，是否中断前面正在播放的音效",
-  "text.autoconfig.chatbox_config.option.charPerSecond":"每秒显示的字符数",
-  "text.autoconfig.chatbox_config.option.portraitWidthPercent":"图片立绘宽度缩放百分比",
+  "text.autoconfig.chatbox_config.option.charPerSecond": "每秒显示的字符数",
+  "text.autoconfig.chatbox_config.option.portraitWidthPercent": "图片立绘宽度缩放百分比",
   "text.autoconfig.chatbox_config.option.disableMouseScroll": "禁用鼠标滚轮动作",
   "text.autoconfig.chatbox_config.option.disableMouseScroll.@Tooltip": "禁用对话框屏幕的：向上滚动到历史记录，向下滚动同鼠标点击",
-  "text.autoconfig.chatbox_config.option.isStopTerraDialog":"是否阻拦TerraNpc的对话系统",
-
+  "text.autoconfig.chatbox_config.option.isStopTerraDialog": "是否阻拦TerraNpc的对话系统",
   "chatbox.key.right_click": "确定",
   "chatbox.key.scroll": "切换选项",
   "chatbox.key.esc": "关闭对话框",
   "chatbox.key.ctrl": "快进对话",
   "chatbox.key.f6": "自动播放",
-
   "chatbox.button.log": "历史记录",
   "chatbox.button.fast_forward": "快进",
   "chatbox.button.autoplay": "自动播放",
-
   "chatbox.test.name.1": "因幡巡",
   "chatbox.test.text.1": "Ciallo～(∠・ω< )⌒☆ @s，欢迎使用对话框模组。\n这是一款为地图和整合包制作者设计的对话框模组，旨在让玩家能在mc中有如<ruby 4 galgame>视觉小说般的沉浸式对话体验。",
   "chatbox.test.text.2": "本模组使用数据包存储对话内容，配置的自由度极高，你在这个界面看到的所有元素全部可以通过数据包修改。",
@@ -48,7 +43,6 @@
   "chatbox.test.option.6": "点我可以显示隐藏选项",
   "chatbox.test.tooltip.1": "需要物品栏第一格是下界合金剑才能解锁",
   "chatbox.test.attachment.1": "这是文本渲染附件",
-
   "chatbox.debug.tip1": "已启用调试模式，按住Shift键显示组件边框和鼠标位置",
   "chatbox.debug.tip2": "按住%s键时：",
   "chatbox.debug.tip3": "  ①显示当前鼠标悬停的组件信息",
@@ -56,7 +50,6 @@
   "chatbox.debug.tip5": "  ③滚动鼠标滚轮调整组件的%s（按住alt键改变调整的属性）",
   "chatbox.debug.tip6": "%s + C 复制当前鼠标悬停的组件信息",
   "chatbox.debug.tip7": "%s + R 重载数据包（需要管理员权限）",
-
   "chatbox.group.add.fail": "%s 已加入其他小组，无法创建小组",
   "chatbox.group.join.fail": "成员 %s 已加入其他小组",
   "chatbox.group.join.success": "%s 成功加入 %s 的小组",
@@ -64,5 +57,12 @@
   "chatbox.group.remove": "已解散 %s 的小组",
   "chatbox.group.quit": "%s 退出了所在的小组",
   "chatbox.group.setLeader": "%s 已成为小组组长",
-  "chatbox.group.clear": "已清空所有小组信息"
+  "chatbox.group.clear": "已清空所有小组信息",
+  "chatbox.editor.connection": "连接地址（点击复制）：%s",
+  "chatbox.editor.token": "配对码（点击复制）：%s",
+  "chatbox.editor.copy": "点击复制，粘贴到网页 ChatBox 的对应输入框",
+  "chatbox.editor.instructions": "打开网页 ChatBox → 连接游戏，分别粘贴连接地址和配对码，然后点击连接游戏。",
+  "chatbox.editor.error": "无法启动编辑器连接：%s",
+  "chatbox.editor.stopped": "编辑器连接已关闭",
+  "chatbox.editor.sample": "这是来自 ChatBox 网页编辑器的临时预览。"
 }
