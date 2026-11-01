@@ -55,6 +55,14 @@ public final class EditorPreview {
         if (isActive() && mc.screen instanceof PreviewScreen screen) EditorPreviewStream.capture(screen);
     }
 
+    static JsonObject animationPosition(ChatBoxScreen screen) {
+        if (!(screen instanceof PreviewScreen preview) || preview.animationKey == null) return null;
+        JsonObject position = new JsonObject();
+        position.addProperty("key", preview.animationKey);
+        position.addProperty("frame", preview.animationFrame);
+        return position;
+    }
+
     /**
      * 在当前预览版本中更新组件的位置及可选的宽高、缩放和角度。
      *
@@ -117,6 +125,39 @@ public final class EditorPreview {
         float value = request.get(key).getAsFloat();
         if (!Float.isFinite(value) || nonNegative && value < 0) throw new IllegalArgumentException("Invalid preview " + key);
         return value;
+    }
+
+    /**
+     * 将当前临时预览中指定立绘的动画定位到累计帧。
+     *
+     * @param request 包含预览版本、立绘键及非负整数帧数的请求对象
+     * @return 包含已定位帧数的响应对象
+     * @throws IllegalArgumentException 立绘不存在、帧数无效或关键帧时长无效时
+     * @throws IllegalStateException 预览版本已失效时
+     */
+    static JsonObject animation(JsonObject request) {
+        if (!isActive() || !revision.equals(request.get("revision").getAsString())
+                || !(Minecraft.getInstance().screen instanceof PreviewScreen screen)) {
+            throw new IllegalStateException("The editor preview has changed");
+        }
+        double frame = request.get("frame").getAsDouble();
+        if (!Double.isFinite(frame) || frame < 0 || frame > Integer.MAX_VALUE || frame != Math.floor(frame)) {
+            throw new IllegalArgumentException("Invalid animation frame");
+        }
+        String key = request.get("key").getAsString();
+        var portraits = screen.portraits.stream().filter(p -> p.getId().equals(key)).toList();
+        if (portraits.isEmpty()) throw new IllegalArgumentException("Preview portrait is unavailable");
+        for (var portrait : portraits) portrait.seekAnimation((int) frame);
+        screen.animationKey = key;
+        screen.animationFrame = (int) frame;
+        JsonObject result = new JsonObject();
+        result.addProperty("frame", (int) frame);
+        var portrait = portraits.get(0);
+        JsonObject pose = new JsonObject();
+        pose.addProperty("x", portrait.x);
+        pose.addProperty("y", portrait.y);
+        result.add("pose", pose);
+        return result;
     }
 
     static JsonObject show(JsonObject request) {
@@ -230,6 +271,11 @@ public final class EditorPreview {
             dialogue.isPause = false;
             dialogue.isHistoricalSkip = false;
             ChatBoxUtil.skipDialogues(ID, group, index);
+            if (request.has("animation") && request.get("animation").isJsonObject()) {
+                JsonObject animation = request.getAsJsonObject("animation").deepCopy();
+                animation.addProperty("revision", revision);
+                animation(animation);
+            }
             if (request.has("stream") && request.get("stream").getAsBoolean()) {
                 mc.options.pauseOnLostFocus = false;
                 ((PreviewScreen) ChatBoxUtil.chatBoxScreen).streaming = true;
@@ -244,6 +290,8 @@ public final class EditorPreview {
 
     private static final class PreviewScreen extends ChatBoxScreen {
         private boolean streaming;
+        private String animationKey;
+        private int animationFrame;
         @Override protected boolean showKeyPromptInScreen() { return true; }
         @Override public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             try { super.render(graphics, mouseX, mouseY, partialTick); }

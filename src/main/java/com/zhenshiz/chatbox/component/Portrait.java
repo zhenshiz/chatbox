@@ -101,6 +101,37 @@ public class Portrait<T extends Portrait<T>> extends AbstractComponent<T> {
         return setIsAnimation(true);
     }
 
+    /**
+     * 将动画定位到指定的累计帧，并暂停自动播放。
+     *
+     * <p>从原始姿态重新计算各段关键帧，不触发动画结束事件；超过总时长时保留最后一帧的姿态。
+     * 此方法不会改变关键帧列表或循环配置。
+     *
+     * @param frame 从零开始的非负累计帧数
+     * @return 此立绘实例
+     * @throws IllegalArgumentException 帧数为负数，或关键帧时长为空或小于一时
+     */
+    public T seekAnimation(int frame) {
+        if (frame < 0 || keyframes.stream().anyMatch(k -> k.time == null || k.time < 1)) {
+            throw new IllegalArgumentException("Animation frames and durations must be non-negative and positive respectively");
+        }
+        if (keyframes.isEmpty()) {
+            this.isAnimation = false;
+            return (T) this;
+        }
+        resetAnimation();
+        this.currentFrame = 0;
+        this.isAnimation = false;
+        int remaining = frame;
+        for (var keyframe : keyframes) {
+            if (remaining == 0) break;
+            int elapsed = Math.min(remaining, keyframe.time);
+            keyframe.apply(this, startKeyframe, elapsed);
+            remaining -= elapsed;
+        }
+        return (T) this;
+    }
+
     public void stopAnimation() {
         if (!isAnimation || loop) return;
         for (var keyframe : keyframes) {

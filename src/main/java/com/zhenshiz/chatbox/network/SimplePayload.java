@@ -163,7 +163,8 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
         addHandlerS2C(CLEAR_CHAT_OPTION, s -> clientClearChatOption());
         addHandlerS2C(MVEL_TEST, s -> MVELUtil.commandTest(ChatBoxUtil.getPlayer(), s));
         addHandlerS2C(TEST_CONDITION, s -> ChatBoxUtil.chatBoxScreen.executeEvent(s));
-        addHandlerS2C(PLAY_VIDEO, ChatBoxUtil::playVideo);
+        // 收到客户端消息时才解析渲染类，专用服务端注册消息时不能加载客户端类。
+        addHandlerS2C(PLAY_VIDEO, s -> ChatBoxUtil.playVideo(s));
     }
 
     private static void onPlayerSkipChat(ServerPlayer player, ResourceLocation rl, String group, int index) {

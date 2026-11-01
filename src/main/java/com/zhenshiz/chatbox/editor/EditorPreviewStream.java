@@ -62,6 +62,8 @@ final class EditorPreviewStream {
             frame.addProperty("height", image.getHeight());
             frame.addProperty("guiWidth", mc.getWindow().getGuiScaledWidth());
             frame.addProperty("guiHeight", mc.getWindow().getGuiScaledHeight());
+            JsonObject animation = EditorPreview.animationPosition(screen);
+            if (animation != null) frame.add("animation", animation);
             JsonArray bounds = new JsonArray();
             ChatBoxTheme theme = ChatBoxUtil.chatBoxTheme;
             addBounds(bounds, "dialogBox", "", screen.dialogBox, theme.dialogBox);

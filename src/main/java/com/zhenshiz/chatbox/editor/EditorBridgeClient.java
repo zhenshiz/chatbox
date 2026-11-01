@@ -234,6 +234,7 @@ public final class EditorBridgeClient {
                     }
                     case "preview" -> EditorPreview.show(request);
                     case "preview.move" -> EditorPreview.move(request);
+                    case "preview.animation" -> EditorPreview.animation(request);
                     case "preview.stop" -> { EditorPreview.stop(); yield new JsonObject(); }
                     default -> throw new IllegalArgumentException("Unsupported editor request: " + type);
                 };
@@ -270,6 +271,7 @@ public final class EditorBridgeClient {
         result.addProperty("previewStream", true);
         result.addProperty("previewMove", true);
         result.addProperty("previewTransform", true);
+        result.addProperty("previewAnimation", true);
         result.addProperty("dialogueDebug", true);
         result.addProperty("minecraft", net.minecraft.SharedConstants.getCurrentVersion().getName());
         result.addProperty("chatbox", net.neoforged.fml.ModList.get().getModContainerById(ChatBox.MOD_ID).orElseThrow().getModInfo().getVersion().toString());
