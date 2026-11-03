@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.editor.EditorPreview;
 import com.zhenshiz.chatbox.client.ChatBoxRender;
 import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
@@ -186,12 +187,14 @@ public class ChatBoxUtil {
             //添加历史聊天记录
             historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
 
-            NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
-            SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
+            if (!EditorPreview.isActive()) {
+                NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
+                SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
+            }
 
             ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {
-                minecraft.setScreen(chatBoxScreen);
+                if (!EditorPreview.isActive() || minecraft.screen != chatBoxScreen) minecraft.setScreen(chatBoxScreen);
             } else {
                 // 防止进入两种模式的叠加态
                 if (minecraft.screen instanceof ChatBoxScreen) minecraft.setScreen(null);
@@ -199,6 +202,7 @@ public class ChatBoxUtil {
             }
             // 确认对话框加载完成后再设置客户端对话框信息
             setDialoguesInfo(dialoguesResourceLocation, group, index);
+            com.zhenshiz.chatbox.editor.EditorDebug.position();
         } else closeDialogBox();
     }
 
@@ -207,6 +211,10 @@ public class ChatBoxUtil {
     }
 
     public static void closeDialogBox() {
+        if (EditorPreview.isActive()) {
+            EditorPreview.stop();
+            return;
+        }
         if (isScreen) minecraft.setScreen(null); else ChatBoxRender.shouldRender = false;
         ChatBoxRender.isOpenChatBox = false;
         chatBoxScreen.setDebug(false);
@@ -221,6 +229,7 @@ public class ChatBoxUtil {
         if (dialoguesResourceLocation == null || group == null || minecraft.player == null) return;
         NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, -1, chatTargets));
         SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, "-1");
+        com.zhenshiz.chatbox.editor.EditorDebug.stop();
     }
 
     //切换对话框主题
@@ -264,7 +273,7 @@ public class ChatBoxUtil {
         // @s 替换成当前玩家id
         if (getPlayer() != null) input = input.replaceAll("(?<!@)@s", getPlayer().getDisplayName().getString());
 
-        input = MVELUtil.parseTargetPlaceholders(getPlayer(), input);
+        if (!EditorPreview.isActive()) input = MVELUtil.parseTargetPlaceholders(getPlayer(), input);
 
         if (!isLineBreak) input = input.replace("\n", "");
         // 将@@ 替换为 @

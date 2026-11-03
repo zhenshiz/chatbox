@@ -20,6 +20,8 @@ public class ChatBoxNetWork {
         //c2s
         registrar.playToServer(SendClickEvent.TYPE, SendClickEvent.CODEC, SendClickEvent::execute);
 
+        registrar.optional().playBidirectional(com.zhenshiz.chatbox.editor.EditorFilePayload.TYPE, com.zhenshiz.chatbox.editor.EditorFilePayload.CODEC, com.zhenshiz.chatbox.editor.EditorFilePayload::handle);
+
         registrar.playBidirectional(SimplePayload.TYPE, SimplePayload.CODEC, SimplePayload::execute);
     }
 }

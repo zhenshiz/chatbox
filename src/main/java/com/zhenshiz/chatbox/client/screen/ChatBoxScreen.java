@@ -269,11 +269,19 @@ public class ChatBoxScreen extends Screen {
         if (video != null) list.add(video);
         if (isScreen) {
             if (!hideDialogBox) list.addAll(functionalButtons);
-        } else list.add(keyPromptRender);
+        }
+        if (!isScreen || showKeyPromptInScreen()) list.add(keyPromptRender);
 
         list.sort(Comparator.comparingInt(p -> p.renderOrder));
         return list;
     }
+
+    /**
+     * 判断此界面是否显示渲染模式的按键提示。
+     *
+     * @return 界面模式也显示按键提示时返回 {@code true}
+     */
+    protected boolean showKeyPromptInScreen() { return false; }
 
     public void renderInner(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
         if (!renderStarted) { renderStarted = true; fireEvent("ON_START"); }

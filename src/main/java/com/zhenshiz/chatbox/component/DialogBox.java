@@ -138,7 +138,6 @@ public class DialogBox extends Portrait<DialogBox> {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float pPartialTick) {
         renderInner(mouseX, mouseY);
-        //chatBox image
         renderImage(guiGraphics, getRenderResource(), addTempAttachment(
                 Attachment.ofText(parseText(this.name), this.nameX, this.nameY, this.lineWidth, this.textAlign.name(), -1, false, true),
                 Attachment.ofText(subString(parseText(this.text), charIndex), this.textX, this.textY, this.lineWidth, this.textAlign.name(), -1, true, false)

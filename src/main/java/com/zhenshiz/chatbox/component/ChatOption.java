@@ -113,10 +113,8 @@ public class ChatOption extends Portrait<ChatOption> {
         if (this.alignY == AlignY.BOTTOM) this.y -= (num - 1) * this.height;
 
         int color = isLock ? CommonColors.GRAY : isSelect ? CommonColors.YELLOW : CommonColors.WHITE;
-        //render image
         renderImage(guiGraphics, getRenderResource(), addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false, true)));
 
-        //render tooltip
         if (!this.optionTooltip.isEmpty() && isSelect) {
             guiGraphics.renderTooltip(minecraft.font, Component.nullToEmpty(this.optionTooltip), (int) realX(), (int) realY());
         }

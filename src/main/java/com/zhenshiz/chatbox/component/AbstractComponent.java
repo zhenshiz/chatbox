@@ -64,6 +64,18 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> implemen
     protected boolean renderStarted = false;
     @Nullable public CompEvtWrapper events;
 
+    /**
+     * 在原地刷新后将组件标记为已开始渲染，避免重复触发开始事件。
+     *
+     * <p>下次渲染跳过开始事件，悬浮、点击、条件事件和动画仍正常生效。
+     *
+     * @return 当前组件
+     */
+    public T resumeRendering() {
+        this.renderStarted = true;
+        return (T) this;
+    }
+
     public T setHidden(Boolean hidden) {
         if (notNull(hidden)) this.hidden = hidden;
         return (T) this;

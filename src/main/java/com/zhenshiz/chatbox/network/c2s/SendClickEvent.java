@@ -22,6 +22,7 @@ public record SendClickEvent(String clickType, String value) implements CustomPa
 
     public static void execute(SendClickEvent payload, IPayloadContext context) {
         ServerPlayer player = (ServerPlayer) context.player();
+        if (!com.zhenshiz.chatbox.editor.EditorDebugServer.permitsAction(player)) return;
         EventExecutor.EXECUTORS.get(payload.clickType()).executeOnServer(player, payload.value());
     }
 

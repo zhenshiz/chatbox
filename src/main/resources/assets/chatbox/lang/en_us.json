@@ -59,5 +59,13 @@
   "chatbox.group.remove": "%s's group is removed",
   "chatbox.group.quit": "%s quit the group",
   "chatbox.group.setLeader": "%s is now the group leader",
-  "chatbox.group.clear": "All group information cleared"
+  "chatbox.group.clear": "All group information cleared",
+
+  "chatbox.editor.connection": "Connection address (click to copy): %s",
+  "chatbox.editor.token": "Pairing code (click to copy): %s",
+  "chatbox.editor.copy": "Click to copy, then paste into the matching field in the website ChatBox editor",
+  "chatbox.editor.instructions": "Open ChatBox on the website > Connect game, paste the address and pairing code into their fields, then connect.",
+  "chatbox.editor.error": "Could not start the editor bridge: %s",
+  "chatbox.editor.stopped": "Editor bridge stopped",
+  "chatbox.editor.sample": "This is a temporary preview from the ChatBox web editor."
 }

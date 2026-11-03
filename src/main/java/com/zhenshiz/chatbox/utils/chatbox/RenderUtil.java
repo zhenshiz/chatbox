@@ -43,7 +43,6 @@ public class RenderUtil {
         return minecraft.getWindow().getGuiScaledHeight();
     }
 
-    //fill
 
     //矩形
     public static void fillRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
@@ -208,7 +207,7 @@ public class RenderUtil {
 
         buf.addVertex(mat, x + w, y + h, 0).setColor(color);
         buf.addVertex(mat, x, y + h, 0).setColor(color);
-        buf.addVertex(mat, x, corners[0][1], 0).setColor(color); // connect last to first vertex
+        buf.addVertex(mat, x, corners[0][1], 0).setColor(color); // 将最后一个顶点连接回起点。
 
         beginRendering();
         drawBuffer(buf);
@@ -242,7 +241,7 @@ public class RenderUtil {
 
         buf.addVertex(mat, x, y, 0).setColor(color);
         buf.addVertex(mat, x + w, y, 0).setColor(color);
-        buf.addVertex(mat, x + w, corners[0][1], 0).setColor(color); // connect last to first vertex
+        buf.addVertex(mat, x + w, corners[0][1], 0).setColor(color); // 将最后一个顶点连接回起点。
 
         beginRendering();
         drawBuffer(buf);
@@ -259,7 +258,6 @@ public class RenderUtil {
         fillRoundRect(guiGraphics, x, y, thickness, length, thickness / 2, color);
     }
 
-    //draw
 
     //矩形
     public static void drawRect(GuiGraphics guiGraphics, int x, int y, int w, int h, int color) {
@@ -348,7 +346,7 @@ public class RenderUtil {
             }
         }
 
-        buf.addVertex(mat, corners[0][0], y, 0).setColor(color); // connect last to first vertex
+        buf.addVertex(mat, corners[0][0], y, 0).setColor(color); // 将最后一个顶点连接回起点。
 
         beginRendering();
         drawBuffer(buf);
@@ -365,7 +363,6 @@ public class RenderUtil {
         drawRoundRect(guiGraphics, x, y, thickness, length, thickness / 2, color);
     }
 
-    // image
     public static void renderImageInner(GuiGraphics guiGraphics, ResourceLocation resourceLocation, float x, float y, float uw, float uh, float width, float height) {
         BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
@@ -421,7 +418,6 @@ public class RenderUtil {
         guiGraphics.pose().popPose();
     }
 
-    //text
     public static void drawStringAlign(GuiGraphics guiGraphics, String text, int startX, int startY, int lineWidth, AbstractComponent.AlignX alignX, int color, boolean lineBreak) {
         var withRuby = new StringWithRuby(text);
         if (lineBreak) withRuby.drawLineBreak(guiGraphics, startX, startY, lineWidth, alignX, color);
@@ -519,9 +515,11 @@ public class RenderUtil {
         }
     }
 
-    public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
+    public static String translated(String key) {
+        String draft = com.zhenshiz.chatbox.editor.EditorPreview.translation(key);
+        return draft == null ? Language.getInstance().getOrDefault(key) : draft;
+    }
 
-    //cursor
 
     public static void setCursor(int x, int y) {
         Window window = minecraft.getWindow();
@@ -545,7 +543,6 @@ public class RenderUtil {
         return new Point((int) (rW * minecraft.mouseHandler.xpos()), (int) (rH * minecraft.mouseHandler.ypos()));
     }
 
-    //util
 
     public static void renderOpacity(GuiGraphics guiGraphics, float brightness, float opacity, Runnable runnable) {
         RenderSystem.enableBlend();
@@ -555,7 +552,6 @@ public class RenderUtil {
         RenderSystem.disableBlend();
     }
 
-    //private
 
     private static void drawBuffer(BufferBuilder buf) {
         BufferUploader.drawWithShader(Objects.requireNonNull(buf.build()));

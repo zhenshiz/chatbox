@@ -5,6 +5,7 @@ import com.zhenshiz.chatbox.compat.plugin.PluginHelper;
 import com.zhenshiz.chatbox.compat.terraentity.TerraEntityShop;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
 import com.zhenshiz.chatbox.data.ChatBoxSavedData;
+import com.zhenshiz.chatbox.editor.EditorBridgeClient;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
 import lombok.Getter;
@@ -38,6 +39,7 @@ public class ChatBox {
         if (isTerraEntityLoaded()) TerraEntityShop.register();
 
         if (dist.isClient()) {
+            EditorBridgeClient.install(modEventBus);
             modContainer.registerConfig(ModConfig.Type.COMMON, Config.CONFIG_SPEC, StrUtil.format("{}_config.toml", MOD_ID));
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
 

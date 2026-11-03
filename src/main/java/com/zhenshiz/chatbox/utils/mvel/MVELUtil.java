@@ -88,14 +88,6 @@ public class MVELUtil {
         addPropertyResolver("uuid", Entity::getUUID);
         addPropertyResolver("foodLevel", entity -> entity instanceof Player p ? p.getFoodData().getFoodLevel() : 0);
         addPropertyResolver("offHandItem", e -> e instanceof LivingEntity le ? le.getOffhandItem() : null);
-/*        registerProperty("mainHandItem", MVELUtil::getMainHandItem);
-        registerProperty("count", MVELUtil::getCount);
-        addPropertyResolver("tags", Entity::getTags);
-        addPropertyResolver("health", entity -> entity instanceof LivingEntity le ? le.getHealth() : 0);
-        addPropertyResolver("experienceLevel", entity -> entity instanceof Player p ? p.experienceLevel : 0);
-        addPropertyResolver("x", Entity::getX);
-        addPropertyResolver("y", Entity::getY);
-        addPropertyResolver("z", Entity::getZ);*/
     }
 
     /**将一个类中所有的public static方法导入到ctx中，重名的方法无法添加，不建议使用*/

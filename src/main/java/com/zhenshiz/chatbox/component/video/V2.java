@@ -10,7 +10,6 @@ import java.net.URI;
 import java.util.Date;
 
 public class V2 extends Video {
-    // TOOLS
     private final VideoPlayer player;
 
     public V2(URI uri) {
@@ -79,13 +78,11 @@ public class V2 extends Video {
 
         videoTexture = player.preRender();
 
-        // RENDER VIDEO
         if (player.isPlaying() || paused()) {
-            if (player.dimension() == null) return; // Checking if video available
+            if (player.dimension() == null) return;
             drawTexture(guiGraphics, getTextureId(videoTexture), actualX, actualY, actualWidth, actualHeight);
         }
 
-        // RENDER GIF
         if (!player.isPlaying()) {
             if (paused())
                 renderIconAtCenter(guiGraphics, PAUSED, (int) (actualWidth / 2 - 18), (int) (actualHeight / 2 - 18), 36);
@@ -98,7 +95,6 @@ public class V2 extends Video {
         renderStep10(guiGraphics, pPartialTick);
         renderStep30(guiGraphics, pPartialTick);
 
-        // DEBUG RENDERING
         if (chatBoxScreen.isDebug()) {
             draw(guiGraphics, String.format("State: %s", player.getStateName()), -12);
             draw(guiGraphics, String.format("Time: %s (%s) / %s (%s)", FORMAT.format(new Date(time())), time(), FORMAT.format(new Date(duration())), duration()), 0);
@@ -122,7 +118,6 @@ public class V2 extends Video {
             if (!force) fireEvent("ON_END");
             started = false;
             player.stop();
-            //minecraft.getSoundManager().resume();
             GlStateManager._deleteTexture(videoTexture);
             player.release();
         }
