@@ -1,6 +1,7 @@
 package com.zhenshiz.chatbox.network;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.editor.EditorFilePayload;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -19,8 +20,7 @@ public class ChatBoxNetWork {
 
         //c2s
         registrar.playToServer(SendClickEvent.TYPE, SendClickEvent.CODEC, SendClickEvent::execute);
-
-        registrar.optional().playBidirectional(com.zhenshiz.chatbox.editor.EditorFilePayload.TYPE, com.zhenshiz.chatbox.editor.EditorFilePayload.CODEC, com.zhenshiz.chatbox.editor.EditorFilePayload::handle);
+        registrar.optional().playBidirectional(EditorFilePayload.TYPE, EditorFilePayload.CODEC, EditorFilePayload::handle);
 
         registrar.playBidirectional(SimplePayload.TYPE, SimplePayload.CODEC, SimplePayload::execute);
     }

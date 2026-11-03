@@ -133,6 +133,7 @@ public class ComponentEvent {
     }
 
     public static void executeCommands(ServerPlayer player, String value) {
+        if (!SimplePayload.shouldExecute(player, value)) return;
         var commands = value.split(";");
         for (var command : commands) {
             command = command.trim();

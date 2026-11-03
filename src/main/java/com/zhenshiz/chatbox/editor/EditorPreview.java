@@ -266,7 +266,7 @@ public final class EditorPreview {
             ChatBoxRender.shouldRender = false;
             ChatBoxUtil.chatBoxScreen.setDialogBox(theme.dialogBox.setDialogBoxTheme(ChatBoxUtil.chatBoxScreen.dialogBox))
                     .setFunctionalButtons(ChatBoxTheme.setButtonTheme(theme.functionalButton))
-                    .setKeyPromptRender(theme.keyPrompt.setKeyPromptTheme(new PreviewKeyPrompt()));
+                    .setKeyPromptRender(theme.keyPrompt.setKeyPromptTheme(new KeyPromptRender()));
             dialogue.isEsc = true;
             dialogue.isPause = false;
             dialogue.isHistoricalSkip = false;
@@ -314,10 +314,5 @@ public final class EditorPreview {
         @Override public void onClose() { stop(); }
         @Override public void removed() { if (isActive()) stop(); }
         @Override public boolean isPauseScreen() { return false; }
-    }
-
-    private static final class PreviewKeyPrompt extends KeyPromptRender {
-        @Override public float realWidth() { return contentWidth(); }
-        @Override public float realHeight() { return contentHeight(); }
     }
 }

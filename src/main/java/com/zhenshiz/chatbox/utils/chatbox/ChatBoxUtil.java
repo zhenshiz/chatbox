@@ -155,6 +155,11 @@ public class ChatBoxUtil {
         }
 
         if (index >= 0 && index < dialogues.size()) {
+            if (!EditorPreview.isActive()) {
+                NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
+                SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
+            }
+
             ChatBoxDialogues.Dialogues dialog = dialogues.get(index);
             ChatBoxDialogues.Dialogues.DialogBox dialogBox = dialog.dialogBox;
             Video video = null;
@@ -186,11 +191,6 @@ public class ChatBoxUtil {
 
             //添加历史聊天记录
             historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
-
-            if (!EditorPreview.isActive()) {
-                NeoForge.EVENT_BUS.post(new SkipChatEvent(minecraft.player, dialoguesResourceLocation, group, index, chatTargets));
-                SimplePayload.simplePayloadC2S(SimplePayload.SKIP_CHAT_C2S, dialoguesResourceLocation, group, index);
-            }
 
             ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {

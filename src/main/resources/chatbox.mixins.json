@@ -9,6 +9,7 @@
     "SimpleCriterionTriggerMixin"
   ],
   "client": [
+    "client.LanguageMixin",
     "client.MinecraftMixin",
     "client.MouseHandlerMixin",
     "client.TETradeScreenMixin"
