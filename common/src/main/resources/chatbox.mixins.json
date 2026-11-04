@@ -9,7 +9,8 @@
   ],
   "mixins": [
     "EntityAccessor",
-    "SimpleCriterionTriggerMixin"
+    "SimpleCriterionTriggerMixin",
+    "client.LanguageMixin"
   ],
   "injectors": {
     "defaultRequire": 1

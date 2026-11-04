@@ -21,6 +21,7 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
     implementation "org.mvel:mvel2:2.5.0.Final"
+    implementation("org.java-websocket:Java-WebSocket:1.6.0") { transitive = false }
 }
 
 configurations {

@@ -31,7 +31,7 @@ public class ChatBoxRender {
 
     public static void onEndTick(Minecraft minecraft) {
         // 客户端每5 tick请求同步对话目标实体
-        if (minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
+        if (!com.zhenshiz.chatbox.editor.EditorPreview.isActive() && minecraft.level != null && isOpenChatBox && minecraft.level.getGameTime() - lastSyncTime >= 5) {
             ChatBoxCommandUtil.simplePayloadC2S(SimplePayload.REQUEST_SYNC);
         }
         if (isRenderChatBox()) {

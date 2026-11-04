@@ -15,6 +15,7 @@ dependencies {
     compileOnly("maven.modrinth:watermedia:${watermedia_version}")
 
     implementation("org.mvel:mvel2:2.5.0.Final")
+    implementation("org.java-websocket:Java-WebSocket:1.6.0") { transitive = false }
 
     implementation files("libs/${graal_name}")
     compileOnly files("libs/${nekojs_name}")

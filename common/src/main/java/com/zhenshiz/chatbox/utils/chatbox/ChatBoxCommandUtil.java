@@ -189,6 +189,7 @@ public class ChatBoxCommandUtil {
     }
 
     public static void simplePayloadC2S(String name, String value) {
+        if (com.zhenshiz.chatbox.editor.EditorPreviewState.isActive()) return;
         ChatBox.PLATFORM.sendToServer(new SimplePayload(name, value));
     }
     public static void simplePayloadC2S(String name, Object... args) {

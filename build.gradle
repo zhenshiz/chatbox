@@ -92,7 +92,7 @@ subprojects {
         idea {
             module {
                 downloadSources = true
-                downloadJavadoc = true
+                downloadJavadoc = false
             }
         }
     }

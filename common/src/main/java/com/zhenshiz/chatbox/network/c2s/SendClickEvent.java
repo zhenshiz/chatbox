@@ -21,6 +21,7 @@ public record SendClickEvent(String typeId, String value) implements CustomPacke
     public @NotNull Type<? extends CustomPacketPayload> type() {return TYPE;}
 
     public static void handleOnServer(ServerPlayer player, SendClickEvent payload) {
+        if (!com.zhenshiz.chatbox.editor.EditorDebugServer.permitsAction(player)) return;
         EventExecutor.EXECUTORS.get(payload.typeId()).executeOnServer(player, payload.value());
     }
 }

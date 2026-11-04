@@ -4,7 +4,6 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -15,12 +14,28 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     public static final Identifier
             mouse_right = ChatBox.id("textures/key/right_mouse.png"),
             mouse_scroll = ChatBox.id("textures/key/scroll_mouse.png");
-    public Boolean visible;
-    public Float mouseTextureWidth;
-    public Float mouseTextureHeight;
+    public boolean visible;
+    public float mouseTextureWidth;
+    public float mouseTextureHeight;
     public Identifier rightClickTexture;
     public Identifier scrollTexture;
     public static final String ctrl = Util.getPlatform() == Util.OS.OSX ? "Cmd" : "Ctrl";
+
+    static Component keyRightClick;
+    static Component keyScroll;
+    static Component keyEsc;
+    static Component keyCtrl;
+    static Component keyF6;
+    static long lastCacheTime;
+    static float cachedWidth;
+
+    public static void onLanguageChanged() {
+        keyRightClick = Component.translatable("chatbox.key.right_click");
+        keyScroll = Component.translatable("chatbox.key.scroll");
+        keyEsc = Component.translatable("chatbox.key.esc");
+        keyCtrl = Component.translatable("chatbox.key.ctrl");
+        keyF6 = Component.translatable("chatbox.key.f6");
+    }
 
     @Override
     public String getId() {return "key_prompt";}
@@ -47,49 +62,65 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float pPartialTick) {
-        if (this.visible) {
-            Font font = minecraft.font;
+    public float realWidth() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastCacheTime < 1000) return cachedWidth;
+        lastCacheTime = currentTime;
 
-            String keyRightClick = Component.translatable("chatbox.key.right_click").getString();
-            String keyScroll = Component.translatable("chatbox.key.scroll").getString();
-            String keyEsc = Component.translatable("chatbox.key.esc").getString();
-            String keyCtrl = Component.translatable("chatbox.key.ctrl").getString();
-            String keyF6 = Component.translatable("chatbox.key.f6").getString();
-
-            float x = realX();
-            float y = realY();
-
-            //right scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, mouse_right), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 100, 0f);
-            drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyRightClick);
-
-            x += mouseTextureWidth + font.width(keyRightClick) + 4;
-
-            //mouse scroll
-            RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, mouse_scroll), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, 100, 0f);
-            drawText(guiGraphics, x + mouseTextureWidth + 2, y + (float) font.lineHeight / 2, keyScroll);
-
-            x += mouseTextureWidth + font.width(keyScroll) + 4;
-
-            //esc
-            drawKeyBoardKey(guiGraphics, (int) x, (int) y + font.lineHeight / 2, "Esc", false);
-            drawText(guiGraphics, x + font.width("Esc") + 6, y + (float) font.lineHeight / 2, keyEsc);
-
-            x += 10 + font.width("Esc") + font.width(keyEsc);
-
-            //ctrl
-            if (ChatBoxUtil.chatBoxScreen.fastForwardButton() != null) {
-                drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, ctrl, false);
-                drawText(guiGraphics, x + font.width(ctrl) + 6, y + (float) font.lineHeight / 2, keyCtrl);
-
-                x += 10 + font.width(ctrl) + font.width(keyCtrl);
-            }
-
-            //f6
-            drawKeyBoardKey(guiGraphics, (int) (x), (int) y + font.lineHeight / 2, "F6", ChatBoxUtil.chatBoxScreen.autoPlay);
-            drawText(guiGraphics, x + font.width("F6") + 6, y + (float) font.lineHeight / 2, keyF6);
+        Font font = minecraft.font;
+        cachedWidth = 2 * this.mouseTextureWidth + 8
+                + font.width(keyRightClick) + font.width(keyScroll)
+                + 10 + font.width("Esc") + font.width(keyEsc)
+                + 6 + font.width("F6") + font.width(keyF6);
+        if (ChatBoxUtil.chatBoxScreen.fastForwardButton() != null) {
+            cachedWidth += 10 + font.width(ctrl) + font.width(keyCtrl);
         }
+        return cachedWidth;
+    }
+
+    @Override
+    public float realHeight() {
+        return Math.max(this.mouseTextureHeight + 2, (float) minecraft.font.lineHeight / 2 + 12);
+    }
+
+    @Override
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float pPartialTick) {
+        if (!visible) return;
+        renderInner(mouseX, mouseY);
+        guiGraphics.pose().pushMatrix();
+        Font font = minecraft.font;
+
+        int x = (int) realX();
+        int y = (int) realY();
+        guiGraphics.pose().scaleAround(scale, x + realWidth() / 2, y + realHeight() / 2);
+        int textY = y + font.lineHeight / 2;
+
+        //right scroll
+        RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.rightClickTexture, mouse_right), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, brightness, 0f);
+        drawText(guiGraphics, (int) (x + mouseTextureWidth + 2), textY, keyRightClick);
+        x += (int) (mouseTextureWidth + font.width(keyRightClick) + 4);
+
+        //mouse scroll
+        RenderUtil.renderImage(guiGraphics, BeanUtil.getValueOrDefault(this.scrollTexture, mouse_scroll), x, y + 2, mouseTextureWidth, mouseTextureHeight, 1, opacity, brightness, 0f);
+        drawText(guiGraphics, (int) (x + mouseTextureWidth + 2), textY, keyScroll);
+        x += (int) (mouseTextureWidth + font.width(keyScroll) + 4);
+
+        //esc
+        drawKeyBoardKey(guiGraphics, x, textY, "Esc", false);
+        drawText(guiGraphics, x + font.width("Esc") + 6, textY, keyEsc);
+        x += 10 + font.width("Esc") + font.width(keyEsc);
+
+        //ctrl
+        if (ChatBoxUtil.chatBoxScreen.fastForwardButton() != null) {
+            drawKeyBoardKey(guiGraphics, x, textY, ctrl, false);
+            drawText(guiGraphics, x + font.width(ctrl) + 6, textY, keyCtrl);
+            x += 10 + font.width(ctrl) + font.width(keyCtrl);
+        }
+
+        //f6
+        drawKeyBoardKey(guiGraphics, x, textY, "F6", ChatBoxUtil.chatBoxScreen.autoPlay);
+        drawText(guiGraphics, x + font.width("F6") + 6, textY, keyF6);
+        guiGraphics.pose().popMatrix();
     }
 
     public static void drawKeyBoardKey(GuiGraphicsExtractor guiGraphics, int x, int y, String key, boolean pressed) {
@@ -122,45 +153,15 @@ public class KeyPromptRender extends AbstractComponent<KeyPromptRender> {
         guiGraphics.centeredText(font, key, x + width / 2, y + (height - 8) / 2, 0xFFFFFFFF);
     }
 
-    public static void drawText(GuiGraphicsExtractor guiGraphics, float x, float y, String text) {
-        Font font = Minecraft.getInstance().font;
+    public static void drawText(GuiGraphicsExtractor guiGraphics, int x, int y, Component text) {
+        Font font = minecraft.font;
         // 渲染文字描边（四周偏移1像素）
-        guiGraphics.text(
-                font,
-                text,
-                (int) (x - 1), (int) y,
-                0xFF000000,
-                true
-        );
-        guiGraphics.text(
-                font,
-                text,
-                (int) (x + 1), (int) y,
-                0xFF000000,
-                true
-        );
-        guiGraphics.text(
-                font,
-                text,
-                (int) x, (int) (y - 1),
-                0xFF000000,
-                true
-        );
-        guiGraphics.text(
-                font,
-                text,
-                (int) x, (int) (y + 1),
-                0xFF000000,
-                true
-        );
+        guiGraphics.text(font, text, x - 1, y, 0xFF000000, true);
+        guiGraphics.text(font, text, x + 1, y, 0xFF000000, true);
+        guiGraphics.text(font, text, x, y - 1, 0xFF000000, true);
+        guiGraphics.text(font, text, x, y + 1, 0xFF000000, true);
 
         // 渲染主体文字
-        guiGraphics.text(
-                font,
-                text,
-                (int) x, (int) y,
-                0xFFFFFFFF,
-                true
-        );
+        guiGraphics.text(font, text, x, y, 0xFFFFFFFF, true);
     }
 }

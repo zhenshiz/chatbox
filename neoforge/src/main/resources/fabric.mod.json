@@ -40,6 +40,9 @@
   "accessWidener": "chatbox.accesswidener",
   "jars": [
     {
+      "file": "META-INF/jarjar/Java-WebSocket-1.6.0.jar"
+    },
+    {
       "file": "META-INF/jarjar/mvel2-2.5.0.Final.jar"
     }
   ]

@@ -5,6 +5,7 @@ import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import com.zhenshiz.chatbox.utils.common.StrUtil;
 import com.zhenshiz.chatbox.utils.mvel.MVELUtil;
@@ -52,6 +53,7 @@ public class ComponentEvent {
     /**根据谓语条件触发事件，仍会验证事件本身的condition*/
     protected boolean fire(Predicate<ComponentEvent> predicate, int id, int index) {
         if (!predicate.test(this)) return false;
+        if (com.zhenshiz.chatbox.editor.EditorPreviewState.isActive() && !condition.isEmpty()) return false;
         if (condition.isEmpty()) return execute();
         if (condition.startsWith("execute") || condition.startsWith("server:")) {
             simplePayloadC2S("test_condition", condition, id, index);
@@ -132,6 +134,7 @@ public class ComponentEvent {
     }
 
     public static void executeCommands(ServerPlayer player, String value) {
+        if (!SimplePayload.shouldExecute(player, value)) return;
         var commands = value.split(";");
         for (var command : commands) {
             command = command.trim();

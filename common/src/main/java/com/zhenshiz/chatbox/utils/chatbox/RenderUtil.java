@@ -499,7 +499,10 @@ public class RenderUtil {
         }
     }
 
-    public static String translated(String key) {return Language.getInstance().getOrDefault(key);}
+    public static String translated(String key) {
+        String draft = com.zhenshiz.chatbox.editor.EditorPreview.translation(key);
+        return draft == null ? Language.getInstance().getOrDefault(key) : draft;
+    }
 
     public static void renderTooltip(GuiGraphicsExtractor guiGraphics, Component tooltip, int x, int y) {
         renderTooltip(guiGraphics, List.of(tooltip), x, y);

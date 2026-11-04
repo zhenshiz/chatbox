@@ -1,5 +1,6 @@
 package com.zhenshiz.chatbox.fabric;
 
+import com.zhenshiz.chatbox.editor.EditorFilePayload;
 import com.zhenshiz.chatbox.network.SimplePayload;
 import com.zhenshiz.chatbox.network.c2s.SendClickEvent;
 import com.zhenshiz.chatbox.network.s2c.ChatBoxPayload;
@@ -16,7 +17,11 @@ public class Network {
         PayloadTypeRegistry.serverboundPlay().register(SimplePayload.TYPE, SimplePayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SendClickEvent.TYPE, SendClickEvent.CODEC);
 
-        ServerPlayNetworking.registerGlobalReceiver(SendClickEvent.TYPE, ((packet, context) -> SendClickEvent.handleOnServer(context.player(), packet)));
-        ServerPlayNetworking.registerGlobalReceiver(SimplePayload.TYPE, ((packet, context) -> SimplePayload.handleOnServer(context.player(), packet)));
+        ServerPlayNetworking.registerGlobalReceiver(SendClickEvent.TYPE, (packet, context) -> SendClickEvent.handleOnServer(context.player(), packet));
+        ServerPlayNetworking.registerGlobalReceiver(SimplePayload.TYPE, (packet, context) -> SimplePayload.handleOnServer(context.player(), packet));
+
+        PayloadTypeRegistry.serverboundPlay().register(EditorFilePayload.TYPE, EditorFilePayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(EditorFilePayload.TYPE, EditorFilePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(EditorFilePayload.TYPE, (packet, context) -> EditorFilePayload.handleOnServer(context.player(), packet));
     }
 }

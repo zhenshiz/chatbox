@@ -33,6 +33,10 @@ public class ChatBoxPayload {
         }
 
         public static void handleOnClient(ChatBoxDataToClient payload) {
+            if (payload.name().equals("theme") || payload.name().equals("dialogues")) {
+                com.zhenshiz.chatbox.editor.EditorDebug.stop();
+                com.zhenshiz.chatbox.editor.EditorPreview.stop();
+            }
             switch (payload.name()) {
                 case "theme" -> {
                     ChatBoxUtil.setTheme(mergeString(payload.dataMap()));
