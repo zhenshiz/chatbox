@@ -289,7 +289,9 @@ public final class EditorBridgeClient {
             if (LivingEntity.class.isAssignableFrom(type.getBaseClass())) living.add(option(type.getDescription().getString(), BuiltInRegistries.ENTITY_TYPE.getKey(type).toString()));
         }
         registries.add("LIVING_ENTITY", living);
-        registries.add("SOUND", entries(BuiltInRegistries.SOUND_EVENT, sound -> sound.getLocation().toString(), false));
+        JsonArray sounds = new JsonArray();
+        new TreeSet<>(mc.getSoundManager().getAvailableSounds()).forEach(id -> sounds.add(option(id.toString(), id.toString())));
+        registries.add("SOUND", sounds);
         registries.add("PARTICLE", entries(BuiltInRegistries.PARTICLE_TYPE, particle -> BuiltInRegistries.PARTICLE_TYPE.getKey(particle).toString(), false));
         registries.add("FLUID", entries(BuiltInRegistries.FLUID, fluid -> BuiltInRegistries.FLUID.getKey(fluid).toString(), false));
         addTags(registries, "ITEM_TAG", BuiltInRegistries.ITEM);
