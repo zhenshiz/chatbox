@@ -18,6 +18,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
@@ -284,6 +286,7 @@ public class ChatBoxScreen extends Screen {
     protected boolean showKeyPromptInScreen() { return false; }
 
     public void renderInner(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, boolean isScreen) {
+        renderedTexts.clear();
         if (!renderStarted) { renderStarted = true; fireEvent("ON_START"); }
         long currentTime = System.currentTimeMillis();
         boolean shouldUpdatePortrait = Math.abs(currentTime - lastUpdateTime) >= updateDuration;
@@ -327,8 +330,8 @@ public class ChatBoxScreen extends Screen {
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderInner(guiGraphics, pMouseX, pMouseY, pPartialTick, true);
         super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+        var font = minecraft.font;
         if (debug) {
-            var font = minecraft.font;
             if (underCursor != null && hasControlDown()) {
                 guiGraphics.renderComponentTooltip(font, Arrays.stream(underCursor.getDebugInfo()).map(Component::nullToEmpty).toList(), pMouseX, pMouseY);
             } else if (hasShiftDown()) {
@@ -346,6 +349,7 @@ public class ChatBoxScreen extends Screen {
                 }
             }
         }
+        guiGraphics.renderComponentHoverEffect(font, getComponentStyleAt(pMouseX, pMouseY), pMouseX, pMouseY);
     }
 
     public boolean shouldGotoNext() {
@@ -397,6 +401,7 @@ public class ChatBoxScreen extends Screen {
 
             dialogBoxClick();
         }
+        if (handleComponentClicked(getComponentStyleAt((int) pMouseX, (int) pMouseY))) return true;
         return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
@@ -494,7 +499,6 @@ public class ChatBoxScreen extends Screen {
         if (hideDialogBox) return; //如果隐藏对话框，则不tick
         if (!shouldGotoNext()) fastForward = false;
 
-        dialogBox.tick();
         if (shouldFastForward()) { dialogBoxClick(); return; }
         // MC不在暂停游戏时tick声音，那我自己tick一下
         SoundUtil.tickWhenPaused();
@@ -532,5 +536,22 @@ public class ChatBoxScreen extends Screen {
 
     @Override
     public void renderBackground(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    }
+
+    record RenderedText(int x, int y, FormattedText text) {}
+    final List<RenderedText> renderedTexts = new ArrayList<>();
+
+    public void addRenderedText(int x, int y, FormattedText text) {
+        renderedTexts.add(new RenderedText(x, y, text));
+    }
+
+    private Style getComponentStyleAt(int x, int y) {
+        for (int i = renderedTexts.size() - 1; i >= 0; i--) {
+            var text = renderedTexts.get(i); var font = minecraft.font;
+            if (text.y() <= y && y <= text.y() + font.lineHeight) {
+                return font.getSplitter().componentStyleAtWidth(text.text(), x - text.x());
+            }
+        }
+        return null;
     }
 }

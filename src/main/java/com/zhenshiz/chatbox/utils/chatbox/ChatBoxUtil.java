@@ -1,11 +1,9 @@
 package com.zhenshiz.chatbox.utils.chatbox;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.zhenshiz.chatbox.ChatBox;
-import com.zhenshiz.chatbox.editor.EditorPreview;
 import com.zhenshiz.chatbox.client.ChatBoxRender;
 import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
@@ -15,7 +13,9 @@ import com.zhenshiz.chatbox.component.Portrait;
 import com.zhenshiz.chatbox.component.data.Keyframe;
 import com.zhenshiz.chatbox.component.video.Video;
 import com.zhenshiz.chatbox.data.ChatBoxDialogues;
+import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.data.ChatBoxTheme;
+import com.zhenshiz.chatbox.editor.EditorPreview;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.mixin.EntityAccessor;
 import com.zhenshiz.chatbox.network.SimplePayload;
@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class ChatBoxUtil {
     public static final Minecraft minecraft = Minecraft.getInstance();
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    public static final Gson GSON = ChatBoxDialoguesLoader.GSON;
     //所有的对话框主题
     public static final Map<ResourceLocation, ChatBoxTheme> themeMap = new HashMap<>();
     //所有的对话信息
@@ -129,10 +129,9 @@ public class ChatBoxUtil {
         }
         try {
             videoJson = GSON.fromJson(json, JsonObject.class);
-            String title = "";
-            if (videoJson.has("title")) title = videoJson.get("title").getAsString();
+            var title = videoJson.get("title");
             skipDialogues(ChatBox.parseId("test:play_video"), "start");
-            if (!title.isEmpty()) chatBoxScreen.dialogBox.name = title;
+            chatBoxScreen.dialogBox.setName(title);
         } catch (Exception e) {
             ChatBox.LOGGER.error("Failed to play video: {}", e.getMessage());
         }
@@ -190,7 +189,8 @@ public class ChatBoxUtil {
                     .setEvents(dialog.renderEvents);
 
             //添加历史聊天记录
-            historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index, dialogBox.name, dialogBox.text);
+            historicalDialogue.addHistoricalInfo(dialoguesResourceLocation, group, index,
+                    ChatBoxDialogues.getString(dialogBox.name), ChatBoxDialogues.getString(dialogBox.text));
 
             ChatBoxRender.isOpenChatBox = true;
             if (isScreen) {

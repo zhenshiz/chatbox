@@ -83,8 +83,8 @@ public class ChatBoxDialogues {
         }
 
         public static class DialogBox {
-            public String name = "";
-            public String text = "";
+            public JsonElement name;
+            public JsonElement text;
 
             public com.zhenshiz.chatbox.component.DialogBox setDialogBoxDialogues(com.zhenshiz.chatbox.component.DialogBox dialogBox) {
                 return dialogBox.setName(this.name).setText(this.text)
@@ -145,7 +145,7 @@ public class ChatBoxDialogues {
         }
 
         public static class Option {
-            public String text;
+            public JsonElement text;
             public Boolean isLock = false;
             public String unlockCommand;
             public String next;
@@ -170,5 +170,9 @@ public class ChatBoxDialogues {
             }
             return chatOptions;
         }
+    }
+
+    public static String getString(JsonElement element) {
+        return element == null ? "" : element.isJsonPrimitive() ? element.getAsString() : element.toString();
     }
 }

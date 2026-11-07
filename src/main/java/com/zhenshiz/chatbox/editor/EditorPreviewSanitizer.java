@@ -1,6 +1,8 @@
 package com.zhenshiz.chatbox.editor;
 
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import java.util.Locale;
 import java.util.Set;
 

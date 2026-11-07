@@ -1,7 +1,8 @@
 package com.zhenshiz.chatbox.editor;
 
-import com.google.gson.*;
-import com.zhenshiz.chatbox.data.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.zhenshiz.chatbox.client.ChatBoxRender;
 import com.zhenshiz.chatbox.client.screen.ChatBoxScreen;
 import com.zhenshiz.chatbox.client.screen.HistoricalDialogueScreen;
@@ -9,12 +10,15 @@ import com.zhenshiz.chatbox.component.AbstractComponent;
 import com.zhenshiz.chatbox.component.ChatOption;
 import com.zhenshiz.chatbox.component.KeyPromptRender;
 import com.zhenshiz.chatbox.component.Portrait;
+import com.zhenshiz.chatbox.data.ChatBoxDialogues;
+import com.zhenshiz.chatbox.data.ChatBoxTheme;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.SoundUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
 /** 隔离编辑器临时预览与玩家已加载的对话状态。 */
 public final class EditorPreview {

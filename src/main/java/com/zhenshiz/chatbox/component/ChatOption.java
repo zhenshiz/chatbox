@@ -1,6 +1,8 @@
 package com.zhenshiz.chatbox.component;
 
+import com.google.gson.JsonElement;
 import com.zhenshiz.chatbox.component.data.Attachment;
+import com.zhenshiz.chatbox.component.data.ChatBoxText;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
 import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import com.zhenshiz.chatbox.utils.common.BeanUtil;
@@ -14,7 +16,7 @@ public class ChatOption extends Portrait<ChatOption> {
             hover = "chatbox:textures/options/default_checked_option.png",
             lock = "chatbox:textures/options/default_lock_checked_option.png";
     //选项文本
-    public String optionChat = "";
+    public ChatBoxText optionChat = ChatBoxText.EMPTY_TEXT;
     //选项x位置
     public float optionChatX = 0;
     //选项y位置
@@ -40,7 +42,11 @@ public class ChatOption extends Portrait<ChatOption> {
     }
 
     public ChatOption setOptionChat(String optionChat) {
-        if (notNull(optionChat)) this.optionChat = optionChat;
+        this.optionChat = ChatBoxText.of(optionChat);
+        return this;
+    }
+    public ChatOption setOptionChat(JsonElement optionChat) {
+        this.optionChat = ChatBoxText.of(optionChat);
         return this;
     }
 
@@ -113,7 +119,7 @@ public class ChatOption extends Portrait<ChatOption> {
         if (this.alignY == AlignY.BOTTOM) this.y -= (num - 1) * this.height;
 
         int color = isLock ? CommonColors.GRAY : isSelect ? CommonColors.YELLOW : CommonColors.WHITE;
-        renderImage(guiGraphics, getRenderResource(), addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false, true)));
+        renderImage(guiGraphics, getRenderResource(), addTempAttachment(Attachment.ofText(this.optionChat, this.optionChatX, this.optionChatY, this.width, this.textAlign.name(), color, false)));
 
         if (!this.optionTooltip.isEmpty() && isSelect) {
             guiGraphics.renderTooltip(minecraft.font, Component.nullToEmpty(this.optionTooltip), (int) realX(), (int) realY());

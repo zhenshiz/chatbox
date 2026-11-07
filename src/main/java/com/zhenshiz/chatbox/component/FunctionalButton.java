@@ -1,9 +1,12 @@
 package com.zhenshiz.chatbox.component;
 
 import com.zhenshiz.chatbox.ChatBox;
+import com.zhenshiz.chatbox.component.data.ChatBoxText;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil;
-import com.zhenshiz.chatbox.utils.chatbox.RenderUtil;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+
+import java.util.Map;
 
 import static com.zhenshiz.chatbox.utils.chatbox.ChatBoxUtil.chatBoxScreen;
 
@@ -18,6 +21,12 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
             log_hover   = "chatbox:textures/button/default_hover_log.png",
             fast_hover  = "chatbox:textures/button/default_hover_fastforward.png",
             auto_hover  = "chatbox:textures/button/default_hover_autoplay.png";
+
+    public static final Map<Type, Component> textMap = Map.of(
+            Type.LOG,           Component.translatable("chatbox.button.log"),
+            Type.FASTFORWARD,   Component.translatable("chatbox.button.fast_forward"),
+            Type.AUTOPLAY,      Component.translatable("chatbox.button.autoplay")
+    );
 
     public FunctionalButton(String type) {
         this.type = Type.of(type);
@@ -73,14 +82,8 @@ public class FunctionalButton extends Portrait<FunctionalButton> {
                 || type == Type.FASTFORWARD && chatBoxScreen.fastForward) texture = getHoverTexture();
         renderImage(guiGraphics, ChatBox.parseId(texture), getAttachments());
 
-        if (isSelect) {
-            String key = switch (type) {
-                case LOG -> "chatbox.button.log";
-                case FASTFORWARD -> "chatbox.button.fast_forward";
-                case AUTOPLAY -> "chatbox.button.autoplay";
-            };
-            RenderUtil.drawStringAlign(guiGraphics, RenderUtil.translated(key), (int) realX(), (int) realY() - 12, (int) realWidth(), this.alignX, -1, false);
-        }
+        if (isSelect) ChatBoxText.drawStringAlign(guiGraphics, textMap.get(type),
+                (int) realX(), (int) realY() - 12, (int) realWidth(), this.alignX, -1);
     }
 
     public enum Type {

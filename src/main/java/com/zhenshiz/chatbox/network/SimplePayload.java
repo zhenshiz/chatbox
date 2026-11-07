@@ -2,6 +2,7 @@ package com.zhenshiz.chatbox.network;
 
 import com.zhenshiz.chatbox.ChatBox;
 import com.zhenshiz.chatbox.component.data.ComponentEvent;
+import com.zhenshiz.chatbox.data.ChatBoxDialogues;
 import com.zhenshiz.chatbox.data.ChatBoxDialoguesLoader;
 import com.zhenshiz.chatbox.event.neoforge.SkipChatEvent;
 import com.zhenshiz.chatbox.utils.chatbox.ChatBoxCommandUtil;
@@ -181,7 +182,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
             var options = dialog.options;
             if (options != null) for (var option : options) {
                 String parsedText = null; String parsedTip = null;
-                var text = option.text;
+                var text = ChatBoxDialogues.getString(option.text);
                 if (text != null && !text.isEmpty()) {
                     parsedText = parsePlaceholders(player, text);
                     if (parsedText.equals(text)) parsedText = null;
@@ -197,7 +198,7 @@ public record SimplePayload(String name, String value) implements CustomPacketPa
 
             var dialogBox = dialog.dialogBox;
             String parsedName = null; String parsedText = null;
-            var name = dialogBox.name; var text = dialogBox.text;
+            var name = ChatBoxDialogues.getString(dialogBox.name); var text = ChatBoxDialogues.getString(dialogBox.text);
             if (!name.isEmpty()) {
                 parsedName = parsePlaceholders(player, name);
                 if (parsedName.equals(name)) parsedName = null;

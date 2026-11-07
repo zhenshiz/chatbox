@@ -103,7 +103,7 @@ public final class EditorDebug {
                     && optionBehavior(old.get(i)).equals(optionBehavior(option))) match = i;
             if (match >= 0) {
                 used[match] = true;
-                replacements.set(i, rendered.get(match).setOptionChat(option.text == null ? "" : option.text)
+                replacements.set(i, rendered.get(match).setOptionChat(option.text)
                         .setOptionTooltip(option.tooltip == null ? "" : option.tooltip));
             } else replacements.get(i).resumeRendering();
         }
